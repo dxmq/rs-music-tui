@@ -2,6 +2,11 @@
 name = "netease-cloud-music-tui"
 version = "0.1.0"
 edition = "2021"
+authors = ["raining <1697859639@qq.com>"]
+description = "a terminal player for neteaset cloud music"
+license = "MIT OR Apache-2.0"
+keywords = ["netease-cloud-music", "tui", "cli", "terminal"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
