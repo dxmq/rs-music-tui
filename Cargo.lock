@@ -561,6 +561,7 @@ dependencies = [
  "async-trait",
  "clap",
  "crossterm",
+ "lazy_static",
  "log",
  "maybe-async",
  "rand",
