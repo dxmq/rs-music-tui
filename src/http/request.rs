@@ -1,13 +1,12 @@
 use std::borrow::Cow;
+use std::collections::HashMap;
 
-use maybe_async::async_impl;
 use reqwest::header::{HeaderMap, ACCEPT_ENCODING, CONTENT_TYPE, COOKIE, HOST, USER_AGENT};
 use reqwest::{Client, Method, RequestBuilder};
 use serde::Deserialize;
 use serde_json::Value;
 
 use crate::http::auth::ClientCookieManager;
-use crate::http::common::{BaseHttpClient, Form, Query};
 
 lazy_static! {
     pub static ref CLIENT: Client = Client::new();
@@ -30,6 +29,14 @@ pub enum RequestError {
 }
 
 impl RequestClient {
+    pub fn default() -> RequestClient {
+        RequestClient {
+            prefix: "https://music.163.com".to_owned(),
+            cookie: None,
+            client_cookie_manager: None,
+        }
+    }
+
     async fn request<D>(&self, url: &str, method: Method, params: D) -> Result<String, RequestError>
     where
         D: Fn(RequestBuilder) -> RequestBuilder,
@@ -48,7 +55,8 @@ impl RequestClient {
         header_map.insert(USER_AGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/13.10586".parse().unwrap());
         header_map.insert(HOST, "music.163.com".parse().unwrap());
         header_map.insert(ACCEPT_ENCODING, "gzip,deflate".parse().unwrap());
-        header_map.insert(COOKIE, self.cookie().await.parse().unwrap());
+        // header_map.insert(COOKIE, self.cookie().await.parse().unwrap());
+        header_map.insert(COOKIE, "".parse().unwrap());
 
         request = request.headers(header_map);
         request = params(request);
@@ -73,33 +81,36 @@ impl RequestClient {
         };
         cookie
     }
-}
 
-#[async_impl]
-impl BaseHttpClient for RequestClient {
-    type Error = RequestError;
-
-    async fn get(&self, url: &str, payload: &Query) -> Result<String, Self::Error> {
+    async fn get(
+        &self,
+        url: &str,
+        payload: &HashMap<String, String>,
+    ) -> Result<String, RequestError> {
         self.request(url, Method::GET, |req| req.query(payload))
             .await
     }
 
-    async fn post(&self, url: &str, payload: &Value) -> Result<String, Self::Error> {
+    pub(crate) async fn post(&self, url: &str, payload: &Value) -> Result<String, RequestError> {
         self.request(url, Method::POST, |req| req.json(payload))
             .await
     }
 
-    async fn post_form<'a>(&self, url: &str, payload: &Form<'a>) -> Result<String, Self::Error> {
+    async fn post_form(
+        &self,
+        url: &str,
+        payload: &HashMap<String, String>,
+    ) -> Result<String, RequestError> {
         self.request(url, Method::POST, |req| req.form(payload))
             .await
     }
 
-    async fn put(&self, url: &str, payload: &Value) -> Result<String, Self::Error> {
+    async fn put(&self, url: &str, payload: &Value) -> Result<String, RequestError> {
         self.request(url, Method::PUT, |req| req.json(payload))
             .await
     }
 
-    async fn delete(&self, url: &str, payload: &Value) -> Result<String, Self::Error> {
+    async fn delete(&self, url: &str, payload: &Value) -> Result<String, RequestError> {
         self.request(url, Method::DELETE, |req| req.json(payload))
             .await
     }

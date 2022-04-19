@@ -16,7 +16,8 @@ clap = "2.33.3"
 crossterm = "0.20"
 thiserror = "1.0.29"
 reqwest = { version = "0.11.10", default-features = false, features = ["json", "socks"]}
-tokio = { version = "0.2", features = ["full"] }
+tokio = { version = "1.11.0", features = ["full"] }
 rand = "0.8.4"
 anyhow = "1.0.43"
 lazy_static = "1.4.0"
+ncmapi = "0.1.8"
