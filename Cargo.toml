@@ -1,0 +1,21 @@
+[package]
+name = "netease-cloud-music-tui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = { version = "0.1.51" }
+log = "0.4.14"
+maybe-async = "0.2.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
+serde_json = "1.0.67"
+clap = "2.33.3"
+crossterm = "0.20"
+thiserror = "1.0.29"
+reqwest = { version = "0.11.10", default-features = false, features = ["json", "socks"]}
+tokio = { version = "0.2", features = ["full"] }
+rand = "0.8.4"
+anyhow = "1.0.43"
