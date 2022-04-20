@@ -5,6 +5,7 @@ use crate::config::CookieConfig;
 #[derive(Debug)]
 pub enum IoEvent {
     // GetPlaylists,
+    GetSearchResults(String),
 }
 
 pub struct ApiClient {

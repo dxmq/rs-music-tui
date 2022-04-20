@@ -11,13 +11,17 @@ use crate::api::IoEvent;
 use crate::app::App;
 use crate::cli::clap::ClapApplication;
 use crate::config::{UserConfig, UserConfigPath};
+use crate::network::network::Network;
+use std::thread;
 
 mod api;
 mod app;
 mod cli;
 mod config;
 mod event;
+mod handler;
 mod http;
+mod network;
 mod ui;
 mod util;
 
@@ -37,6 +41,11 @@ async fn main() -> Result<()> {
     }
     let (sync_io_tx, sync_io_rx) = mpsc::channel::<IoEvent>();
     let app: Arc<Mutex<App>> = Arc::new(Mutex::new(App::new(sync_io_tx, user_config.clone())));
-    ui::start_ui(user_config, &app).await?;
+    let clone_app = app.clone();
+    thread::spawn(move || {
+        let mut network = Network::new(&app);
+        network::start_tokio(sync_io_rx, &mut network);
+    });
+    ui::start_ui(user_config, &clone_app).await?;
     Ok(())
 }

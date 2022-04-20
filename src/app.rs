@@ -11,11 +11,14 @@ pub enum ActiveBlock {
     Input,
     Empty,
     Library,
+    SearchResultBlock,
+    HelpMenu,
 }
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum RouteId {
     Home,
+    Search,
 }
 
 #[derive(Debug)]
@@ -47,6 +50,8 @@ pub struct App {
     pub input_cursor_position: u16,
     // 是否在加载网络接口数据
     pub is_loading: bool,
+    // 当前播放列表索引
+    pub selected_playlist_index: Option<usize>,
 }
 
 impl App {
@@ -91,6 +96,26 @@ impl App {
             current_route.hovered_block = h;
         }
     }
+
+    pub fn push_navigation_stack(
+        &mut self,
+        next_route_id: RouteId,
+        next_active_block: ActiveBlock,
+    ) {
+        // 防止重复
+        if !self
+            .navigation_stack
+            .last()
+            .map(|last_route| last_route.id == next_route_id)
+            .unwrap_or(false)
+        {
+            self.navigation_stack.push(Route {
+                id: next_route_id,
+                active_block: next_active_block,
+                hovered_block: next_active_block,
+            })
+        }
+    }
 }
 
 impl Default for App {
@@ -104,6 +129,7 @@ impl Default for App {
             input_idx: 0,
             input_cursor_position: 0,
             is_loading: false,
+            selected_playlist_index: None,
         }
     }
 }
