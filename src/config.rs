@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use crate::ui::theme::Theme;
 use anyhow::{anyhow, Result};
 
 const CONFIG_DIR: &str = ".config";
@@ -26,12 +27,17 @@ pub struct CookieConfig {
 pub struct UserConfig {
     pub path_to_config: Option<UserConfigPath>,
     pub behavior: BehaviorConfig,
+    pub theme: Theme,
 }
 
 #[derive(Clone)]
 pub struct BehaviorConfig {
     pub tick_rate_milliseconds: u64,
     pub set_window_title: bool,
+    // 是否强制执行宽搜索栏
+    pub enforce_wide_search_bar: bool,
+    // 是否展示加载指示器
+    pub show_loading_indicator: bool,
 }
 
 impl Default for BehaviorConfig {
@@ -39,6 +45,8 @@ impl Default for BehaviorConfig {
         Self {
             tick_rate_milliseconds: 250,
             set_window_title: true,
+            enforce_wide_search_bar: false,
+            show_loading_indicator: true,
         }
     }
 }
@@ -67,6 +75,7 @@ impl UserConfig {
         UserConfig {
             path_to_config: None,
             behavior: BehaviorConfig::default(),
+            theme: Default::default(),
         }
     }
 

@@ -19,6 +19,7 @@ use tui::{
 };
 
 pub(crate) mod draw;
+pub(crate) mod theme;
 
 pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> {
     // Terminal initialization
