@@ -36,7 +36,7 @@ impl RequestClient {
             client_cookie_manager: None,
         }
     }
-
+    #[allow(unused)]
     async fn request<D>(&self, url: &str, method: Method, params: D) -> Result<String, RequestError>
     where
         D: Fn(RequestBuilder) -> RequestBuilder,
@@ -71,6 +71,7 @@ impl RequestClient {
         }
     }
 
+    #[allow(unused)]
     async fn cookie(&self) -> String {
         let cookie = match self.cookie {
             Some(ref cookie) => cookie.to_owned(),
@@ -82,6 +83,7 @@ impl RequestClient {
         cookie
     }
 
+    #[allow(unused)]
     async fn get(
         &self,
         url: &str,
@@ -91,11 +93,13 @@ impl RequestClient {
             .await
     }
 
+    #[allow(unused)]
     pub(crate) async fn post(&self, url: &str, payload: &Value) -> Result<String, RequestError> {
         self.request(url, Method::POST, |req| req.json(payload))
             .await
     }
 
+    #[allow(unused)]
     async fn post_form(
         &self,
         url: &str,
@@ -105,11 +109,13 @@ impl RequestClient {
             .await
     }
 
+    #[allow(unused)]
     async fn put(&self, url: &str, payload: &Value) -> Result<String, RequestError> {
         self.request(url, Method::PUT, |req| req.json(payload))
             .await
     }
 
+    #[allow(unused)]
     async fn delete(&self, url: &str, payload: &Value) -> Result<String, RequestError> {
         self.request(url, Method::DELETE, |req| req.json(payload))
             .await

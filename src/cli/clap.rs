@@ -1,8 +1,7 @@
-use std::ffi::OsString;
 use std::io;
 
 use anyhow::{anyhow, Result};
-use clap::{App, Arg, ArgMatches, Shell};
+use clap::{App, Arg, Shell};
 
 pub struct ClapApplication {
     pub app: App<'static, 'static>,
@@ -12,7 +11,6 @@ pub const BANNER: &str = "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |n|e|t|e|a|s|e|-|c|l|o|u|d|-|m|u|s|i|c|-|t|u|i|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ";
-use std::io::Write;
 
 impl ClapApplication {
     pub fn new() -> Self {
@@ -31,6 +29,13 @@ impl ClapApplication {
                         .takes_value(true)
                         .possible_values(&["bash", "zsh", "fish", "power-shell", "elvish"])
                         .value_name("SHELL"),
+                )
+                .arg(
+                    Arg::with_name("config")
+                        .short("c")
+                        .long("config")
+                        .takes_value(true)
+                        .help("netease-cloud-music-tui config path"),
                 ),
         }
     }

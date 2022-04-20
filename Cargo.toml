@@ -26,3 +26,5 @@ rand = "0.8.4"
 anyhow = "1.0.43"
 lazy_static = "1.4.0"
 ncmapi = "0.1.8"
+dirs = "3.0.2"
+tui = { version = "0.16.0", features = ["crossterm"], default-features = false }
