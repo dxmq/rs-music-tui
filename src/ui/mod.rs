@@ -1,8 +1,8 @@
-use crate::app::{ActiveBlock, App};
-use crate::config::UserConfig;
-use crate::event;
-use crate::event::Key;
-use crate::util::SMALL_TERMINAL_HEIGHT;
+use std::cmp::{max, min};
+use std::io;
+use std::io::stdout;
+use std::sync::Arc;
+
 use anyhow::Result;
 use crossterm::cursor::MoveTo;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
@@ -11,14 +11,18 @@ use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, SetTitle,
 };
 use crossterm::ExecutableCommand;
-use std::io;
-use std::io::stdout;
-use std::sync::Arc;
 use tokio::sync::Mutex;
 use tui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
 };
+
+use crate::api::IoEvent;
+use crate::app::{ActiveBlock, App};
+use crate::config::UserConfig;
+use crate::event;
+use crate::event::Key;
+use crate::util::SMALL_TERMINAL_HEIGHT;
 
 pub(crate) mod draw;
 mod help;
@@ -41,17 +45,60 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
 
     let events = event::Events::new(user_config.behavior.tick_rate_milliseconds);
 
+    let mut is_first_render = true;
     loop {
         let mut app = app.lock().await;
+        if let Ok(size) = terminal.backend().size() {
+            if is_first_render || app.size != size {
+                app.help_menu_max_lines = 0;
+                app.help_menu_offset = 0;
+                app.help_menu_page = 0;
+
+                app.size = size;
+
+                let potential_limit = max((app.size.height as i32) - 13, 0) as u32;
+                let max_limit = min(potential_limit, 50);
+                let large_search_limit = min((f32::from(size.height) / 1.4) as u32, max_limit);
+                let small_search_limit = min((f32::from(size.height) / 2.85) as u32, max_limit / 2);
+
+                app.dispatch(IoEvent::UpdateSearchLimits(
+                    large_search_limit,
+                    small_search_limit,
+                ));
+
+                if app.size.height > 8 {
+                    app.help_menu_max_lines = (app.size.height as u32) - 8;
+                } else {
+                    app.help_menu_max_lines = 0;
+                }
+            }
+        }
+
         let current_route = app.get_current_route();
         terminal.draw(|mut f| match current_route.active_block {
-            // ActiveBlock::HelpMenu => {
-            //     draw::draw_help_menu(&mut f, &app);
-            // }
+            ActiveBlock::HelpMenu => {
+                draw::draw_help_menu(&mut f, &app);
+            }
             _ => {
                 draw::draw_main_layout(&mut f, &app);
             }
         })?;
+
+        if current_route.active_block == ActiveBlock::Input {
+            terminal.show_cursor()?;
+        } else {
+            terminal.hide_cursor()?;
+        }
+        let cursor_offset = if app.size.height > SMALL_TERMINAL_HEIGHT {
+            2
+        } else {
+            1
+        };
+        // Put the cursor back inside the input box
+        terminal.backend_mut().execute(MoveTo(
+            cursor_offset + app.input_cursor_position,
+            cursor_offset,
+        ))?;
 
         match events.next()? {
             event::Event::Input(key) => {
@@ -62,17 +109,10 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             event::Event::Tick => {}
         }
 
-        let cursor_offset = if app.size.height > SMALL_TERMINAL_HEIGHT {
-            2
-        } else {
-            1
-        };
-
-        // Put the cursor back inside the input box
-        terminal.backend_mut().execute(MoveTo(
-            cursor_offset + app.input_cursor_position,
-            cursor_offset,
-        ))?;
+        if is_first_render {
+            app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
+            is_first_render = false;
+        }
     }
 
     terminal.show_cursor()?;

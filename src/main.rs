@@ -21,6 +21,7 @@ mod config;
 mod event;
 mod handler;
 mod http;
+mod model;
 mod network;
 mod ui;
 mod util;

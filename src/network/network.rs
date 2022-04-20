@@ -1,7 +1,8 @@
-use crate::api::IoEvent;
 use std::sync::Arc;
+
 use tokio::sync::Mutex;
 
+use crate::api::IoEvent;
 use crate::app::App;
 
 pub struct Network<'a> {
@@ -24,6 +25,10 @@ impl<'a> Network<'a> {
     pub async fn handle_network_event(&mut self, io_event: IoEvent) {
         match io_event {
             IoEvent::GetSearchResults(search_term) => {}
+            IoEvent::UpdateSearchLimits(large_search_limit, small_search_limit) => {
+                self.large_search_limit = large_search_limit;
+                self.small_search_limit = small_search_limit;
+            }
             _ => {}
         }
     }

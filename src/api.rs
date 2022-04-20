@@ -6,6 +6,7 @@ use crate::config::CookieConfig;
 pub enum IoEvent {
     // GetPlaylists,
     GetSearchResults(String),
+    UpdateSearchLimits(u32, u32),
 }
 
 pub struct ApiClient {

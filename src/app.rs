@@ -4,6 +4,7 @@ use tui::layout::Rect;
 
 use crate::api::IoEvent;
 use crate::config::UserConfig;
+use crate::model::context::CurrentlyPlaybackContext;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum ActiveBlock {
@@ -13,6 +14,8 @@ pub enum ActiveBlock {
     Library,
     SearchResultBlock,
     HelpMenu,
+    // 播放条
+    PlayBar,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -52,8 +55,12 @@ pub struct App {
     pub is_loading: bool,
     // 当前播放列表索引
     pub selected_playlist_index: Option<usize>,
+    pub help_docs_size: u32,
+    pub help_menu_page: u32,
+    pub help_menu_max_lines: u32,
     pub help_menu_offset: u32,
     pub home_scroll: u16,
+    pub current_playback_context: Option<CurrentlyPlaybackContext>,
 }
 
 impl App {
@@ -132,8 +139,12 @@ impl Default for App {
             input_cursor_position: 0,
             is_loading: false,
             selected_playlist_index: None,
+            help_docs_size: 0,
+            help_menu_page: 0,
+            help_menu_max_lines: 0,
             help_menu_offset: 0,
             home_scroll: 0,
+            current_playback_context: None,
         }
     }
 }

@@ -8,6 +8,7 @@ use tui::Frame;
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::cli::clap::BANNER;
 use crate::config::KeyBindings;
+use crate::model::enums::RepeatState;
 use crate::ui::help::get_help_docs;
 use crate::util;
 use crate::util::{get_color, SMALL_TERMINAL_WIDTH};
@@ -50,7 +51,15 @@ where
 {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Percentage(100)].as_ref())
+        .constraints(
+            [
+                Constraint::Percentage(50),
+                Constraint::Percentage(25),
+                Constraint::Percentage(25),
+            ]
+            .as_ref(),
+        )
+        .margin(1)
         .split(layout_chunk);
 
     let playbar = Block::default()
@@ -58,6 +67,48 @@ where
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Blue));
     f.render_widget(playbar, chunks[0]);
+
+    if let Some(current_playback_context) = &app.current_playback_context {
+        let play_title = if current_playback_context.is_playing {
+            "Playing"
+        } else {
+            "Paused"
+        };
+        let shuffle_text = if current_playback_context.shuffle_state {
+            "On"
+        } else {
+            "Off"
+        };
+
+        let repeat_text = match current_playback_context.repeat_state {
+            RepeatState::Off => "Off",
+            RepeatState::Track => "Track",
+            RepeatState::Context => "All",
+        };
+
+        let title = format!(
+            "{:-7} (Shuffle: {:-3} | Repeat: {:-5})",
+            play_title,
+            // current_playback_context.device.name,
+            shuffle_text,
+            repeat_text,
+            // current_playback_context.device.volume_percent
+        );
+        let current_route = app.get_current_route();
+        let highlight_state = (
+            current_route.active_block == ActiveBlock::PlayBar,
+            current_route.hovered_block == ActiveBlock::PlayBar,
+        );
+
+        let title_block = Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled(
+                &title,
+                get_color(highlight_state, app.user_config.theme),
+            ))
+            .border_style(get_color(highlight_state, app.user_config.theme));
+        f.render_widget(title_block, layout_chunk);
+    }
 }
 
 pub fn draw_routes<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
