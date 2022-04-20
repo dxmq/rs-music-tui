@@ -1,3 +1,4 @@
+use crate::model::{show, track};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash)]
@@ -25,6 +26,18 @@ pub enum DisallowKey {
     TransferringPlayback,
 }
 
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum Type {
+    Artist,
+    Album,
+    Track,
+    Playlist,
+    User,
+    Show,
+    Episode,
+}
+
 #[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum RepeatState {
@@ -45,4 +58,41 @@ pub enum CurrentlyPlayingType {
     Advertisement,
     // 未知
     Unknown,
+}
+
+// 设备类型
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum DeviceType {
+    Computer,
+    Tablet,
+    Smartphone,
+    Speaker,
+    TV,
+    AVR,
+    STB,
+    AudioDongle,
+    GameConsole,
+    CastVideo,
+    CastAudio,
+    Automobile,
+    Unknown,
+}
+
+// 播放项
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum PlayingItem {
+    // 完整的曲子
+    Track(track::FullTrack),
+    // 片段
+    Episode(show::FullEpisode),
+}
+
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum AlbumType {
+    Album,
+    Single,
+    AppearsOn,
+    Compilation,
 }

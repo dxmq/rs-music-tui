@@ -1,2 +1,9 @@
+pub(crate) mod album;
+pub(crate) mod artist;
 pub(crate) mod context;
+pub(crate) mod device;
 pub(crate) mod enums;
+pub(crate) mod image;
+pub(crate) mod page;
+pub(crate) mod show;
+pub(crate) mod track;

@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::mpsc::Sender;
 
 use tui::layout::Rect;
@@ -61,6 +62,12 @@ pub struct App {
     pub help_menu_offset: u32,
     pub home_scroll: u16,
     pub current_playback_context: Option<CurrentlyPlaybackContext>,
+    // 喜欢的歌曲hashset
+    pub liked_song_ids_set: HashSet<String>,
+    // 歌曲播放进度毫秒
+    pub song_progress_ms: u128,
+    // 滑动进度毫秒
+    pub seek_ms: Option<u128>,
 }
 
 impl App {
@@ -145,6 +152,9 @@ impl Default for App {
             help_menu_offset: 0,
             home_scroll: 0,
             current_playback_context: None,
+            liked_song_ids_set: HashSet::new(),
+            song_progress_ms: 0,
+            seek_ms: None,
         }
     }
 }

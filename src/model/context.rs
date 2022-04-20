@@ -1,6 +1,9 @@
-use crate::model::enums::{CurrentlyPlayingType, DisallowKey, RepeatState};
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
+use crate::model::device::Device;
+use crate::model::enums::{CurrentlyPlayingType, DisallowKey, PlayingItem, RepeatState};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Context {
@@ -23,6 +26,8 @@ pub struct CurrentlyPlayingContext {
 // 当前回放上下文
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CurrentlyPlaybackContext {
+    // 设备
+    pub device: Device,
     // 播放状态
     pub is_playing: bool,
     // 当前进度（毫秒）
@@ -37,6 +42,8 @@ pub struct CurrentlyPlaybackContext {
     pub repeat_state: RepeatState,
     // 是否随机播放
     pub shuffle_state: bool,
+    // 当前播放项
+    pub item: Option<PlayingItem>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
