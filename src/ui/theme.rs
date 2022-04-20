@@ -10,6 +10,10 @@ pub struct Theme {
     pub hovered: Color,
     // 提示的颜色
     pub hint: Color,
+    // 文本的颜色
+    pub text: Color,
+    // banner文本的颜色
+    pub banner: Color,
 }
 
 impl Default for Theme {
@@ -19,6 +23,8 @@ impl Default for Theme {
             hovered: Color::Magenta,
             inactive: Color::Gray,
             hint: Color::Yellow,
+            text: Color::Reset,
+            banner: Color::LightCyan,
         }
     }
 }

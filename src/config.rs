@@ -2,6 +2,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use crate::event::Key;
 use crate::ui::theme::Theme;
 use anyhow::{anyhow, Result};
 
@@ -23,11 +24,42 @@ pub struct CookieConfig {
     pub log_response: bool,
 }
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct UserConfig {
     pub path_to_config: Option<UserConfigPath>,
     pub behavior: BehaviorConfig,
     pub theme: Theme,
+    pub keys: KeyBindings,
+}
+
+#[derive(Clone)]
+pub struct KeyBindings {
+    pub back: Key,
+    pub next_page: Key,
+    pub previous_page: Key,
+    pub jump_to_start: Key,
+    pub jump_to_end: Key,
+    pub jump_to_album: Key,
+    pub jump_to_artist_album: Key,
+    pub jump_to_context: Key,
+    pub manage_devices: Key,
+    pub decrease_volume: Key,
+    pub increase_volume: Key,
+    pub toggle_playback: Key,
+    pub seek_backwards: Key,
+    pub seek_forwards: Key,
+    pub next_track: Key,
+    pub previous_track: Key,
+    pub help: Key,
+    pub shuffle: Key,
+    pub repeat: Key,
+    pub search: Key,
+    pub submit: Key,
+    pub copy_song_url: Key,
+    pub copy_album_url: Key,
+    pub audio_analysis: Key,
+    pub basic_view: Key,
+    pub add_item_to_queue: Key,
 }
 
 #[derive(Clone)]
@@ -76,6 +108,34 @@ impl UserConfig {
             path_to_config: None,
             behavior: BehaviorConfig::default(),
             theme: Default::default(),
+            keys: KeyBindings {
+                back: Key::Char('q'),
+                next_page: Key::Ctrl('d'),
+                previous_page: Key::Ctrl('u'),
+                jump_to_start: Key::Ctrl('a'),
+                jump_to_end: Key::Ctrl('e'),
+                jump_to_album: Key::Char('a'),
+                jump_to_artist_album: Key::Char('A'),
+                jump_to_context: Key::Char('o'),
+                manage_devices: Key::Char('d'),
+                decrease_volume: Key::Char('-'),
+                increase_volume: Key::Char('+'),
+                toggle_playback: Key::Char(' '),
+                seek_backwards: Key::Char('<'),
+                seek_forwards: Key::Char('>'),
+                next_track: Key::Char('n'),
+                previous_track: Key::Char('p'),
+                help: Key::Char('?'),
+                shuffle: Key::Ctrl('s'),
+                repeat: Key::Ctrl('r'),
+                search: Key::Char('/'),
+                submit: Key::Enter,
+                copy_song_url: Key::Char('c'),
+                copy_album_url: Key::Char('C'),
+                audio_analysis: Key::Char('v'),
+                basic_view: Key::Char('B'),
+                add_item_to_queue: Key::Char('z'),
+            },
         }
     }
 

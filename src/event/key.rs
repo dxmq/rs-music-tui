@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 use crossterm::event;
 use crossterm::event::KeyEvent;
 
@@ -119,6 +121,31 @@ impl From<event::KeyEvent> for Key {
                 ..
             } => Key::Char(c),
             _ => Key::Unknown,
+        }
+    }
+}
+
+impl Display for Key {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            Key::Alt(' ') => write!(f, "<Alt+Space>"),
+            Key::Ctrl(' ') => write!(f, "<Ctrl+Space>"),
+            Key::Char(' ') => write!(f, "<Space>"),
+            Key::Alt(c) => write!(f, "<Alt+{}>", c),
+            Key::Ctrl(c) => write!(f, "<Ctrl+{}>", c),
+            Key::Char(c) => write!(f, "{}", c),
+            Key::Left | Key::Right | Key::Up | Key::Down => write!(f, "<{:?} Arrow Key>", self),
+            Key::Enter
+            | Key::Tab
+            | Key::Backspace
+            | Key::Esc
+            | Key::Ins
+            | Key::Delete
+            | Key::Home
+            | Key::End
+            | Key::PageUp
+            | Key::PageDown => write!(f, "<{:?}>", self),
+            _ => write!(f, "{:?}", self),
         }
     }
 }

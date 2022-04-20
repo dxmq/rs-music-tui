@@ -1,8 +1,10 @@
-use crate::app::App;
+use crate::app::{ActiveBlock, App};
 use crate::config::UserConfig;
 use crate::event;
 use crate::event::Key;
+use crate::util::SMALL_TERMINAL_HEIGHT;
 use anyhow::Result;
+use crossterm::cursor::MoveTo;
 use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
 use crossterm::terminal::{
@@ -19,6 +21,7 @@ use tui::{
 };
 
 pub(crate) mod draw;
+mod help;
 pub(crate) mod theme;
 
 pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> {
@@ -40,9 +43,14 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
 
     loop {
         let mut app = app.lock().await;
-
-        terminal.draw(|mut f| {
-            draw::draw_main_layout(&mut f, &app);
+        let current_route = app.get_current_route();
+        terminal.draw(|mut f| match current_route.active_block {
+            // ActiveBlock::HelpMenu => {
+            //     draw::draw_help_menu(&mut f, &app);
+            // }
+            _ => {
+                draw::draw_main_layout(&mut f, &app);
+            }
         })?;
 
         match events.next()? {
@@ -53,6 +61,18 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             }
             event::Event::Tick => {}
         }
+
+        let cursor_offset = if app.size.height > SMALL_TERMINAL_HEIGHT {
+            2
+        } else {
+            1
+        };
+
+        // Put the cursor back inside the input box
+        terminal.backend_mut().execute(MoveTo(
+            cursor_offset + app.input_cursor_position,
+            cursor_offset,
+        ))?;
     }
 
     terminal.show_cursor()?;

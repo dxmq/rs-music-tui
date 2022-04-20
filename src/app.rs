@@ -52,6 +52,8 @@ pub struct App {
     pub is_loading: bool,
     // 当前播放列表索引
     pub selected_playlist_index: Option<usize>,
+    pub help_menu_offset: u32,
+    pub home_scroll: u16,
 }
 
 impl App {
@@ -130,6 +132,8 @@ impl Default for App {
             input_cursor_position: 0,
             is_loading: false,
             selected_playlist_index: None,
+            help_menu_offset: 0,
+            home_scroll: 0,
         }
     }
 }
