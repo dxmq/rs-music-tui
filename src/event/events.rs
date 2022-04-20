@@ -1,6 +1,7 @@
 use crate::event::key::Key;
 use crossterm::event;
 use std::sync::mpsc;
+use std::sync::mpsc::RecvError;
 use std::thread;
 use std::time::Duration;
 
@@ -50,5 +51,11 @@ impl Events {
             event_tx.send(Event::Tick).unwrap()
         });
         Events { rx, _tx: tx }
+    }
+
+    /// 试图去读取一个事件
+    /// 该方法会阻塞当前线程
+    pub fn next(&self) -> Result<Event<Key>, RecvError> {
+        self.rx.recv()
     }
 }

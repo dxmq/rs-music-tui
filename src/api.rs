@@ -3,7 +3,7 @@ use ncmapi::NcmApi;
 use crate::config::CookieConfig;
 
 #[derive(Debug)]
-pub enum ApiEvent {
+pub enum IoEvent {
     // GetPlaylists,
 }
 

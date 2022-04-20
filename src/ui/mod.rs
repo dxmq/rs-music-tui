@@ -1,19 +1,26 @@
 use crate::app::App;
 use crate::config::UserConfig;
 use crate::event;
+use crate::event::Key;
 use anyhow::Result;
-use crossterm::event::EnableMouseCapture;
+use crossterm::event::{DisableMouseCapture, EnableMouseCapture};
 use crossterm::execute;
-use crossterm::terminal::{enable_raw_mode, EnterAlternateScreen, SetTitle};
+use crossterm::terminal::{
+    disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen, SetTitle,
+};
 use crossterm::ExecutableCommand;
+use std::io;
 use std::io::stdout;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 use tui::{
     backend::{Backend, CrosstermBackend},
     Terminal,
 };
 
-async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> {
+pub(crate) mod draw;
+
+pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> {
     // Terminal initialization
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
@@ -22,7 +29,7 @@ async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> 
     let mut backend = CrosstermBackend::new(stdout);
 
     if user_config.behavior.set_window_title {
-        backend.execute(SetTitle("spt - Spotify TUI"))?;
+        backend.execute(SetTitle("Netease Cloud music - TUI"))?;
     }
 
     let mut terminal = Terminal::new(backend)?;
@@ -30,11 +37,31 @@ async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> 
 
     let events = event::Events::new(user_config.behavior.tick_rate_milliseconds);
 
-    // play music on, if not send them to the device selection view
+    loop {
+        let mut app = app.lock().await;
 
-    let mut is_first_render = true;
+        terminal.draw(|mut f| {
+            draw::draw_main_layout(&mut f, &app);
+        })?;
 
-    loop {}
+        match events.next()? {
+            event::Event::Input(key) => {
+                if key == Key::Ctrl('c') {
+                    break;
+                }
+            }
+            event::Event::Tick => {}
+        }
+    }
 
+    terminal.show_cursor()?;
+    close_application()?;
+    Ok(())
+}
+
+fn close_application() -> Result<()> {
+    disable_raw_mode()?;
+    let mut stdout = io::stdout();
+    execute!(stdout, LeaveAlternateScreen, DisableMouseCapture)?;
     Ok(())
 }

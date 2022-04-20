@@ -2,11 +2,12 @@
 extern crate lazy_static;
 
 use std::path::PathBuf;
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Arc};
+use tokio::sync::Mutex;
 
 use anyhow::Result;
 
-use crate::api::ApiEvent;
+use crate::api::IoEvent;
 use crate::app::App;
 use crate::cli::clap::ClapApplication;
 use crate::config::{UserConfig, UserConfigPath};
@@ -34,18 +35,8 @@ async fn main() -> Result<()> {
         let config_path = UserConfigPath { config_file_path };
         user_config.path_to_config.replace(config_path);
     }
-    let (sync_io_tx, sync_io_rx) = mpsc::channel::<ApiEvent>();
-    let app: Arc<Mutex<App>> = Arc::new(Mutex::new(App::new(sync_io_tx, user_config)));
+    let (sync_io_tx, sync_io_rx) = mpsc::channel::<IoEvent>();
+    let app: Arc<Mutex<App>> = Arc::new(Mutex::new(App::new(sync_io_tx, user_config.clone())));
+    ui::start_ui(user_config, &app).await?;
     Ok(())
 }
-
-// #[tokio::test(flavor = "multi_thread")]
-// async fn test_user_subcount() {
-//     let api = NcmApi::default();
-//     let resp = api.user_subcount().await;
-//     assert!(resp.is_ok());
-//
-//     let res = resp.unwrap();
-//     let res = res.deserialize_to_implict();
-//     assert_eq!(res.code, 200);
-// }
