@@ -155,6 +155,14 @@ impl App {
             })
         }
     }
+
+    pub fn pop_navigation_stack(&mut self) -> Option<Route> {
+        if self.navigation_stack.len() == 1 {
+            None
+        } else {
+            self.navigation_stack.pop()
+        }
+    }
 }
 
 impl Default for App {

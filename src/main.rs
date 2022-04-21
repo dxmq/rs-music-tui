@@ -19,7 +19,7 @@ mod app;
 mod cli;
 mod config;
 mod event;
-mod handler;
+mod handlers;
 mod http;
 mod model;
 mod network;

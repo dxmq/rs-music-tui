@@ -18,10 +18,11 @@ use tui::{
 };
 
 use crate::api::IoEvent;
-use crate::app::{ActiveBlock, App};
+use crate::app::{ActiveBlock, App, RouteId};
 use crate::config::UserConfig;
 use crate::event;
 use crate::event::Key;
+use crate::handlers;
 use crate::util::SMALL_TERMINAL_HEIGHT;
 
 pub(crate) mod draw;
@@ -104,6 +105,26 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             event::Event::Input(key) => {
                 if key == Key::Ctrl('c') {
                     break;
+                }
+
+                let current_active_block = app.get_current_route().active_block;
+                if current_active_block == ActiveBlock::Input {
+                    handlers::input_handler(key, &mut app);
+                } else if key == app.user_config.keys.back {
+                    if app.get_current_route().active_block != ActiveBlock::Input {
+                        // 不处于搜索输入模式时返回导航堆栈，如果没有更多位置可返回则退出应用程序
+                        let pop_result = match app.pop_navigation_stack() {
+                            Some(ref x) if x.id == RouteId::Search => app.pop_navigation_stack(),
+                            Some(x) => Some(x),
+                            None => None,
+                        };
+                        if pop_result.is_none() {
+                            // Exit application
+                            break;
+                        }
+                    }
+                } else {
+                    handlers::handle_app(key, &mut app);
                 }
             }
             event::Event::Tick => {}
