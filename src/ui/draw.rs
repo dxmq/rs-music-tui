@@ -7,7 +7,6 @@ use tui::Frame;
 
 use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
 use crate::cli::clap::BANNER;
-use crate::config::KeyBindings;
 use crate::model::enums::{PlayingItem, RepeatState};
 use crate::ui::help::get_help_docs;
 use crate::util;

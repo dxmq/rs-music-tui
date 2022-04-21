@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 use std::sync::mpsc::Sender;
 
+use crate::config::user_config::UserConfig;
 use tui::layout::Rect;
 
-use crate::config::UserConfig;
 use crate::event::IoEvent;
 use crate::model::context::CurrentlyPlaybackContext;
 use crate::model::page::Page;

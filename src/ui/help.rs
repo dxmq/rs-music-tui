@@ -1,4 +1,4 @@
-use crate::config::KeyBindings;
+use crate::config::keybinds::KeyBindings;
 
 pub fn get_help_docs(key_bindings: &KeyBindings) -> Vec<Vec<String>> {
     vec![

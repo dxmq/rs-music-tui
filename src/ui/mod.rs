@@ -18,7 +18,7 @@ use tui::{
 };
 
 use crate::app::{ActiveBlock, App, RouteId};
-use crate::config::UserConfig;
+use crate::config::user_config::UserConfig;
 use crate::event;
 use crate::event::IoEvent;
 use crate::event::Key;
@@ -27,7 +27,6 @@ use crate::util::SMALL_TERMINAL_HEIGHT;
 
 pub(crate) mod draw;
 mod help;
-pub(crate) mod theme;
 
 pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> {
     // Terminal initialization

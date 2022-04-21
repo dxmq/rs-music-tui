@@ -1,6 +1,6 @@
 use crate::app::App;
+use crate::config::theme::Theme;
 use crate::model::artist::SimplifiedArtist;
-use crate::ui::theme::Theme;
 use tui::style::Style;
 
 pub const SMALL_TERMINAL_WIDTH: u16 = 150;

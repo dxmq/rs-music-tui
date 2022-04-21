@@ -3,18 +3,18 @@ extern crate lazy_static;
 
 use std::path::PathBuf;
 use std::sync::{mpsc, Arc};
-use tokio::sync::Mutex;
+use std::thread;
 
 use anyhow::Result;
+use tokio::sync::Mutex;
 
 use crate::app::App;
 use crate::cli::clap::ClapApplication;
-use crate::config::{UserConfig, UserConfigPath};
+use crate::config::user_config::{UserConfig, UserConfigPath};
 use crate::event::IoEvent;
 use crate::network::network::Network;
-use std::thread;
 
-mod api;
+// mod api;
 mod app;
 mod cli;
 mod config;
