@@ -11,6 +11,7 @@ use tokio::sync::Mutex;
 
 use crate::app::App;
 use crate::cli::clap::ClapApplication;
+use crate::config::client_config::ClientConfig;
 use crate::config::user_config::{UserConfig, UserConfigPath};
 use crate::event::IoEvent;
 use crate::network::network::Network;
@@ -42,6 +43,9 @@ async fn main() -> Result<()> {
         user_config.path_to_config.replace(config_path);
     }
     user_config.load_config()?;
+    let mut client_config = ClientConfig::default();
+    client_config.load_config().await?;
+
     let (sync_io_tx, sync_io_rx) = mpsc::channel::<IoEvent>();
     let app: Arc<Mutex<App>> = Arc::new(Mutex::new(App::new(sync_io_tx, user_config.clone())));
     let clone_app = app.clone();
