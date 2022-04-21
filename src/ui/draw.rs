@@ -2,10 +2,10 @@ use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Text};
-use tui::widgets::{Block, Borders, Gauge, Paragraph, Row, Table, Wrap};
+use tui::widgets::{Block, Borders, Gauge, List, ListItem, ListState, Paragraph, Row, Table, Wrap};
 use tui::Frame;
 
-use crate::app::{ActiveBlock, App, RouteId};
+use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
 use crate::cli::clap::BANNER;
 use crate::config::KeyBindings;
 use crate::model::enums::{PlayingItem, RepeatState};
@@ -290,8 +290,8 @@ where
 
         // Search input and help
         draw_input_and_help_box(f, app, chunks[0]);
-        // draw_library_block(f, app, chunks[1]);
-        // draw_playlist_block(f, app, chunks[2]);
+        draw_library_block(f, app, chunks[1]);
+        draw_playlist_block(f, app, chunks[2]);
     } else {
         let chunks = Layout::default()
             .direction(Direction::Vertical)
@@ -302,6 +302,87 @@ where
         // draw_library_block(f, app, chunks[0]);
         // draw_playlist_block(f, app, chunks[1]);
     }
+}
+
+pub fn draw_playlist_block<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::MyPlaylists,
+        current_route.hovered_block == ActiveBlock::MyPlaylists,
+    );
+    let playlist_items = match &app.playlists {
+        Some(p) => p.items.iter().map(|item| item.name.to_owned()).collect(),
+        None => vec![],
+    };
+
+    draw_selectable_list(
+        f,
+        app,
+        layout_chunk,
+        "Playlists",
+        &playlist_items,
+        highlight_state,
+        app.selected_playlist_index,
+    );
+}
+pub fn draw_library_block<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::Library,
+        current_route.hovered_block == ActiveBlock::Library,
+    );
+    draw_selectable_list(
+        f,
+        app,
+        layout_chunk,
+        "Library",
+        &LIBRARY_OPTIONS,
+        highlight_state,
+        Some(app.library.selected_index),
+    );
+}
+
+pub fn draw_selectable_list<B, S>(
+    f: &mut Frame<B>,
+    app: &App,
+    layout_chunk: Rect,
+    title: &str,
+    items: &[S],
+    highlight_state: (bool, bool),
+    selected_index: Option<usize>,
+) where
+    B: Backend,
+    S: std::convert::AsRef<str>,
+{
+    let mut state = ListState::default();
+    state.select(selected_index);
+
+    let list_items: Vec<ListItem> = items
+        .iter()
+        .map(|item| ListItem::new(Span::raw(item.as_ref())))
+        .collect();
+
+    let list = List::new(list_items)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(Span::styled(
+                    title,
+                    get_color(highlight_state, app.user_config.theme),
+                ))
+                .border_style(get_color(highlight_state, app.user_config.theme)),
+        )
+        .style(Style::default().fg(app.user_config.theme.text))
+        .highlight_style(
+            get_color(highlight_state, app.user_config.theme).add_modifier(Modifier::BOLD),
+        );
+    f.render_stateful_widget(list, layout_chunk, &mut state);
 }
 
 pub fn draw_help_menu<B>(f: &mut Frame<B>, app: &App)

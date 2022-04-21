@@ -6,6 +6,29 @@ use tui::layout::Rect;
 use crate::api::IoEvent;
 use crate::config::UserConfig;
 use crate::model::context::CurrentlyPlaybackContext;
+use crate::model::page::Page;
+use crate::model::playlist::SimplifiedPlaylist;
+
+const DEFAULT_ROUTE: Route = Route {
+    id: RouteId::Home,
+    active_block: ActiveBlock::Empty,
+    hovered_block: ActiveBlock::Library,
+};
+
+pub const LIBRARY_OPTIONS: [&str; 6] = [
+    "Made For You",
+    "Recently Played",
+    "Liked Songs",
+    "Albums",
+    "Artists",
+    "Podcasts",
+];
+
+#[derive(Clone)]
+pub struct Library {
+    // 当前选中的索引
+    pub selected_index: usize,
+}
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum ActiveBlock {
@@ -17,6 +40,8 @@ pub enum ActiveBlock {
     HelpMenu,
     // 播放条
     PlayBar,
+    // 播放列表
+    MyPlaylists,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -31,12 +56,6 @@ pub struct Route {
     pub active_block: ActiveBlock,
     pub hovered_block: ActiveBlock,
 }
-
-const DEFAULT_ROUTE: Route = Route {
-    id: RouteId::Home,
-    active_block: ActiveBlock::Empty,
-    hovered_block: ActiveBlock::Library,
-};
 
 pub struct App {
     pub user_config: UserConfig,
@@ -68,6 +87,10 @@ pub struct App {
     pub song_progress_ms: u128,
     // 滑动进度毫秒
     pub seek_ms: Option<u128>,
+    // 左侧菜单
+    pub library: Library,
+    // 播放列表
+    pub playlists: Option<Page<SimplifiedPlaylist>>,
 }
 
 impl App {
@@ -155,6 +178,8 @@ impl Default for App {
             liked_song_ids_set: HashSet::new(),
             song_progress_ms: 0,
             seek_ms: None,
+            library: Library { selected_index: 0 },
+            playlists: None,
         }
     }
 }

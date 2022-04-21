@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Page<T> {
     pub href: String,
-    pub item: Vec<T>,
+    pub items: Vec<T>,
     pub offset: u32,
     pub limit: u32,
     pub next: Option<String>,
