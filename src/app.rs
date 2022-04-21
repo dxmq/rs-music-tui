@@ -42,6 +42,8 @@ pub enum ActiveBlock {
     PlayBar,
     // 播放列表
     MyPlaylists,
+    // 错误页
+    Error,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -91,6 +93,8 @@ pub struct App {
     pub library: Library,
     // 播放列表
     pub playlists: Option<Page<SimplifiedPlaylist>>,
+    // 接口错误
+    pub api_error: String,
 }
 
 impl App {
@@ -188,6 +192,7 @@ impl Default for App {
             seek_ms: None,
             library: Library { selected_index: 0 },
             playlists: None,
+            api_error: String::new(),
         }
     }
 }

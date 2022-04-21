@@ -1,7 +1,7 @@
 use tui::backend::Backend;
 use tui::layout::{Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
-use tui::text::{Span, Text};
+use tui::text::{Span, Spans, Text};
 use tui::widgets::{Block, Borders, Gauge, List, ListItem, ListState, Paragraph, Row, Table, Wrap};
 use tui::Frame;
 
@@ -45,6 +45,45 @@ where
 
         draw_input_and_help_box(f, app, parent_layout[0])
     }
+}
+
+pub fn draw_error_screen<B>(f: &mut Frame<B>, app: &App)
+where
+    B: Backend,
+{
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(100)].as_ref())
+        .margin(5)
+        .split(f.size());
+
+    let playing_text = vec![
+        Spans::from(vec![
+            Span::raw("Api response: "),
+            Span::styled(
+                &app.api_error,
+                Style::default().fg(app.user_config.theme.error_text),
+            ),
+        ]),
+        Spans::from(Span::styled(
+            "\nPress <Esc> to return",
+            Style::default().fg(app.user_config.theme.inactive),
+        )),
+    ];
+
+    let playing_paragraph = Paragraph::new(playing_text)
+        .wrap(Wrap { trim: true })
+        .style(Style::default().fg(app.user_config.theme.error_text))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(Span::styled(
+                    "Error",
+                    Style::default().fg(app.user_config.theme.error_border),
+                ))
+                .border_style(Style::default().fg(app.user_config.theme.error_border)),
+        );
+    f.render_widget(playing_paragraph, chunks[0]);
 }
 
 pub fn draw_playbar<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
