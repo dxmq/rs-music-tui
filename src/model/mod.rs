@@ -7,5 +7,6 @@ pub(crate) mod image;
 pub(crate) mod page;
 pub(crate) mod playlist;
 pub(crate) mod show;
+pub(crate) mod table;
 pub(crate) mod track;
 pub(crate) mod user;

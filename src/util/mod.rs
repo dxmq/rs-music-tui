@@ -50,6 +50,13 @@ pub fn display_track_progress(progress: u128, track_duration: u32) -> String {
     format!("{}/{} (-{})", progress_display, duration, remaining,)
 }
 
+// `percentage` param needs to be between 0 and 1
+pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
+    let padding = 3;
+    let width = width - padding;
+    (f32::from(width) * percentage) as u16
+}
+
 pub fn millis_to_minutes(millis: u128) -> String {
     let minutes = millis / 60000;
     let seconds = (millis % 60000) / 1000;

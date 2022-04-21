@@ -10,11 +10,12 @@ use tui::Frame;
 use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
 use crate::cli::clap::BANNER;
 use crate::model::enums::{PlayingItem, RepeatState};
+use crate::model::table::{ColumnId, TableHeader, TableHeaderItem, TableId, TableItem};
 use crate::ui::help::get_help_docs;
 use crate::util;
 use crate::util::{
-    create_artist_string, display_track_progress, get_color, get_track_progress_percentage,
-    BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
+    create_artist_string, display_track_progress, get_color, get_percentage_width,
+    get_track_progress_percentage, BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
 };
 
 pub fn draw_main_layout<B>(f: &mut Frame<B>, app: &App)
@@ -359,9 +360,52 @@ where
         RouteId::Home => {
             draw_home(f, app, chunks[1]);
         }
+        RouteId::MadeForYou => {
+            draw_made_for_you(f, app, chunks[1]);
+        }
     }
 }
 
+pub fn draw_made_for_you<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let header = TableHeader {
+        id: TableId::MadeForYou,
+        items: vec![TableHeaderItem {
+            text: "Name",
+            width: get_percentage_width(layout_chunk.width, 2.0 / 5.0),
+            ..Default::default()
+        }],
+    };
+
+    if let Some(playlists) = &app.library.made_for_you_playlists.get_results(None) {
+        let items = playlists
+            .items
+            .iter()
+            .map(|playlist| TableItem {
+                id: playlist.id.to_owned(),
+                format: vec![playlist.name.to_owned()],
+            })
+            .collect::<Vec<TableItem>>();
+
+        let current_route = app.get_current_route();
+        let highlight_state = (
+            current_route.active_block == ActiveBlock::MadeForYou,
+            current_route.hovered_block == ActiveBlock::MadeForYou,
+        );
+
+        draw_table(
+            f,
+            app,
+            layout_chunk,
+            ("Made For You", &header),
+            &items,
+            app.made_for_you_index,
+            highlight_state,
+        );
+    }
+}
 pub fn draw_home<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
 where
     B: Backend,
@@ -635,4 +679,118 @@ where
         .block(block)
         .style(Style::default().fg(help_block_text.0));
     f.render_widget(help, chunks[1]);
+}
+
+fn draw_table<B>(
+    f: &mut Frame<B>,
+    app: &App,
+    layout_chunk: Rect,
+    table_layout: (&str, &TableHeader), // (title, header colums)
+    items: &[TableItem], // The nested vector must have the same length as the `header_columns`
+    selected_index: usize,
+    highlight_state: (bool, bool),
+) where
+    B: Backend,
+{
+    let selected_style =
+        get_color(highlight_state, app.user_config.theme).add_modifier(Modifier::BOLD);
+
+    let track_playing_index = app.current_playback_context.to_owned().and_then(|ctx| {
+        ctx.item.and_then(|item| match item {
+            PlayingItem::Track(track) => items
+                .iter()
+                .position(|item| track.id.to_owned().map(|id| id == item.id).unwrap_or(false)),
+            PlayingItem::Episode(episode) => items.iter().position(|item| episode.id == item.id),
+        })
+    });
+
+    let (title, header) = table_layout;
+
+    // Make sure that the selected item is visible on the page. Need to add some rows of padding
+    // to chunk height for header and header space to get a true table height
+    let padding = 5;
+    let offset = layout_chunk
+        .height
+        .checked_sub(padding)
+        .and_then(|height| selected_index.checked_sub(height as usize))
+        .unwrap_or(0);
+
+    let rows = items.iter().skip(offset).enumerate().map(|(i, item)| {
+        let mut formatted_row = item.format.clone();
+        let mut style = Style::default().fg(app.user_config.theme.text); // default styling
+
+        // if table displays songs
+        match header.id {
+            TableId::Song | TableId::RecentlyPlayed | TableId::Album => {
+                // First check if the song should be highlighted because it is currently playing
+                if let Some(title_idx) = header.get_index(ColumnId::Title) {
+                    if let Some(track_playing_offset_index) =
+                        track_playing_index.and_then(|idx| idx.checked_sub(offset))
+                    {
+                        if i == track_playing_offset_index {
+                            formatted_row[title_idx] = format!("▶ {}", &formatted_row[title_idx]);
+                            style = Style::default()
+                                .fg(app.user_config.theme.active)
+                                .add_modifier(Modifier::BOLD);
+                        }
+                    }
+                }
+
+                // Show this the liked icon if the song is liked
+                if let Some(liked_idx) = header.get_index(ColumnId::Liked) {
+                    if app.liked_song_ids_set.contains(item.id.as_str()) {
+                        formatted_row[liked_idx] = app.user_config.padded_liked_icon();
+                    }
+                }
+            }
+            TableId::PodcastEpisodes => {
+                if let Some(name_idx) = header.get_index(ColumnId::Title) {
+                    if let Some(track_playing_offset_index) =
+                        track_playing_index.and_then(|idx| idx.checked_sub(offset))
+                    {
+                        if i == track_playing_offset_index {
+                            formatted_row[name_idx] = format!("▶ {}", &formatted_row[name_idx]);
+                            style = Style::default()
+                                .fg(app.user_config.theme.active)
+                                .add_modifier(Modifier::BOLD);
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        // Next check if the item is under selection.
+        if Some(i) == selected_index.checked_sub(offset) {
+            style = selected_style;
+        }
+
+        // Return row styled data
+        Row::new(formatted_row).style(style)
+    });
+
+    let widths = header
+        .items
+        .iter()
+        .map(|h| Constraint::Length(h.width))
+        .collect::<Vec<tui::layout::Constraint>>();
+
+    let table = Table::new(rows)
+        .header(
+            Row::new(header.items.iter().map(|h| h.text))
+                .style(Style::default().fg(app.user_config.theme.header)),
+        )
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .style(Style::default().fg(app.user_config.theme.text))
+                .title(Span::styled(
+                    title,
+                    get_color(highlight_state, app.user_config.theme),
+                ))
+                .border_style(get_color(highlight_state, app.user_config.theme)),
+        )
+        .style(Style::default().fg(app.user_config.theme.text))
+        .widths(&widths);
+    f.render_widget(table, layout_chunk);
 }

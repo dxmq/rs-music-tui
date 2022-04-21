@@ -1,5 +1,4 @@
-use crate::app::RouteId::Search;
-use crate::app::{ActiveBlock, App};
+use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::IoEvent;
 use crate::event::Key;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
@@ -106,5 +105,5 @@ fn process_input(input: String, app: &mut App) {
     app.selected_playlist_index = Some(0);
 
     app.dispatch(IoEvent::GetSearchResults(input));
-    app.push_navigation_stack(Search, ActiveBlock::SearchResultBlock);
+    app.push_navigation_stack(RouteId::Search, ActiveBlock::SearchResultBlock);
 }

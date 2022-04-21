@@ -1,12 +1,12 @@
 use std::collections::HashSet;
 use std::sync::mpsc::Sender;
 
-use crate::config::user_config::UserConfig;
 use tui::layout::Rect;
 
+use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
-use crate::model::page::Page;
+use crate::model::page::{Page, ScrollableResultPages};
 use crate::model::playlist::SimplifiedPlaylist;
 
 const DEFAULT_ROUTE: Route = Route {
@@ -28,6 +28,7 @@ pub const LIBRARY_OPTIONS: [&str; 6] = [
 pub struct Library {
     // 当前选中的索引
     pub selected_index: usize,
+    pub made_for_you_playlists: ScrollableResultPages<Page<SimplifiedPlaylist>>,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -48,12 +49,14 @@ pub enum ActiveBlock {
     BasicView,
     // 对话框
     Dialog(DialogContext),
+    MadeForYou,
 }
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum RouteId {
     Home,
     Search,
+    MadeForYou,
 }
 
 #[derive(Debug)]
@@ -104,6 +107,8 @@ pub struct App {
 
     // 对话框选项是否为OK
     pub confirm: bool,
+
+    pub made_for_you_index: usize,
 }
 
 impl App {
@@ -199,11 +204,15 @@ impl Default for App {
             liked_song_ids_set: HashSet::new(),
             song_progress_ms: 0,
             seek_ms: None,
-            library: Library { selected_index: 0 },
+            library: Library {
+                selected_index: 0,
+                made_for_you_playlists: ScrollableResultPages::new(),
+            },
             playlists: None,
             api_error: String::new(),
             dialog: None,
             confirm: false,
+            made_for_you_index: 0,
         }
     }
 }
