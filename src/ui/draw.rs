@@ -1,8 +1,10 @@
 use tui::backend::Backend;
-use tui::layout::{Constraint, Direction, Layout, Rect};
+use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
-use tui::widgets::{Block, Borders, Gauge, List, ListItem, ListState, Paragraph, Row, Table, Wrap};
+use tui::widgets::{
+    Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph, Row, Table, Wrap,
+};
 use tui::Frame;
 
 use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
@@ -12,7 +14,7 @@ use crate::ui::help::get_help_docs;
 use crate::util;
 use crate::util::{
     create_artist_string, display_track_progress, get_color, get_track_progress_percentage,
-    SMALL_TERMINAL_WIDTH,
+    BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
 };
 
 pub fn draw_main_layout<B>(f: &mut Frame<B>, app: &App)
@@ -36,17 +38,128 @@ where
             .constraints(
                 [
                     Constraint::Length(3),
-                    // Constraint::Min(1),
-                    // Constraint::Length(6),
+                    Constraint::Min(1),
+                    Constraint::Length(6),
                 ]
                 .as_ref(),
             )
             .split(f.size());
 
-        draw_input_and_help_box(f, app, parent_layout[0])
+        // Search input and help
+        draw_input_and_help_box(f, app, parent_layout[0]);
+
+        // Nested main block with potential routes
+        draw_routes(f, app, parent_layout[1]);
+
+        // Currently playing
+        draw_playbar(f, app, parent_layout[2]);
+    }
+
+    // Possibly draw confirm dialog
+    draw_dialog(f, app);
+}
+
+pub fn draw_dialog<B>(f: &mut Frame<B>, app: &App)
+where
+    B: Backend,
+{
+    if let ActiveBlock::Dialog(_) = app.get_current_route().active_block {
+        if let Some(playlist) = app.dialog.as_ref() {
+            let bounds = f.size();
+            // maybe do this better
+            let width = std::cmp::min(bounds.width - 2, 45);
+            let height = 8;
+            let left = (bounds.width - width) / 2;
+            let top = bounds.height / 4;
+
+            let rect = Rect::new(left, top, width, height);
+
+            f.render_widget(Clear, rect);
+
+            // 对话框边框线
+            let block = Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(app.user_config.theme.inactive));
+
+            f.render_widget(block, rect);
+
+            let vchunks = Layout::default()
+                .direction(Direction::Vertical)
+                .margin(2)
+                .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
+                .split(rect);
+
+            // suggestion: possibly put this as part of
+            // app.dialog, but would have to introduce lifetime
+            let text = vec![
+                Spans::from(Span::raw("Are you sure you want to delete the playlist: ")),
+                Spans::from(Span::styled(
+                    playlist.as_str(),
+                    Style::default().add_modifier(Modifier::BOLD),
+                )),
+                Spans::from(Span::raw("?")),
+            ];
+            let text = Paragraph::new(text)
+                .wrap(Wrap { trim: true })
+                .alignment(Alignment::Center);
+
+            // 对话框标题
+            f.render_widget(text, vchunks[0]);
+
+            let hchunks = Layout::default()
+                .direction(Direction::Horizontal)
+                .horizontal_margin(3)
+                .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
+                .split(vchunks[1]);
+            let ok_text = Span::raw("Ok");
+            let ok = Paragraph::new(ok_text)
+                .style(Style::default().fg(if app.confirm {
+                    app.user_config.theme.hovered
+                } else {
+                    app.user_config.theme.inactive
+                }))
+                .alignment(Alignment::Center);
+
+            // Ok radio
+            f.render_widget(ok, hchunks[0]);
+
+            let cancel_text = Span::raw("Cancel");
+            let cancel = Paragraph::new(cancel_text)
+                .style(Style::default().fg(if app.confirm {
+                    app.user_config.theme.inactive
+                } else {
+                    app.user_config.theme.hovered
+                }))
+                .alignment(Alignment::Center);
+
+            // Cancel radio
+            f.render_widget(cancel, hchunks[1]);
+        }
     }
 }
 
+pub fn draw_basic_view<B>(f: &mut Frame<B>, app: &App)
+where
+    B: Backend,
+{
+    // If space is negative, do nothing because the widget would not fit
+    if let Some(s) = app.size.height.checked_sub(BASIC_VIEW_HEIGHT) {
+        let space = s / 2;
+        let chunks = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(
+                [
+                    Constraint::Length(space),
+                    Constraint::Length(BASIC_VIEW_HEIGHT),
+                    Constraint::Length(space),
+                ]
+                .as_ref(),
+            )
+            .split(f.size());
+
+        draw_playbar(f, app, chunks[1]);
+    }
+}
 pub fn draw_error_screen<B>(f: &mut Frame<B>, app: &App)
 where
     B: Backend,

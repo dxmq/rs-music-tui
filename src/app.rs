@@ -5,7 +5,7 @@ use crate::config::user_config::UserConfig;
 use tui::layout::Rect;
 
 use crate::event::IoEvent;
-use crate::model::context::CurrentlyPlaybackContext;
+use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::page::Page;
 use crate::model::playlist::SimplifiedPlaylist;
 
@@ -44,6 +44,10 @@ pub enum ActiveBlock {
     MyPlaylists,
     // 错误页
     Error,
+    // 基础视图
+    BasicView,
+    // 对话框
+    Dialog(DialogContext),
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -95,6 +99,11 @@ pub struct App {
     pub playlists: Option<Page<SimplifiedPlaylist>>,
     // 接口错误
     pub api_error: String,
+
+    pub dialog: Option<String>,
+
+    // 对话框选项是否为OK
+    pub confirm: bool,
 }
 
 impl App {
@@ -193,6 +202,8 @@ impl Default for App {
             library: Library { selected_index: 0 },
             playlists: None,
             api_error: String::new(),
+            dialog: None,
+            confirm: false,
         }
     }
 }

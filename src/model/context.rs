@@ -50,3 +50,10 @@ pub struct CurrentlyPlaybackContext {
 pub struct Action {
     pub disallows: HashMap<DisallowKey, bool>,
 }
+
+// 对话框
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum DialogContext {
+    PlaylistWindow,
+    PlaylistSearch,
+}

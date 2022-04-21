@@ -82,6 +82,9 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             ActiveBlock::Error => {
                 draw::draw_error_screen(&mut f, &app);
             }
+            ActiveBlock::BasicView => {
+                draw::draw_basic_view(&mut f, &app);
+            }
             _ => {
                 draw::draw_main_layout(&mut f, &app);
             }
