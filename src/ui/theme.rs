@@ -2,6 +2,7 @@ use tui::style::Color;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Theme {
+    pub active: Color,
     // 选中的颜色
     pub selected: Color,
     // 未激活的颜色
@@ -31,6 +32,7 @@ pub struct Theme {
 impl Default for Theme {
     fn default() -> Self {
         Theme {
+            active: Color::Cyan,
             selected: Color::LightCyan,
             hovered: Color::Magenta,
             inactive: Color::Gray,

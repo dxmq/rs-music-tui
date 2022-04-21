@@ -1,6 +1,6 @@
-use crate::api::IoEvent;
 use crate::app::RouteId::Search;
 use crate::app::{ActiveBlock, App};
+use crate::event::IoEvent;
 use crate::event::Key;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 

@@ -3,8 +3,8 @@ use std::sync::mpsc::Sender;
 
 use tui::layout::Rect;
 
-use crate::api::IoEvent;
 use crate::config::UserConfig;
+use crate::event::IoEvent;
 use crate::model::context::CurrentlyPlaybackContext;
 use crate::model::page::Page;
 use crate::model::playlist::SimplifiedPlaylist;

@@ -2,13 +2,6 @@ use ncmapi::NcmApi;
 
 use crate::config::CookieConfig;
 
-#[derive(Debug)]
-pub enum IoEvent {
-    // GetPlaylists,
-    GetSearchResults(String),
-    UpdateSearchLimits(u32, u32),
-}
-
 pub struct ApiClient {
     client: NcmApi,
 }

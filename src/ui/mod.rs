@@ -17,10 +17,10 @@ use tui::{
     Terminal,
 };
 
-use crate::api::IoEvent;
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::config::UserConfig;
 use crate::event;
+use crate::event::IoEvent;
 use crate::event::Key;
 use crate::handlers;
 use crate::util::SMALL_TERMINAL_HEIGHT;
@@ -130,7 +130,11 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             event::Event::Tick => {}
         }
 
+        // 如果刚启动（第一次渲染）
         if is_first_render {
+            // 加载播放列表
+            app.dispatch(IoEvent::GetPlaylists);
+            // app.dispatch()
             app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
             is_first_render = false;
         }

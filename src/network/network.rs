@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use tokio::sync::Mutex;
 
-use crate::api::IoEvent;
 use crate::app::App;
+use crate::event::IoEvent;
 
 pub struct Network<'a> {
     // 最大搜索限制
@@ -29,9 +29,14 @@ impl<'a> Network<'a> {
                 self.large_search_limit = large_search_limit;
                 self.small_search_limit = small_search_limit;
             }
+            IoEvent::GetPlaylists => {
+                self.get_current_user_playlists();
+            }
             _ => {}
         }
     }
+
+    pub async fn get_current_user_playlists(&self) {}
 }
 
 #[tokio::main]
