@@ -6,6 +6,7 @@ use std::sync::{mpsc, Arc};
 use std::thread;
 
 use anyhow::Result;
+use ncmapi::types::UserPlaylistResp;
 use tokio::sync::Mutex;
 
 use crate::app::App;
@@ -50,4 +51,42 @@ async fn main() -> Result<()> {
     });
     ui::start_ui(user_config, &clone_app).await?;
     Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_user_subcount() {
+    let api = network::api();
+    let phone = "13529565773";
+    let password = "zc201617470124";
+    let resp = api.login_phone(phone, password).await;
+    // assert!(resp.is_ok());
+
+    // let res = resp.unwrap();
+    // let res = res.deserialize_to_implict();
+    println!("{:?}", resp);
+    // assert_eq!(res.code, 200);
+}
+
+#[tokio::test]
+async fn test_de_user_playlist() {
+    let api = network::api();
+    let uid = 354192143;
+    let resp = api.user_playlist(uid, None).await;
+    // assert!(resp.is_ok());
+
+    // let res = serde_json::from_slice::<UserPlaylistResp>(resp.unwrap().data()).unwrap();
+    println!("resp: {:?}", resp)
+    // assert_eq!(res.code, 200);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_login_status() {
+    let api = network::api();
+    let resp = api.login_status().await;
+    // assert!(resp.is_ok());
+
+    // let res = resp.unwrap();
+    // let res = res.deserialize_to_implict();
+    println!("{:?}", resp);
+    // assert_eq!(res.code, 200);
 }

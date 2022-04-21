@@ -2,8 +2,8 @@ use crate::config::user_config::UserConfig;
 use std::path::PathBuf;
 use std::time::Duration;
 
-#[derive(Debug, Default)]
-pub struct CookieConfig {
+#[derive(Debug)]
+pub struct ClientConfig {
     pub cache: bool,
     pub cache_exp: Duration,
     pub cache_clean_interval: Duration,
@@ -15,10 +15,10 @@ pub struct CookieConfig {
     pub log_response: bool,
 }
 
-impl CookieConfig {
+impl Default for ClientConfig {
     fn default() -> Self {
-        CookieConfig {
-            cache: true,
+        ClientConfig {
+            cache: false,
             cache_exp: Duration::from_secs(3 * 60),
             cache_clean_interval: Duration::from_secs(6 * 60),
             preserve_cookies: true,
@@ -28,3 +28,5 @@ impl CookieConfig {
         }
     }
 }
+
+impl ClientConfig {}

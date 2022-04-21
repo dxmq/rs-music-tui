@@ -14,7 +14,7 @@ use crate::event::Key;
 const CONFIG_DIR: &str = ".config";
 const APP_CONFIG_DIR: &str = "netease-cloud-music-tui";
 const CONFIG_FILE_NAME: &str = "config.yml";
-const COOKIE_FILE_NAME: &str = "cookie.txt";
+const COOKIE_FILE_DIR: &str = "cookie.txt";
 
 #[derive(Clone)]
 pub struct UserConfig {
@@ -86,7 +86,7 @@ impl UserConfig {
 
     pub(crate) fn cookie_path() -> Result<PathBuf> {
         let app_config_dir = UserConfig::build_app_config_dir()?;
-        Ok(app_config_dir.join(COOKIE_FILE_NAME))
+        Ok(app_config_dir.join(COOKIE_FILE_DIR))
     }
 
     pub fn build_app_config_dir() -> Result<PathBuf> {
