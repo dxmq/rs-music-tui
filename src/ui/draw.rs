@@ -15,7 +15,8 @@ use crate::ui::help::get_help_docs;
 use crate::util;
 use crate::util::{
     create_artist_string, display_track_progress, get_color, get_percentage_width,
-    get_track_progress_percentage, millis_to_minutes, BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
+    get_track_progress_percentage, millis_to_minutes, millis_to_minutes2, BASIC_VIEW_HEIGHT,
+    SMALL_TERMINAL_WIDTH,
 };
 
 pub fn draw_main_layout<B>(f: &mut Frame<B>, app: &App)
@@ -269,11 +270,10 @@ where
             f.render_widget(title_block, layout_chunk);
 
             let (item_id, name, duration_ms) = match track_item {
-                PlayingItem::Track(track) => (
-                    track.id.to_owned().unwrap_or_else(|| "".to_string()),
-                    track.name.to_owned(),
-                    track.duration_ms,
-                ),
+                PlayingItem::Track(track) => {
+                    let duration = track.duration as u32;
+                    (track.id.to_string(), track.name.to_owned(), duration)
+                }
                 PlayingItem::Episode(episode) => (
                     episode.id.to_owned(),
                     episode.name.to_owned(),
@@ -413,18 +413,19 @@ where
         current_route.active_block == ActiveBlock::TrackTable,
         current_route.hovered_block == ActiveBlock::TrackTable,
     );
+    // item.id.clone().unwrap_or_else(|| "".to_string()),
     let items = app
         .track_table
         .tracks
         .iter()
         .map(|item| TableItem {
-            id: item.id.clone().unwrap_or_else(|| "".to_string()),
+            id: item.id.to_string(),
             format: vec![
                 "".to_string(),
                 item.name.to_owned(),
                 create_artist_string(&item.artists),
-                item.album.name.to_owned(),
-                millis_to_minutes(u128::from(item.duration_ms)),
+                item.album.name.to_owned().unwrap(),
+                millis_to_minutes2(item.duration),
             ],
         })
         .collect::<Vec<TableItem>>();
@@ -772,9 +773,12 @@ fn draw_table<B>(
 
     let track_playing_index = app.current_playback_context.to_owned().and_then(|ctx| {
         ctx.item.and_then(|item| match item {
-            PlayingItem::Track(track) => items
-                .iter()
-                .position(|item| track.id.to_owned().map(|id| id == item.id).unwrap_or(false)),
+            PlayingItem::Track(track) => items.iter().position(|item| {
+                true
+                // track.id.to_string().to_owned()
+                // .map(|id| id == item.id)
+                // .unwrap_or(false)
+            }),
             PlayingItem::Episode(episode) => items.iter().position(|item| episode.id == item.id),
         })
     });

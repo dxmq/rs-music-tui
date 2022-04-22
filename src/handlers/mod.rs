@@ -5,6 +5,7 @@ pub(crate) mod common_key_events;
 pub(crate) mod help_menu;
 pub(crate) mod input;
 pub(crate) mod library;
+pub(crate) mod playlist;
 
 pub use input::handler as input_handler;
 
@@ -39,6 +40,8 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         ActiveBlock::HelpMenu => {
             help_menu::handler(key, app);
         }
+        // 我的歌单
+        ActiveBlock::MyPlaylists => {}
         _ => {}
     }
 }

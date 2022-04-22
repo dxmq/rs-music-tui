@@ -2,10 +2,10 @@ use std::future::Future;
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use ncmapi::types::{Playlist, UserPlaylistResp};
+use ncmapi::types::{Playlist, PlaylistDetail, Song, UserPlaylistResp};
 use tokio::sync::Mutex;
 
-use crate::app::App;
+use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::IoEvent;
 use crate::network::api;
 use crate::network::ncm::{CloudMusic, TError, TResult};
@@ -42,11 +42,47 @@ impl<'a> Network<'a> {
             IoEvent::GetUser => {
                 self.load_user().await;
             }
+            IoEvent::GetPlaylistTracks(playlist_id) => {
+                self.load_playlist_tracks(playlist_id).await;
+            }
             _ => {}
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn set_playlist_tracks_to_table(&mut self, playlist_track_page: &PlaylistDetail) {
+        self.set_tracks_to_table(playlist_track_page.clone().tracks)
+            .await;
+    }
+
+    async fn set_tracks_to_table(&mut self, tracks: Vec<Song>) {
+        let mut app = self.app.lock().await;
+        app.track_table.tracks = tracks.clone();
+
+        // Send this event round (don't block here)
+        app.dispatch(IoEvent::CurrentUserSavedTracksContains(
+            tracks
+                .into_iter()
+                .filter_map(|item| Option::from(item.id.to_string()))
+                .collect::<Vec<String>>(),
+        ));
+    }
+
+    async fn load_playlist_tracks(&mut self, playlist_idk: usize) {
+        match self.ncm.playlist_tracks(playlist_idk).await {
+            Ok(playlist_tracks) => {
+                let mut app = self.app.lock().await;
+
+                self.set_playlist_tracks_to_table(&playlist_tracks).await;
+                app.playlist_tracks = Some(playlist_tracks);
+                app.push_navigation_stack(RouteId::TrackTable, ActiveBlock::TrackTable);
+            }
+            Err(e) => {
+                self.handle_error(e).await;
+            }
+        }
     }
 
     async fn load_current_user_playlists(&mut self) {

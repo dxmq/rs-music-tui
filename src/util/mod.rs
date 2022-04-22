@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::config::theme::Theme;
 use crate::model::artist::SimplifiedArtist;
+use ncmapi::types::Artist;
 use tui::style::Style;
 
 pub const BASIC_VIEW_HEIGHT: u16 = 6;
@@ -25,10 +26,10 @@ pub fn get_color((is_active, is_hovered): (bool, bool), theme: Theme) -> Style {
 }
 
 // 获取歌手string，以,分隔
-pub fn create_artist_string(artists: &[SimplifiedArtist]) -> String {
+pub fn create_artist_string(artists: &Vec<Artist>) -> String {
     artists
         .iter()
-        .map(|artist| artist.name.to_string())
+        .map(|artist| artist.name.clone().unwrap().to_string())
         .collect::<Vec<String>>()
         .join(", ")
 }
@@ -55,6 +56,22 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
     let padding = 3;
     let width = width - padding;
     (f32::from(width) * percentage) as u16
+}
+
+pub fn millis_to_minutes2(millis: usize) -> String {
+    let minutes = millis / 60000;
+    let seconds = (millis % 60000) / 1000;
+    let seconds_display = if seconds < 10 {
+        format!("0{}", seconds)
+    } else {
+        format!("{}", seconds)
+    };
+
+    if seconds == 60 {
+        format!("{}:00", minutes + 1)
+    } else {
+        format!("{}:{}", minutes, seconds_display)
+    }
 }
 
 pub fn millis_to_minutes(millis: u128) -> String {

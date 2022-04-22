@@ -11,7 +11,7 @@ use crate::model::playlist::SimplifiedPlaylist;
 use crate::model::table::TrackTable;
 use crate::network::ncm::TError;
 use anyhow::Result;
-use ncmapi::types::{Playlist, UserProfile};
+use ncmapi::types::{Playlist, PlaylistDetail, UserProfile};
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
@@ -94,6 +94,7 @@ pub struct App {
     pub is_loading: bool,
     // 当前播放列表索引
     pub selected_playlist_index: Option<usize>,
+    pub active_playlist_index: Option<usize>,
     pub help_docs_size: u32,
     pub help_menu_page: u32,
     pub help_menu_max_lines: u32,
@@ -111,6 +112,8 @@ pub struct App {
     // 歌单列表
     // pub playlists: Option<Page<SimplifiedPlaylist>>,
     pub playlists: Option<Vec<Playlist>>,
+    pub playlist_offset: u32,
+    pub playlist_tracks: Option<PlaylistDetail>,
     // 接口错误
     pub api_error: String,
     pub dialog: Option<String>,
@@ -222,6 +225,8 @@ impl Default for App {
             input_cursor_position: 0,
             is_loading: false,
             selected_playlist_index: None,
+            active_playlist_index: None,
+            playlist_offset: 0,
             help_docs_size: 0,
             help_menu_page: 0,
             help_menu_max_lines: 0,
@@ -236,6 +241,7 @@ impl Default for App {
                 made_for_you_playlists: ScrollableResultPages::new(),
             },
             playlists: None,
+            playlist_tracks: None,
             api_error: String::new(),
             dialog: None,
             confirm: false,

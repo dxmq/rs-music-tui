@@ -119,3 +119,16 @@ async fn test_user_playlist() {
     // let res = res.deserialize_to_implict();
     // assert_eq!(res.code, 200);
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_playlist_detail() {
+    let api = network::api();
+    const COLLECTION_ID: usize = 498339500;
+    let resp = api.playlist_detail(COLLECTION_ID, None).await;
+    println!("resp: {:?}", resp);
+    // assert!(resp.is_ok());
+    //
+    // let res = resp.unwrap();
+    // let res = res.deserialize_to_implict();
+    // assert_eq!(res.code, 200);
+}
