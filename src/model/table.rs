@@ -1,4 +1,13 @@
+use crate::model::context::TrackTableContext;
+use crate::model::track::FullTrack;
 use serde::{Deserialize, Serialize};
+
+#[derive(Default)]
+pub struct TrackTable {
+    pub tracks: Vec<FullTrack>,
+    pub selected_index: usize,
+    pub context: Option<TrackTableContext>,
+}
 
 pub enum TableId {
     Album,

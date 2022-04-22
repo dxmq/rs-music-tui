@@ -57,3 +57,14 @@ pub enum DialogContext {
     PlaylistWindow,
     PlaylistSearch,
 }
+
+// Is it possible to compose enums?
+#[derive(PartialEq, Debug)]
+pub enum TrackTableContext {
+    MyPlaylists,
+    AlbumSearch,
+    PlaylistSearch,
+    SavedTracks,
+    RecommendedTracks,
+    MadeForYou,
+}

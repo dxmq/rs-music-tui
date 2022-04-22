@@ -9,6 +9,7 @@ use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::page::{Page, ScrollableResultPages};
 use crate::model::playlist::SimplifiedPlaylist;
+use crate::model::table::TrackTable;
 use crate::network::ncm::TError;
 use anyhow::Result;
 
@@ -53,6 +54,8 @@ pub enum ActiveBlock {
     // 对话框
     Dialog(DialogContext),
     MadeForYou,
+    // 歌曲表格
+    TrackTable,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -63,6 +66,7 @@ pub enum RouteId {
     Error,
     BasicView,
     Dialog,
+    TrackTable,
 }
 
 #[derive(Debug)]
@@ -117,6 +121,8 @@ pub struct App {
     pub made_for_you_index: usize,
 
     pub user: Option<UserProfile>,
+
+    pub track_table: TrackTable,
 }
 
 impl App {
@@ -239,6 +245,7 @@ impl Default for App {
             confirm: false,
             made_for_you_index: 0,
             user: None,
+            track_table: Default::default(),
         }
     }
 }

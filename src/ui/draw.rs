@@ -15,7 +15,7 @@ use crate::ui::help::get_help_docs;
 use crate::util;
 use crate::util::{
     create_artist_string, display_track_progress, get_color, get_percentage_width,
-    get_track_progress_percentage, BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
+    get_track_progress_percentage, millis_to_minutes, BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
 };
 
 pub fn draw_main_layout<B>(f: &mut Frame<B>, app: &App)
@@ -357,6 +357,9 @@ where
         // RouteId::Search => {
         //     draw_search_results(f, app, chunks[1]);
         // }
+        RouteId::TrackTable => {
+            draw_routes(f, app, chunks[1]);
+        }
         RouteId::Home => {
             draw_home(f, app, chunks[1]);
         }
@@ -368,6 +371,73 @@ where
         RouteId::Dialog => {} // This is handled in the draw_dialog function in mod.rs
         _ => {}
     }
+}
+
+pub fn draw_song_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let header = TableHeader {
+        id: TableId::Song,
+        items: vec![
+            TableHeaderItem {
+                id: ColumnId::Liked,
+                text: "",
+                width: 2,
+            },
+            TableHeaderItem {
+                id: ColumnId::Title,
+                text: "Title",
+                width: get_percentage_width(layout_chunk.width, 0.3),
+            },
+            TableHeaderItem {
+                text: "Artist",
+                width: get_percentage_width(layout_chunk.width, 0.3),
+                ..Default::default()
+            },
+            TableHeaderItem {
+                text: "Album",
+                width: get_percentage_width(layout_chunk.width, 0.3),
+                ..Default::default()
+            },
+            TableHeaderItem {
+                text: "Length",
+                width: get_percentage_width(layout_chunk.width, 0.1),
+                ..Default::default()
+            },
+        ],
+    };
+
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::TrackTable,
+        current_route.hovered_block == ActiveBlock::TrackTable,
+    );
+    let items = app
+        .track_table
+        .tracks
+        .iter()
+        .map(|item| TableItem {
+            id: item.id.clone().unwrap_or_else(|| "".to_string()),
+            format: vec![
+                "".to_string(),
+                item.name.to_owned(),
+                create_artist_string(&item.artists),
+                item.album.name.to_owned(),
+                millis_to_minutes(u128::from(item.duration_ms)),
+            ],
+        })
+        .collect::<Vec<TableItem>>();
+
+    draw_table(
+        f,
+        app,
+        layout_chunk,
+        ("Songs", &header),
+        &items,
+        app.track_table.selected_index,
+        highlight_state,
+    )
 }
 
 pub fn draw_made_for_you<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)

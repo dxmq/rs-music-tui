@@ -96,6 +96,12 @@ pub fn handle_right_event(app: &mut App) {
                     Some(ActiveBlock::SearchResultBlock),
                 );
             }
+            RouteId::TrackTable => {
+                app.set_current_route_state(
+                    Some(ActiveBlock::TrackTable),
+                    Some(ActiveBlock::SearchResultBlock),
+                );
+            }
             RouteId::Error => {}
             RouteId::BasicView => {}
             RouteId::Dialog => {}
