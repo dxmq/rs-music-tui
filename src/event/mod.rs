@@ -10,4 +10,5 @@ pub enum IoEvent {
     GetSearchResults(String),
     UpdateSearchLimits(u32, u32),
     GetPlaylists,
+    GetUser,
 }

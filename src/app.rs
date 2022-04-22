@@ -1,3 +1,4 @@
+use ncmapi::types::UserProfile;
 use std::collections::HashSet;
 use std::sync::mpsc::Sender;
 
@@ -8,6 +9,8 @@ use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::page::{Page, ScrollableResultPages};
 use crate::model::playlist::SimplifiedPlaylist;
+use crate::network::ncm::TError;
+use anyhow::Result;
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
@@ -112,6 +115,8 @@ pub struct App {
     pub confirm: bool,
 
     pub made_for_you_index: usize,
+
+    pub user: Option<UserProfile>,
 }
 
 impl App {
@@ -196,6 +201,11 @@ impl App {
             self.help_menu_page -= 1;
         }
     }
+
+    pub fn handle_error(&mut self, e: TError) {
+        self.push_navigation_stack(RouteId::Error, ActiveBlock::Error);
+        self.api_error = e.to_string();
+    }
 }
 
 impl Default for App {
@@ -228,6 +238,7 @@ impl Default for App {
             dialog: None,
             confirm: false,
             made_for_you_index: 0,
+            user: None,
         }
     }
 }

@@ -1,9 +1,12 @@
+use std::future::Future;
 use std::sync::Arc;
 
 use tokio::sync::Mutex;
 
 use crate::app::App;
 use crate::event::IoEvent;
+use crate::network::ncm::{CloudMusic, TError};
+use anyhow::anyhow;
 
 pub struct Network<'a> {
     // 最大搜索限制
@@ -11,6 +14,7 @@ pub struct Network<'a> {
     // 最小搜索限制
     small_search_limit: u32,
     pub app: &'a Arc<Mutex<App>>,
+    pub ncm: CloudMusic,
 }
 
 impl<'a> Network<'a> {
@@ -19,6 +23,7 @@ impl<'a> Network<'a> {
             large_search_limit: 20,
             small_search_limit: 4,
             app,
+            ncm: Default::default(),
         }
     }
 
@@ -30,7 +35,10 @@ impl<'a> Network<'a> {
                 self.small_search_limit = small_search_limit;
             }
             IoEvent::GetPlaylists => {
-                self.get_current_user_playlists();
+                self.get_current_user_playlists().await;
+            }
+            IoEvent::GetUser => {
+                self.get_user().await;
             }
             _ => {}
         }
@@ -40,6 +48,21 @@ impl<'a> Network<'a> {
     }
 
     pub async fn get_current_user_playlists(&self) {}
+
+    pub async fn get_user(&mut self) {
+        match self.ncm.current_user().await {
+            Ok(user) => {
+                let mut app = self.app.lock().await;
+                app.user = user;
+            }
+            Err(e) => self.handle_error(e).await,
+        }
+    }
+
+    pub async fn handle_error(&mut self, e: TError) {
+        let mut app = self.app.lock().await;
+        app.handle_error(e);
+    }
 }
 
 #[tokio::main]

@@ -139,7 +139,7 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
         if is_first_render {
             // 加载播放列表
             app.dispatch(IoEvent::GetPlaylists);
-            // app.dispatch()
+            app.dispatch(IoEvent::GetUser);
             app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
             is_first_render = false;
         }

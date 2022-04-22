@@ -6,7 +6,7 @@ use std::sync::{mpsc, Arc};
 use std::thread;
 
 use anyhow::Result;
-use ncmapi::types::UserPlaylistResp;
+use ncmapi::types::{UserAccountResp, UserPlaylistResp};
 use tokio::sync::Mutex;
 
 use crate::app::App;
@@ -92,5 +92,18 @@ async fn test_login_status() {
     // let res = resp.unwrap();
     // let res = res.deserialize_to_implict();
     println!("{:?}", resp);
+    // assert_eq!(res.code, 200);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_user_account() {
+    let api = network::api();
+    let resp = api.user_account().await;
+    // assert!(resp.is_ok());
+
+    let res = serde_json::from_slice::<UserAccountResp>(resp.unwrap().data()).unwrap();
+    let profile = res.profile;
+
+    println!("res: {:?}", res);
     // assert_eq!(res.code, 200);
 }

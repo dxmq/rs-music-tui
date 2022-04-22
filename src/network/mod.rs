@@ -1,3 +1,4 @@
+pub(crate) mod ncm;
 pub(crate) mod network;
 
 use crate::config::client_config::ClientConfig;
