@@ -38,18 +38,23 @@ impl Events {
 
     fn with_config(config: EventConfig) -> Events {
         let (tx, rx) = mpsc::channel();
+
         let event_tx = tx.clone();
+        thread::spawn(move || {
+            loop {
+                // poll for tick rate duration, if no event, sent tick event.
+                if event::poll(config.tick_rate).unwrap() {
+                    if let event::Event::Key(key) = event::read().unwrap() {
+                        let key = Key::from(key);
 
-        thread::spawn(move || loop {
-            if event::poll(config.tick_rate).unwrap() {
-                if let event::Event::Key(key_event) = event::read().unwrap() {
-                    let key = Key::from(key_event);
-                    event_tx.send(Event::Input(key));
+                        event_tx.send(Event::Input(key)).unwrap();
+                    }
                 }
-            }
 
-            event_tx.send(Event::Tick).unwrap()
+                event_tx.send(Event::Tick).unwrap();
+            }
         });
+
         Events { rx, _tx: tx }
     }
 

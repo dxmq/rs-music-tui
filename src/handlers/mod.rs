@@ -1,12 +1,16 @@
 use crate::app::{ActiveBlock, App, RouteId};
-use crate::event::Key;
+use crate::event::{IoEvent, Key};
 
 pub(crate) mod common_key_events;
+pub(crate) mod empty;
+pub(crate) mod error_screen;
 pub(crate) mod help_menu;
+pub(crate) mod home;
 pub(crate) mod input;
 pub(crate) mod library;
 pub(crate) mod playlist;
 
+use crate::model::enums::Type;
 pub use input::handler as input_handler;
 
 pub fn handle_app(key: Key, app: &mut App) {
@@ -22,6 +26,9 @@ pub fn handle_app(key: Key, app: &mut App) {
         }
         _ if key == app.user_config.keys.basic_view => {
             app.push_navigation_stack(RouteId::BasicView, ActiveBlock::BasicView);
+        }
+        _ if key == app.user_config.keys.jump_to_context => {
+            handle_jump_to_context(app);
         }
         _ => handle_block_events(key, app),
     }
@@ -40,9 +47,36 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         ActiveBlock::HelpMenu => {
             help_menu::handler(key, app);
         }
+        ActiveBlock::Error => {
+            error_screen::handler(key, app);
+        }
         // 我的歌单
-        ActiveBlock::MyPlaylists => {}
+        ActiveBlock::MyPlaylists => {
+            playlist::handler(key, app);
+        }
+        ActiveBlock::TrackTable => {
+            // track_table::handler(key, app);
+        }
+        ActiveBlock::Home => {
+            home::handler(key, app);
+        }
+        ActiveBlock::Empty => {
+            empty::handler(key, app);
+        }
         _ => {}
+    }
+}
+
+fn handle_jump_to_context(app: &mut App) {
+    if let Some(current_playback_context) = &app.current_playback_context {
+        if let Some(play_context) = current_playback_context.context.clone() {
+            match play_context._type {
+                // rspotify::senum::Type::Album => handle_jump_to_album(app),
+                // rspotify::senum::Type::Artist => handle_jump_to_artist_album(app),
+                Type::Playlist => app.dispatch(IoEvent::GetPlaylistTracks(498339500)),
+                _ => {}
+            }
+        }
     }
 }
 

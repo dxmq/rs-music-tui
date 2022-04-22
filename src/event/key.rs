@@ -46,20 +46,12 @@ pub enum Key {
 }
 
 impl From<event::KeyEvent> for Key {
-    fn from(key_event: KeyEvent) -> Self {
+    fn from(key_event: event::KeyEvent) -> Self {
         match key_event {
-            event::KeyEvent {
-                code: event::KeyCode::Enter,
-                ..
-            } => Key::Enter,
             event::KeyEvent {
                 code: event::KeyCode::Esc,
                 ..
             } => Key::Esc,
-            event::KeyEvent {
-                code: event::KeyCode::Tab,
-                ..
-            } => Key::Tab,
             event::KeyEvent {
                 code: event::KeyCode::Backspace,
                 ..
@@ -81,14 +73,6 @@ impl From<event::KeyEvent> for Key {
                 ..
             } => Key::Down,
             event::KeyEvent {
-                code: event::KeyCode::Insert,
-                ..
-            } => Key::Ins,
-            event::KeyEvent {
-                code: event::KeyCode::Delete,
-                ..
-            } => Key::Delete,
-            event::KeyEvent {
                 code: event::KeyCode::Home,
                 ..
             } => Key::Home,
@@ -105,21 +89,41 @@ impl From<event::KeyEvent> for Key {
                 ..
             } => Key::PageDown,
             event::KeyEvent {
+                code: event::KeyCode::Delete,
+                ..
+            } => Key::Delete,
+            event::KeyEvent {
+                code: event::KeyCode::Insert,
+                ..
+            } => Key::Ins,
+            event::KeyEvent {
                 code: event::KeyCode::F(n),
                 ..
             } => Key::from_f(n),
             event::KeyEvent {
-                code: event::KeyCode::Char(c),
-                modifiers: event::KeyModifiers::CONTROL,
-            } => Key::Ctrl(c),
+                code: event::KeyCode::Enter,
+                ..
+            } => Key::Enter,
+            event::KeyEvent {
+                code: event::KeyCode::Tab,
+                ..
+            } => Key::Tab,
+
+            // First check for char + modifier
             event::KeyEvent {
                 code: event::KeyCode::Char(c),
                 modifiers: event::KeyModifiers::ALT,
             } => Key::Alt(c),
             event::KeyEvent {
                 code: event::KeyCode::Char(c),
+                modifiers: event::KeyModifiers::CONTROL,
+            } => Key::Ctrl(c),
+
+            event::KeyEvent {
+                code: event::KeyCode::Char(c),
                 ..
             } => Key::Char(c),
+
             _ => Key::Unknown,
         }
     }

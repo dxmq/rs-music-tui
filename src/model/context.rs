@@ -3,13 +3,14 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::model::device::Device;
-use crate::model::enums::{CurrentlyPlayingType, DisallowKey, PlayingItem, RepeatState};
+use crate::model::enums::{CurrentlyPlayingType, DisallowKey, PlayingItem, RepeatState, Type};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Context {
     pub uri: String,
     pub href: String,
     pub external_urls: HashMap<String, String>,
+    pub _type: Type,
 }
 
 // 当前正在播放上下文

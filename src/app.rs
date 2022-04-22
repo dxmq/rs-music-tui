@@ -15,7 +15,7 @@ use ncmapi::types::{Playlist, PlaylistDetail, UserProfile};
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
-    active_block: ActiveBlock::Empty,
+    active_block: ActiveBlock::MyPlaylists,
     hovered_block: ActiveBlock::Library,
 };
 
