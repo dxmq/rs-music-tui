@@ -34,6 +34,9 @@ impl<'a> Network<'a> {
             }
             _ => {}
         }
+
+        let mut app = self.app.lock().await;
+        app.is_loading = false;
     }
 
     pub async fn get_current_user_playlists(&self) {}

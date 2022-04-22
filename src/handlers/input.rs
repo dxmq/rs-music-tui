@@ -67,7 +67,7 @@ pub fn handler(key: Key, app: &mut App) {
             process_input(input_str, app);
         }
         Key::Esc => {
-            app.set_current_state(Some(ActiveBlock::Empty), Some(ActiveBlock::Library));
+            app.set_current_route_state(Some(ActiveBlock::Empty), Some(ActiveBlock::Library));
         }
         Key::Char(c) => {
             app.input.insert(app.input_idx, c);

@@ -354,15 +354,19 @@ where
 
     let current_route = app.get_current_route();
     match current_route.id {
-        RouteId::Search => {
-            // draw_search_results(f, app, chunks[1]);
-        }
+        // RouteId::Search => {
+        //     draw_search_results(f, app, chunks[1]);
+        // }
         RouteId::Home => {
             draw_home(f, app, chunks[1]);
         }
         RouteId::MadeForYou => {
             draw_made_for_you(f, app, chunks[1]);
         }
+        RouteId::Error => {} // This is handled as a "full screen" route in main.rs
+        RouteId::BasicView => {} // This is handled as a "full screen" route in main.rs
+        RouteId::Dialog => {} // This is handled in the draw_dialog function in mod.rs
+        _ => {}
     }
 }
 
@@ -494,8 +498,9 @@ where
             .split(layout_chunk);
 
         // Search input and help
-        // draw_library_block(f, app, chunks[0]);
-        // draw_playlist_block(f, app, chunks[1]);
+        draw_input_and_help_box(f, app, chunks[0]);
+        draw_library_block(f, app, chunks[0]);
+        draw_playlist_block(f, app, chunks[1]);
     }
 }
 
@@ -643,7 +648,7 @@ where
         )
         .split(layout_chunk);
 
-    let mut current_route = app.get_current_route();
+    let current_route = app.get_current_route();
 
     let highlight_state = (
         current_route.active_block == ActiveBlock::Input,

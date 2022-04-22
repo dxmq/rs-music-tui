@@ -57,6 +57,9 @@ pub enum RouteId {
     Home,
     Search,
     MadeForYou,
+    Error,
+    BasicView,
+    Dialog,
 }
 
 #[derive(Debug)]
@@ -125,7 +128,7 @@ impl App {
     pub fn dispatch(&mut self, action: IoEvent) {
         self.is_loading = true;
         if let Some(sender) = &self.io_tx {
-            if let Err(e) = sender.send(action) {
+            if let Err(_) = sender.send(action) {
                 self.is_loading = false;
                 panic!("Error dispatch event")
             }
@@ -140,7 +143,7 @@ impl App {
         self.navigation_stack.last_mut().unwrap()
     }
 
-    pub fn set_current_state(
+    pub fn set_current_route_state(
         &mut self,
         active_block: Option<ActiveBlock>,
         hovered_block: Option<ActiveBlock>,
