@@ -6,6 +6,15 @@ use serde_json::Value;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Playlist {
+    pub id: usize,
+    pub name: String,
+    pub track_count: String,
+    pub description: Option<String>,
+    pub _type: Type,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SimplifiedPlaylist {
     pub collaborative: bool,
     pub external_urls: HashMap<String, String>,

@@ -1,4 +1,3 @@
-use ncmapi::types::UserProfile;
 use std::collections::HashSet;
 use std::sync::mpsc::Sender;
 
@@ -12,6 +11,7 @@ use crate::model::playlist::SimplifiedPlaylist;
 use crate::model::table::TrackTable;
 use crate::network::ncm::TError;
 use anyhow::Result;
+use ncmapi::types::UserProfile;
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,

@@ -102,7 +102,7 @@ async fn test_user_account() {
     // assert!(resp.is_ok());
 
     let res = serde_json::from_slice::<UserAccountResp>(resp.unwrap().data()).unwrap();
-    let profile = res.profile;
+    // let profile = res.profile;
 
     println!("res: {:?}", res);
     // assert_eq!(res.code, 200);
