@@ -61,7 +61,7 @@ async fn main() -> Result<()> {
 async fn test_user_subcount() {
     let api = network::api();
     let phone = "13529565773";
-    let password = "zc201617470124";
+    let password = "xxxx";
     let resp = api.login_phone(phone, password).await;
     // assert!(resp.is_ok());
 
@@ -102,8 +102,20 @@ async fn test_user_account() {
     // assert!(resp.is_ok());
 
     let res = serde_json::from_slice::<UserAccountResp>(resp.unwrap().data()).unwrap();
-    // let profile = res.profile;
+    let profile = res.profile;
 
-    println!("res: {:?}", res);
+    println!("res: {:?}", profile.unwrap().user_id);
+    // assert_eq!(res.code, 200);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_user_playlist() {
+    let api = network::api();
+    let resp = api.user_playlist(354192143, None).await;
+    println!("resp: {:?}", resp);
+    // assert!(resp.is_ok());
+    //
+    // let res = resp.unwrap();
+    // let res = res.deserialize_to_implict();
     // assert_eq!(res.code, 200);
 }

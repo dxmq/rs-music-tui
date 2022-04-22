@@ -11,7 +11,7 @@ use crate::model::playlist::SimplifiedPlaylist;
 use crate::model::table::TrackTable;
 use crate::network::ncm::TError;
 use anyhow::Result;
-use ncmapi::types::UserProfile;
+use ncmapi::types::{Playlist, UserProfile};
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
@@ -108,20 +108,16 @@ pub struct App {
     pub seek_ms: Option<u128>,
     // 左侧菜单
     pub library: Library,
-    // 播放列表
-    pub playlists: Option<Page<SimplifiedPlaylist>>,
+    // 歌单列表
+    // pub playlists: Option<Page<SimplifiedPlaylist>>,
+    pub playlists: Option<Vec<Playlist>>,
     // 接口错误
     pub api_error: String,
-
     pub dialog: Option<String>,
-
     // 对话框选项是否为OK
     pub confirm: bool,
-
     pub made_for_you_index: usize,
-
     pub user: Option<UserProfile>,
-
     pub track_table: TrackTable,
 }
 

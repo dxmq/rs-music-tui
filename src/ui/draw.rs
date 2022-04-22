@@ -584,7 +584,7 @@ where
         current_route.hovered_block == ActiveBlock::MyPlaylists,
     );
     let playlist_items = match &app.playlists {
-        Some(p) => p.items.iter().map(|item| item.name.to_owned()).collect(),
+        Some(list) => list.iter().map(|item| item.name.to_owned()).collect(),
         None => vec![],
     };
 
@@ -592,7 +592,7 @@ where
         f,
         app,
         layout_chunk,
-        "Playlists",
+        "歌单",
         &playlist_items,
         highlight_state,
         app.selected_playlist_index,
@@ -611,7 +611,7 @@ where
         f,
         app,
         layout_chunk,
-        "Library",
+        "目录",
         &LIBRARY_OPTIONS,
         highlight_state,
         Some(app.library.selected_index),

@@ -1,14 +1,14 @@
 use std::future::Future;
 use std::sync::Arc;
 
+use anyhow::anyhow;
+use ncmapi::types::{Playlist, UserPlaylistResp};
 use tokio::sync::Mutex;
 
 use crate::app::App;
 use crate::event::IoEvent;
 use crate::network::api;
 use crate::network::ncm::{CloudMusic, TError, TResult};
-use anyhow::anyhow;
-use ncmapi::types::{Playlist, UserPlaylistResp};
 
 pub struct Network<'a> {
     // 最大搜索限制
@@ -37,10 +37,10 @@ impl<'a> Network<'a> {
                 self.small_search_limit = small_search_limit;
             }
             IoEvent::GetPlaylists => {
-                self.get_current_user_playlists().await;
+                self.load_current_user_playlists().await;
             }
             IoEvent::GetUser => {
-                self.get_user().await;
+                self.load_user().await;
             }
             _ => {}
         }
@@ -49,33 +49,24 @@ impl<'a> Network<'a> {
         app.is_loading = false;
     }
 
-    async fn get_current_user_playlists(&self) {
+    async fn load_current_user_playlists(&mut self) {
         let result = self
-            .current_user_playlists(self.large_search_limit, None)
+            .ncm
+            .current_user_playlists(self.large_search_limit, None, &self.app)
             .await;
+        match result {
+            Ok(list) => {
+                let mut app = self.app.lock().await;
+                app.playlists = Some(list);
+                app.selected_playlist_index = Some(0);
+            }
+            Err(e) => {
+                self.handle_error(e).await;
+            }
+        }
     }
 
-    pub async fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
-        &self,
-        limit: L,
-        offset: O,
-    ) -> TResult<Vec<Playlist>> {
-        let mut params = serde_json::Map::new();
-        let limit = serde_json::Value::String(limit.into().unwrap_or(50).to_string());
-        let offset = serde_json::Value::String(offset.into().unwrap_or(0).to_string());
-        params.insert("limit".to_owned(), limit);
-        params.insert("offset".to_owned(), offset);
-
-        let app = self.app.lock().await;
-        let params = serde_json::Value::Object(params);
-        let resp = api()
-            .user_playlist(app.user.unwrap().user_id, Some(params))
-            .await?;
-        let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data())?;
-        Ok(resp.playlist)
-    }
-
-    async fn get_user(&mut self) {
+    async fn load_user(&mut self) {
         match self.ncm.current_user().await {
             Ok(user) => {
                 let mut app = self.app.lock().await;
