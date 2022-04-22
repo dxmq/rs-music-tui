@@ -184,6 +184,18 @@ impl App {
             self.navigation_stack.pop()
         }
     }
+
+    pub fn calculate_help_menu_offset(&mut self) {
+        let old_offset = self.help_menu_offset;
+
+        if self.help_menu_max_lines < self.help_docs_size {
+            self.help_menu_offset = self.help_menu_page * self.help_menu_max_lines;
+        }
+        if self.help_menu_offset > self.help_docs_size {
+            self.help_menu_offset = old_offset;
+            self.help_menu_page -= 1;
+        }
+    }
 }
 
 impl Default for App {
