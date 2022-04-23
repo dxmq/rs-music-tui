@@ -45,6 +45,9 @@ impl<'a> Network<'a> {
             IoEvent::GetPlaylistTracks(playlist_id) => {
                 self.load_playlist_tracks(playlist_id).await;
             }
+            IoEvent::StartPlayback(playlist_id, uris, offset) => {
+                self.start_playback(playlist_id, uris, offset).await;
+            }
             // IoEvent::CurrentUserSavedTracksContains(track_ids) => {
             //     self.current_user_saved_tracks_contains(track_ids).await;
             // }
@@ -77,6 +80,14 @@ impl<'a> Network<'a> {
     //         }
     //     }
     // }
+
+    async fn start_playback(
+        &mut self,
+        playlist_id: Option<usize>,
+        uris: Option<Vec<String>>,
+        offset: Option<usize>,
+    ) {
+    }
 
     async fn set_playlist_tracks_to_table(&mut self, playlist_track_page: &PlaylistDetail) {
         self.set_tracks_to_table(playlist_track_page.tracks.clone())

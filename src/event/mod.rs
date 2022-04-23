@@ -13,4 +13,6 @@ pub enum IoEvent {
     GetUser,
     GetPlaylistTracks(usize),
     CurrentUserSavedTracksContains(Vec<String>),
+    // 开始播放歌曲
+    StartPlayback(Option<usize>, Option<Vec<String>>, Option<usize>),
 }

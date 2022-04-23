@@ -1,5 +1,8 @@
+pub use input::handler as input_handler;
+
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
+use crate::model::enums::Type;
 
 pub(crate) mod common_key_events;
 pub(crate) mod empty;
@@ -9,9 +12,7 @@ pub(crate) mod home;
 pub(crate) mod input;
 pub(crate) mod library;
 pub(crate) mod playlist;
-
-use crate::model::enums::Type;
-pub use input::handler as input_handler;
+pub(crate) mod track_table;
 
 pub fn handle_app(key: Key, app: &mut App) {
     match key {
@@ -55,7 +56,7 @@ pub fn handle_block_events(key: Key, app: &mut App) {
             playlist::handler(key, app);
         }
         ActiveBlock::TrackTable => {
-            // track_table::handler(key, app);
+            track_table::handler(key, app);
         }
         ActiveBlock::Home => {
             home::handler(key, app);
