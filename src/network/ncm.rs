@@ -3,7 +3,9 @@ use std::sync::Arc;
 
 use anyhow::private::format_err;
 use anyhow::{Error, Result};
-use ncmapi::types::{Playlist, PlaylistDetail, UserAccountResp, UserPlaylistResp, UserProfile};
+use ncmapi::types::{
+    Playlist, PlaylistDetail, PlaylistDetailResp, UserAccountResp, UserPlaylistResp, UserProfile,
+};
 use serde::Deserialize;
 use tokio::sync::Mutex;
 
@@ -58,6 +60,7 @@ impl CloudMusic {
 
     pub async fn playlist_tracks(&self, playlist_id: usize) -> TResult<PlaylistDetail> {
         let resp = api().playlist_detail(playlist_id, None).await?;
-        Ok(serde_json::from_slice::<PlaylistDetail>(resp.data())?)
+        let result = serde_json::from_slice::<PlaylistDetailResp>(resp.data())?;
+        Ok(result.playlist.unwrap())
     }
 }

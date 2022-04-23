@@ -358,7 +358,7 @@ where
         //     draw_search_results(f, app, chunks[1]);
         // }
         RouteId::TrackTable => {
-            draw_routes(f, app, chunks[1]);
+            draw_song_table(f, app, chunks[1]);
         }
         RouteId::Home => {
             draw_home(f, app, chunks[1]);
@@ -387,21 +387,21 @@ where
             },
             TableHeaderItem {
                 id: ColumnId::Title,
-                text: "Title",
+                text: "标题",
                 width: get_percentage_width(layout_chunk.width, 0.3),
             },
             TableHeaderItem {
-                text: "Artist",
-                width: get_percentage_width(layout_chunk.width, 0.3),
-                ..Default::default()
-            },
-            TableHeaderItem {
-                text: "Album",
+                text: "歌手",
                 width: get_percentage_width(layout_chunk.width, 0.3),
                 ..Default::default()
             },
             TableHeaderItem {
-                text: "Length",
+                text: "专辑",
+                width: get_percentage_width(layout_chunk.width, 0.3),
+                ..Default::default()
+            },
+            TableHeaderItem {
+                text: "时间",
                 width: get_percentage_width(layout_chunk.width, 0.1),
                 ..Default::default()
             },
@@ -413,7 +413,6 @@ where
         current_route.active_block == ActiveBlock::TrackTable,
         current_route.hovered_block == ActiveBlock::TrackTable,
     );
-    // item.id.clone().unwrap_or_else(|| "".to_string()),
     let items = app
         .track_table
         .tracks
@@ -429,12 +428,12 @@ where
             ],
         })
         .collect::<Vec<TableItem>>();
-
+    // let items = vec![];
     draw_table(
         f,
         app,
         layout_chunk,
-        ("Songs", &header),
+        ("歌曲列表", &header),
         &items,
         app.track_table.selected_index,
         highlight_state,

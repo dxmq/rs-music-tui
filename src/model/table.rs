@@ -52,6 +52,7 @@ pub struct TableHeaderItem<'a> {
     pub width: u16,
 }
 
+#[derive(Debug)]
 pub struct TableItem {
     pub id: String,
     pub format: Vec<String>,

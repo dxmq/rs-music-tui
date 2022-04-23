@@ -6,7 +6,7 @@ use std::sync::{mpsc, Arc};
 use std::thread;
 
 use anyhow::Result;
-use ncmapi::types::{UserAccountResp, UserPlaylistResp};
+use ncmapi::types::{PlaylistDetailResp, UserAccountResp, UserPlaylistResp};
 use tokio::sync::Mutex;
 
 use crate::app::App;
@@ -14,7 +14,9 @@ use crate::cli::clap::ClapApplication;
 use crate::config::client_config::ClientConfig;
 use crate::config::user_config::{UserConfig, UserConfigPath};
 use crate::event::IoEvent;
+use crate::model::table::TableItem;
 use crate::network::network::Network;
+use crate::util::{create_artist_string, millis_to_minutes2};
 
 // mod api;
 mod app;
@@ -123,9 +125,33 @@ async fn test_user_playlist() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_playlist_detail() {
     let api = network::api();
-    const COLLECTION_ID: usize = 498339500;
-    let resp = api.playlist_detail(COLLECTION_ID, None).await;
-    println!("resp: {:?}", resp);
+    // const COLLECTION_ID: usize = 498339500;
+    // const COLLECTION_ID: usize = 951203;
+    let resp = api.playlist_detail(498339500, None).await;
+    if let Ok(resp) = resp {
+        if let Ok(result) = serde_json::from_slice::<PlaylistDetailResp>(resp.data()) {
+            let detail = result.playlist.unwrap();
+            let items = detail
+                .tracks
+                .iter()
+                .map(|item| TableItem {
+                    id: item.id.to_string(),
+                    format: vec![
+                        "".to_string(),
+                        item.name.to_owned(),
+                        create_artist_string(&item.artists),
+                        item.album.name.to_owned().unwrap(),
+                        millis_to_minutes2(item.duration),
+                    ],
+                })
+                .collect::<Vec<TableItem>>();
+            println!("detail: {:?}", items);
+        }
+    }
+
+    let a = 10;
+
+    // println!("resp: {:?}", resp);
     // assert!(resp.is_ok());
     //
     // let res = resp.unwrap();
