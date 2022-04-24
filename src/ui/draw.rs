@@ -773,7 +773,11 @@ fn draw_table<B>(
     let track_playing_index = app.current_playback_context.to_owned().and_then(|ctx| {
         ctx.item.and_then(|item| match item {
             PlayingItem::Track(track) => items.iter().position(|item| {
-                true
+                if track.id.to_string() == item.id {
+                    true
+                } else {
+                    false
+                }
                 // track.id.to_string().to_owned()
                 // .map(|id| id == item.id)
                 // .unwrap_or(false)

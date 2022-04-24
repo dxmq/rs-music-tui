@@ -42,7 +42,10 @@ async fn main() -> Result<()> {
     let mut user_config = UserConfig::new();
     if let Some(config_file_path) = matches.value_of("config") {
         let config_file_path = PathBuf::from(config_file_path);
-        let config_path = UserConfigPath { config_file_path };
+        let config_path = UserConfigPath {
+            config_file_path,
+            cache_file_path: PathBuf::new(),
+        };
         user_config.path_to_config.replace(config_path);
     }
     user_config.load_config()?;

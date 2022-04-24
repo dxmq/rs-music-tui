@@ -56,6 +56,9 @@ impl<'a> Network<'a> {
             IoEvent::StartPlayback(song) => {
                 self.start_playback(song).await;
             }
+            IoEvent::TogglePlayBack => {
+                self.toggle_playback().await;
+            }
             // IoEvent::CurrentUserSavedTracksContains(track_ids) => {
             //     self.current_user_saved_tracks_contains(track_ids).await;
             // }
@@ -64,6 +67,31 @@ impl<'a> Network<'a> {
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn toggle_playback(&mut self) {
+        let mut app = self.app.lock().await;
+        let context = app.current_playback_context.clone();
+        match context {
+            Some(mut context) => {
+                if self.player.is_playing() {
+                    context.is_playing = false;
+                    context.progress_ms = Some(app.song_progress_ms as u32);
+                    app.instant_since_last_current_playback_poll = Instant::now();
+                    app.current_playback_context = Some(context);
+                    self.player.pause();
+                } else {
+                    context.is_playing = true;
+                    context.progress_ms = Some(app.song_progress_ms as u32);
+                    app.instant_since_last_current_playback_poll = Instant::now();
+                    app.current_playback_context = Some(context);
+                    self.player.play();
+                }
+            }
+            None => {
+                self.player.pause();
+            }
+        }
     }
     //
     // async fn current_user_saved_tracks_contains(&mut self, ids: Vec<String>) {
@@ -95,7 +123,6 @@ impl<'a> Network<'a> {
                 if let Some(song_url) = urls.get(0) {
                     let mut app = self.app.lock().await;
                     let disallows: HashMap<DisallowKey, bool> = HashMap::new();
-                    self.player.play_url(song_url.url.as_str());
                     let context = CurrentlyPlaybackContext {
                         is_playing: true,
                         progress_ms: Some(0),
@@ -108,6 +135,7 @@ impl<'a> Network<'a> {
                         item: Some(PlayingItem::Track(song)),
                     };
                     app.instant_since_last_current_playback_poll = Instant::now();
+                    self.player.play_url(song_url.url.as_str());
                     app.current_playback_context = Some(context);
                 }
             }

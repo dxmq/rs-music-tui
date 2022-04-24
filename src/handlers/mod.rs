@@ -11,6 +11,7 @@ pub(crate) mod help_menu;
 pub(crate) mod home;
 pub(crate) mod input;
 pub(crate) mod library;
+pub(crate) mod playbar;
 pub(crate) mod playlist;
 pub(crate) mod track_table;
 
@@ -63,6 +64,9 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::Empty => {
             empty::handler(key, app);
+        }
+        ActiveBlock::PlayBar => {
+            playbar::handler(key, app);
         }
         _ => {}
     }

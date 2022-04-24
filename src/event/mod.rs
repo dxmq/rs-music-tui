@@ -16,4 +16,6 @@ pub enum IoEvent {
     CurrentUserSavedTracksContains(Vec<String>),
     StartPlayback(Song),
     GetCurrentPlayback(Song),
+    PausePlayback,
+    TogglePlayBack,
 }
