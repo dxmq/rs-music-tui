@@ -311,11 +311,10 @@ where
                 );
             f.render_widget(artist, chunks[0]);
 
-            // let progress_ms = match app.seek_ms {
-            //     Some(seek_ms) => seek_ms,
-            //     None => app.song_progress_ms,
-            // };
-            let progress_ms = app.song_progress_ms;
+            let progress_ms = match app.seek_ms {
+                Some(seek_ms) => seek_ms,
+                None => app.song_progress_ms,
+            };
 
             let perc = get_track_progress_percentage(progress_ms, duration_ms);
 
