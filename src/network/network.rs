@@ -1,14 +1,19 @@
+use std::collections::HashMap;
 use std::future::Future;
 use std::sync::Arc;
 
-use anyhow::anyhow;
-use ncmapi::types::{Playlist, PlaylistDetail, Song, UserPlaylistResp};
+use anyhow::{anyhow, Error};
+use ncmapi::types::{Artist, Playlist, PlaylistDetail, Song, SongUrl, UserPlaylistResp};
 use tokio::sync::Mutex;
 
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::IoEvent;
+use crate::model::context::{Action, CurrentlyPlaybackContext};
+use crate::model::device::Device;
+use crate::model::enums::{CurrentlyPlayingType, DisallowKey, PlayingItem, RepeatState};
 use crate::network::api;
 use crate::network::ncm::{CloudMusic, TError, TResult};
+use crate::player::Nplayer;
 
 pub struct Network<'a> {
     // 最大搜索限制
@@ -16,6 +21,7 @@ pub struct Network<'a> {
     // 最小搜索限制
     small_search_limit: u32,
     pub app: &'a Arc<Mutex<App>>,
+    pub player: Nplayer,
     pub ncm: CloudMusic,
 }
 
@@ -26,6 +32,7 @@ impl<'a> Network<'a> {
             small_search_limit: 4,
             app,
             ncm: Default::default(),
+            player: Nplayer::new(),
         }
     }
 
@@ -45,8 +52,8 @@ impl<'a> Network<'a> {
             IoEvent::GetPlaylistTracks(playlist_id) => {
                 self.load_playlist_tracks(playlist_id).await;
             }
-            IoEvent::StartPlayback(playlist_id, uris, offset) => {
-                self.start_playback(playlist_id, uris, offset).await;
+            IoEvent::StartPlayback(song) => {
+                self.start_playback(song).await;
             }
             // IoEvent::CurrentUserSavedTracksContains(track_ids) => {
             //     self.current_user_saved_tracks_contains(track_ids).await;
@@ -81,12 +88,33 @@ impl<'a> Network<'a> {
     //     }
     // }
 
-    async fn start_playback(
-        &mut self,
-        playlist_id: Option<usize>,
-        uris: Option<Vec<String>>,
-        offset: Option<usize>,
-    ) {
+    async fn start_playback(&mut self, song: Song) {
+        match self.ncm.song_url(vec![song.id]).await {
+            Ok(urls) => {
+                if let Some(song_url) = urls.get(0) {
+                    let mut app = self.app.lock().await;
+                    let disallows: HashMap<DisallowKey, bool> = HashMap::new();
+                    let context = CurrentlyPlaybackContext {
+                        is_playing: false,
+                        process_ms: None,
+                        timestamp: 0,
+                        context: None,
+                        currently_playing_type: CurrentlyPlayingType::Track,
+                        active: Action { disallows },
+                        repeat_state: RepeatState::Off,
+                        shuffle_state: false,
+                        item: Some(PlayingItem::Track(song)),
+                    };
+                    self.player.play_url(song_url.url.as_str());
+                    app.current_playback_context = Some(context);
+                    app.seek_ms.take();
+                }
+            }
+            Err(e) => self.handle_error(e).await,
+        }
+        // app.is_fetching_current_playback = false;
+        // app.song_progress_ms = 0;
+        // app.player.play_url(song_url.url.as_str());
     }
 
     async fn set_playlist_tracks_to_table(&mut self, playlist_track_page: &PlaylistDetail) {

@@ -1,5 +1,6 @@
 pub use self::events::{Event, Events};
 pub use self::key::Key;
+use ncmapi::types::{Song, SongUrl};
 
 mod events;
 mod key;
@@ -13,6 +14,5 @@ pub enum IoEvent {
     GetUser,
     GetPlaylistTracks(usize),
     CurrentUserSavedTracksContains(Vec<String>),
-    // 开始播放歌曲
-    StartPlayback(Option<usize>, Option<Vec<String>>, Option<usize>),
+    StartPlayback(Song),
 }

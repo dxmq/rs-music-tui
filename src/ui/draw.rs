@@ -245,12 +245,12 @@ where
             };
 
             let title = format!(
-                "{:-7} ({} | Shuffle: {:-3} | Repeat: {:-5} | Volume: {:-2}%)",
+                "{:-7} (Shuffle: {:-3} | Repeat: {:-5})",
                 play_title,
-                current_playback_context.device.name,
+                // current_playback_context.device.name,
                 shuffle_text,
                 repeat_text,
-                current_playback_context.device.volume_percent
+                // current_playback_context.device.volume_percent
             );
 
             let current_route = app.get_current_route();

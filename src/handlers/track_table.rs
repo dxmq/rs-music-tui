@@ -49,19 +49,14 @@ fn on_enter(app: &mut App) {
     match &context {
         Some(context) => match context {
             TrackTableContext::MyPlaylists => {
-                if let Some(_track) = tracks.get(*selected_index) {
-                    let playlist_id = match (&app.active_playlist_index, &app.playlists) {
-                        (Some(active_playlist_index), Some(playlists)) => playlists
-                            .get(active_playlist_index.to_owned())
-                            .map(|selected_playlist| selected_playlist.id.to_owned()),
-                        _ => None,
-                    };
-
-                    app.dispatch(IoEvent::StartPlayback(
-                        playlist_id,
-                        None,
-                        Some(app.track_table.selected_index + app.playlist_offset as usize),
-                    ));
+                if let Some(track) = tracks.get(*selected_index) {
+                    // let playlist_id = match (&app.active_playlist_index, &app.playlists) {
+                    //     (Some(active_playlist_index), Some(playlists)) => playlists
+                    //         .get(active_playlist_index.to_owned())
+                    //         .map(|selected_playlist| selected_playlist.id.to_owned()),
+                    //     _ => None,
+                    // };
+                    app.dispatch(IoEvent::StartPlayback(track.clone()));
                 };
             }
             _ => {}

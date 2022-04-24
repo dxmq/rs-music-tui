@@ -6,7 +6,7 @@ use std::sync::{mpsc, Arc};
 use std::thread;
 
 use anyhow::Result;
-use ncmapi::types::{PlaylistDetailResp, UserAccountResp, UserPlaylistResp};
+use ncmapi::types::{PlaylistDetailResp, SongUrlResp, UserAccountResp, UserPlaylistResp};
 use tokio::sync::Mutex;
 
 use crate::app::App;
@@ -27,6 +27,7 @@ mod handlers;
 mod http;
 mod model;
 mod network;
+mod player;
 mod ui;
 mod util;
 
@@ -157,4 +158,16 @@ async fn test_playlist_detail() {
     // let res = resp.unwrap();
     // let res = res.deserialize_to_implict();
     // assert_eq!(res.code, 200);
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_get_song_url() {
+    let song_id = 1297802566;
+    let api = network::api();
+    let resp = api.song_url(&vec![song_id]).await;
+    // assert!(resp.is_ok());
+
+    let song_url_resp = serde_json::from_slice::<SongUrlResp>(resp.unwrap().data()).unwrap();
+    let data = song_url_resp.data;
+    println!("res: {:?}", data);
 }

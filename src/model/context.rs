@@ -27,8 +27,6 @@ pub struct CurrentlyPlayingContext {
 // 当前回放上下文
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CurrentlyPlaybackContext {
-    // 设备
-    pub device: Device,
     // 播放状态
     pub is_playing: bool,
     // 当前进度（毫秒）
