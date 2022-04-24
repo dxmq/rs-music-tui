@@ -1,11 +1,13 @@
 use std::collections::HashSet;
 use std::sync::mpsc::Sender;
+use std::time::Instant;
 
 use tui::layout::Rect;
 
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
+use crate::model::enums::PlayingItem;
 use crate::model::page::{Page, ScrollableResultPages};
 use crate::model::playlist::SimplifiedPlaylist;
 use crate::model::table::TrackTable;
@@ -122,6 +124,8 @@ pub struct App {
     pub made_for_you_index: usize,
     pub user: Option<UserProfile>,
     pub track_table: TrackTable,
+    pub instant_since_last_current_playback_poll: Instant,
+    pub is_fetching_current_playback: bool,
 }
 
 impl App {
@@ -211,6 +215,77 @@ impl App {
         self.push_navigation_stack(RouteId::Error, ActiveBlock::Error);
         self.api_error = e.to_string();
     }
+
+    fn apply_seek(&mut self, seek_ms: u32) {
+        if let Some(CurrentlyPlaybackContext {
+            item: Some(item), ..
+        }) = &self.current_playback_context
+        {
+            let duration_ms = match item {
+                PlayingItem::Track(track) => track.duration as u32,
+                PlayingItem::Episode(episode) => episode.duration_ms,
+            };
+
+            // let event = if seek_ms < duration_ms {
+            //     IoEvent::Seek(seek_ms)
+            // } else {
+            //     IoEvent::NextTrack
+            // };
+
+            // self.dispatch(event);
+        }
+    }
+
+    fn poll_current_playback(&mut self) {
+        // Poll every 5 seconds
+        let poll_interval_ms = 5_000;
+
+        let elapsed = self
+            .instant_since_last_current_playback_poll
+            .elapsed()
+            .as_millis();
+
+        if !self.is_fetching_current_playback && elapsed >= poll_interval_ms {
+            self.is_fetching_current_playback = true;
+            // Trigger the seek if the user has set a new position
+            // match self.seek_ms {
+            //     Some(seek_ms) => self.apply_seek(seek_ms as u32),
+            //     None => self.dispatch(IoEvent::GetCurrentPlayback),
+            // }
+        }
+    }
+
+    pub fn update_on_tick(&mut self) {
+        // self.poll_current_playback();
+        if let Some(CurrentlyPlaybackContext {
+            item: Some(item),
+            progress_ms: Some(progress_ms),
+            is_playing,
+            ..
+        }) = &self.current_playback_context
+        {
+            // Update progress even when the song is not playing,
+            // because seeking is possible while paused
+            let elapsed = if *is_playing {
+                self.instant_since_last_current_playback_poll
+                    .elapsed()
+                    .as_millis()
+            } else {
+                0u128
+            } + u128::from(*progress_ms);
+
+            let duration_ms = match item {
+                PlayingItem::Track(track) => track.duration as u32,
+                PlayingItem::Episode(episode) => episode.duration_ms,
+            };
+
+            if elapsed < u128::from(duration_ms) {
+                self.song_progress_ms = elapsed;
+            } else {
+                self.song_progress_ms = duration_ms.into();
+            }
+        }
+    }
 }
 
 impl Default for App {
@@ -248,6 +323,8 @@ impl Default for App {
             made_for_you_index: 0,
             user: None,
             track_table: Default::default(),
+            instant_since_last_current_playback_poll: Instant::now(),
+            is_fetching_current_playback: false,
         }
     }
 }

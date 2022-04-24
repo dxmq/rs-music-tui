@@ -30,7 +30,7 @@ pub struct CurrentlyPlaybackContext {
     // 播放状态
     pub is_playing: bool,
     // 当前进度（毫秒）
-    pub process_ms: Option<u32>,
+    pub progress_ms: Option<u32>,
     pub timestamp: u64,
     pub context: Option<Context>,
     // 当前播放的是什么

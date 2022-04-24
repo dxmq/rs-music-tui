@@ -15,4 +15,5 @@ pub enum IoEvent {
     GetPlaylistTracks(usize),
     CurrentUserSavedTracksContains(Vec<String>),
     StartPlayback(Song),
+    GetCurrentPlayback(Song),
 }

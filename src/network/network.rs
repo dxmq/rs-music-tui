@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::future::Future;
 use std::sync::Arc;
+use std::time::Instant;
 
 use anyhow::{anyhow, Error};
 use ncmapi::types::{Artist, Playlist, PlaylistDetail, Song, SongUrl, UserPlaylistResp};
@@ -94,9 +95,10 @@ impl<'a> Network<'a> {
                 if let Some(song_url) = urls.get(0) {
                     let mut app = self.app.lock().await;
                     let disallows: HashMap<DisallowKey, bool> = HashMap::new();
+                    self.player.play_url(song_url.url.as_str());
                     let context = CurrentlyPlaybackContext {
-                        is_playing: false,
-                        process_ms: None,
+                        is_playing: true,
+                        progress_ms: Some(0),
                         timestamp: 0,
                         context: None,
                         currently_playing_type: CurrentlyPlayingType::Track,
@@ -105,16 +107,16 @@ impl<'a> Network<'a> {
                         shuffle_state: false,
                         item: Some(PlayingItem::Track(song)),
                     };
-                    self.player.play_url(song_url.url.as_str());
+                    app.instant_since_last_current_playback_poll = Instant::now();
                     app.current_playback_context = Some(context);
-                    app.seek_ms.take();
                 }
             }
             Err(e) => self.handle_error(e).await,
         }
-        // app.is_fetching_current_playback = false;
-        // app.song_progress_ms = 0;
-        // app.player.play_url(song_url.url.as_str());
+
+        let mut app = self.app.lock().await;
+        app.seek_ms.take();
+        app.is_fetching_current_playback = false;
     }
 
     async fn set_playlist_tracks_to_table(&mut self, playlist_track_page: &PlaylistDetail) {

@@ -132,7 +132,9 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
                     handlers::handle_app(key, &mut app);
                 }
             }
-            event::Event::Tick => {}
+            event::Event::Tick => {
+                app.update_on_tick();
+            }
         }
 
         // 如果刚启动（第一次渲染）
