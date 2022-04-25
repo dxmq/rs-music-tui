@@ -32,8 +32,8 @@ pub async fn login_phone() -> Result<()> {
             let resp = CloudMusicApi::default()
                 .login_phone(&phone, &password)
                 .await;
-            if !resp.is_ok() {
-                println!("{}", "登录失败……");
+            if resp.is_err() {
+                println!("登录失败……");
                 println!("{}", "-".repeat(20));
                 num_retries += 1;
                 if num_retries == MAX_RETRIES {

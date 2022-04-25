@@ -35,8 +35,7 @@ impl ApiRequest {
     }
 
     fn serialize(&self) -> String {
-        let a = serde_json::to_string(self).unwrap();
-        a
+        serde_json::to_string(self).unwrap()
     }
 
     pub fn id(&self) -> String {
@@ -51,7 +50,7 @@ pub struct ApiRequestBuilder {
 
 impl Default for ApiRequestBuilder {
     fn default() -> Self {
-        ApiRequestBuilder::new(Method::POST, "")
+        ApiRequestBuilder::new(Method::Post, "")
     }
 }
 
@@ -102,7 +101,7 @@ impl ApiRequestBuilder {
     }
 
     pub fn post(url: &str) -> Self {
-        Self::new(Method::POST, url)
+        Self::new(Method::Post, url)
     }
 
     pub fn set_data(mut self, data: Value) -> Self {
@@ -112,7 +111,7 @@ impl ApiRequestBuilder {
 
     #[allow(unused)]
     pub fn insert(mut self, key: &str, val: Value) -> Self {
-        let mut data = self.config.data.unwrap_or(json!({}));
+        let mut data = self.config.data.unwrap_or_else(|| json!({}));
 
         data.as_object_mut().unwrap().insert(key.to_owned(), val);
         self.config.data = Some(data);
@@ -124,7 +123,7 @@ impl ApiRequestBuilder {
             return self;
         }
 
-        let mut data = self.config.data.unwrap_or(json!({}));
+        let mut data = self.config.data.unwrap_or_else(|| json!({}));
         for (k, v) in val.as_object().unwrap() {
             data.as_object_mut()
                 .unwrap()
@@ -197,15 +196,15 @@ struct Config {
 #[derive(Serialize, Debug, PartialEq, Eq, Clone, Copy)]
 #[allow(unused)]
 pub enum Method {
-    GET,
-    HEAD,
-    POST,
-    PUT,
-    DELETE,
-    CONNECT,
-    OPTIONS,
-    TRACE,
-    PATCH,
+    Get,
+    Head,
+    Post,
+    Put,
+    Delete,
+    Connect,
+    Options,
+    Trace,
+    Patch,
 }
 
 #[derive(Serialize, Debug)]

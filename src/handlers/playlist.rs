@@ -11,7 +11,7 @@ pub fn handler(key: Key, app: &mut App) {
                 Some(p) => {
                     if let Some(selected_playlist_index) = app.selected_playlist_index {
                         let next_index = common_key_events::on_down_press_handler(
-                            &p,
+                            p,
                             Some(selected_playlist_index),
                         );
                         app.selected_playlist_index = Some(next_index);
@@ -24,7 +24,7 @@ pub fn handler(key: Key, app: &mut App) {
             match &app.playlists {
                 Some(p) => {
                     let next_index =
-                        common_key_events::on_up_press_handler(&p, app.selected_playlist_index);
+                        common_key_events::on_up_press_handler(p, app.selected_playlist_index);
                     app.selected_playlist_index = Some(next_index);
                 }
                 None => {}
@@ -42,7 +42,7 @@ pub fn handler(key: Key, app: &mut App) {
         k if common_key_events::middle_event(k) => {
             match &app.playlists {
                 Some(p) => {
-                    let next_index = common_key_events::on_middle_press_handler(&p);
+                    let next_index = common_key_events::on_middle_press_handler(p);
                     app.selected_playlist_index = Some(next_index);
                 }
                 None => {}
@@ -51,7 +51,7 @@ pub fn handler(key: Key, app: &mut App) {
         k if common_key_events::low_event(k) => {
             match &app.playlists {
                 Some(p) => {
-                    let next_index = common_key_events::on_low_press_handler(&p);
+                    let next_index = common_key_events::on_low_press_handler(p);
                     app.selected_playlist_index = Some(next_index);
                 }
                 None => {}

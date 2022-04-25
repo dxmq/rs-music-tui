@@ -75,18 +75,18 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
         }
 
         let current_route = app.get_current_route();
-        terminal.draw(|mut f| match current_route.active_block {
+        terminal.draw(|f| match current_route.active_block {
             ActiveBlock::HelpMenu => {
-                draw::draw_help_menu(&mut f, &app);
+                draw::draw_help_menu(f, &app);
             }
             ActiveBlock::Error => {
-                draw::draw_error_screen(&mut f, &app);
+                draw::draw_error_screen(f, &app);
             }
             ActiveBlock::BasicView => {
-                draw::draw_basic_view(&mut f, &app);
+                draw::draw_basic_view(f, &app);
             }
             _ => {
-                draw::draw_main_layout(&mut f, &app);
+                draw::draw_main_layout(f, &app);
             }
         })?;
 

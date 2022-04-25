@@ -30,13 +30,15 @@ pub async fn fetch_data(url: &str, buffer: NamedTempFile, tx: Sender<String>) ->
     debug!("start download");
     if let Some(chunk) = res.chunk().await? {
         debug!("first chunk");
-        buffer.write(&chunk[..]).unwrap();
+        Write::write_all(&mut buffer, &chunk[..]).unwrap();
+        // buffer.write(&chunk[..]).unwrap();
         send_msg(tx);
     }
 
     while let Some(chunk) = res.chunk().await? {
         // bytes
-        buffer.write(&chunk[..]).unwrap();
+        // buffer.write(&chunk[..]).unwrap();
+        Write::write_all(&mut buffer, &chunk[..]).unwrap();
     }
     debug!("finish downloa");
     Ok(())

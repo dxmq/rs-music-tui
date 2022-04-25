@@ -140,9 +140,9 @@ impl App {
     pub fn dispatch(&mut self, action: IoEvent) {
         self.is_loading = true;
         if let Some(sender) = &self.io_tx {
-            if let Err(_) = sender.send(action) {
+            if sender.send(action).is_err() {
                 self.is_loading = false;
-                panic!("Error dispatch event")
+                panic!("Error dispatch event");
             }
         }
     }

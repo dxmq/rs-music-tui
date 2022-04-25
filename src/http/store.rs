@@ -4,8 +4,8 @@ use crate::http::response::ApiResponse;
 use std::{sync::RwLock, time};
 
 pub(crate) trait InMemStore {
-    fn get(&self, id: &String) -> Option<ApiResponse>;
-    fn contains_key(&self, id: &String) -> bool;
+    fn get(&self, id: &str) -> Option<ApiResponse>;
+    fn contains_key(&self, id: &str) -> bool;
     fn insert(
         &self,
         id: String,
@@ -23,15 +23,15 @@ impl Store {
 }
 
 impl InMemStore for Store {
-    fn get(&self, id: &String) -> Option<ApiResponse> {
-        if let Some(res) = self.0.read().unwrap().get(id) {
+    fn get(&self, id: &str) -> Option<ApiResponse> {
+        if let Some(res) = self.0.read().unwrap().get(&String::from(id)) {
             return Some(ApiResponse::new(res.data().to_owned()));
         }
         None
     }
 
-    fn contains_key(&self, id: &String) -> bool {
-        self.0.read().unwrap().contains_key(id)
+    fn contains_key(&self, id: &str) -> bool {
+        self.0.read().unwrap().contains_key(&String::from(id))
     }
 
     fn insert(

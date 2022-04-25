@@ -100,8 +100,8 @@ impl UserConfig {
         let config_file_path = app_config_dir.join(CONFIG_FILE_NAME);
         let cache_file_path = app_config_dir.join(CACHE_FILE_NAME);
         let paths = UserConfigPath {
-            config_file_path: config_file_path.to_path_buf(),
-            cache_file_path: cache_file_path.to_path_buf(),
+            config_file_path,
+            cache_file_path,
         };
         self.path_to_config = Some(paths);
         Ok(())

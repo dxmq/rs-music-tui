@@ -1,5 +1,4 @@
 use crate::http::key::{BASE62, EAPI_KEY, IV, LINUX_API_KEY, PRESET_KEY, PUBLIC_KEY};
-use base64;
 use openssl::{
     error::ErrorStack,
     hash::{hash, MessageDigest},
@@ -30,7 +29,7 @@ pub struct LinuxapiForm {
 }
 
 impl WeapiForm {
-    pub fn to_vec(self) -> Vec<(String, String)> {
+    pub fn transfer_to_vec(self) -> Vec<(String, String)> {
         vec![
             ("params".to_owned(), self.params),
             ("encSecKey".to_owned(), self.enc_sec_key),
@@ -39,13 +38,13 @@ impl WeapiForm {
 }
 
 impl EapiForm {
-    pub fn to_vec(self) -> Vec<(String, String)> {
+    pub fn transfer_to_vec(self) -> Vec<(String, String)> {
         vec![("params".to_owned(), self.params)]
     }
 }
 
 impl LinuxapiForm {
-    pub fn to_vec(self) -> Vec<(String, String)> {
+    pub fn transfer_to_vec(self) -> Vec<(String, String)> {
         vec![("eparams".to_owned(), self.eparams)]
     }
 }
@@ -70,7 +69,7 @@ pub fn weapi(text: &[u8]) -> WeapiForm {
     };
 
     let enc_sec_key = {
-        let reversed_sk = sk.iter().rev().map(|i| *i).collect::<Vec<u8>>();
+        let reversed_sk = sk.iter().rev().copied().collect::<Vec<u8>>();
         hex::encode(rsa(&reversed_sk, PUBLIC_KEY.as_bytes()))
     };
 
@@ -115,8 +114,7 @@ pub fn linuxapi(text: &[u8]) -> LinuxapiForm {
 
 fn aes_128_ecb(pt: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
     let cipher = Cipher::aes_128_ecb();
-    let ct = encrypt(cipher, key, iv, pt).unwrap();
-    ct
+    encrypt(cipher, key, iv, pt).unwrap()
 }
 
 fn aes_128_ecb_decrypt(ct: &[u8], key: &[u8], iv: Option<&[u8]>) -> Result<Vec<u8>, ErrorStack> {
@@ -126,8 +124,7 @@ fn aes_128_ecb_decrypt(ct: &[u8], key: &[u8], iv: Option<&[u8]>) -> Result<Vec<u
 
 fn aes_128_cbc(pt: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
     let cipher = Cipher::aes_128_cbc();
-    let pt = encrypt(cipher, key, iv, pt).unwrap();
-    pt
+    encrypt(cipher, key, iv, pt).unwrap()
 }
 
 fn rsa(pt: &[u8], key: &[u8]) -> Vec<u8> {

@@ -33,10 +33,7 @@ impl Status {
     }
     #[allow(unused)]
     pub fn is_stopped(self) -> bool {
-        match self {
-            Status::Stopped(_) => true,
-            _ => false,
-        }
+        matches!(self, Status::Stopped(_))
     }
 }
 

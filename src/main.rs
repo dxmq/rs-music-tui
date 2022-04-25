@@ -10,7 +10,7 @@ use crate::cli::clap::ClapApplication;
 use crate::config::user_config::{UserConfig, UserConfigPath};
 use crate::event::IoEvent;
 use crate::http::login_phone;
-use crate::network::network::Network;
+use crate::network::{start_tokio, Network};
 
 // mod api;
 mod app;
@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
     let clone_app = app.clone();
     thread::spawn(move || {
         let mut network = Network::new(&app);
-        network::start_tokio(sync_io_rx, &mut network);
+        start_tokio(sync_io_rx, &mut network);
     });
     ui::start_ui(user_config, &clone_app).await?;
     Ok(())

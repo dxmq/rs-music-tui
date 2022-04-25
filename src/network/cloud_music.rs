@@ -9,16 +9,9 @@ use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserP
 use crate::model::track::{TrackUrl, TrackUrlResp};
 use crate::model::user::{UserAccountResp, UserProfile};
 
+#[derive(Default)]
 pub struct CloudMusic {
     api: CloudMusicApi,
-}
-
-impl Default for CloudMusic {
-    fn default() -> Self {
-        CloudMusic {
-            api: CloudMusicApi::default(),
-        }
-    }
 }
 
 impl CloudMusic {

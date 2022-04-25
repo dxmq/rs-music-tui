@@ -10,16 +10,9 @@ use crate::http::request::ApiRequestBuilder;
 use crate::http::response::ApiResponse;
 use crate::http::route::API_ROUTE;
 
+#[derive(Default)]
 pub struct CloudMusicApi {
     client: ApiClient,
-}
-
-impl Default for CloudMusicApi {
-    fn default() -> Self {
-        Self {
-            client: ApiClient::default(),
-        }
-    }
 }
 
 impl CloudMusicApi {
@@ -132,7 +125,7 @@ impl CloudMusicApi {
     ///
     /// optional
     /// 可选参数 : br: 码率,默认设置了 999000 即最大码率,如果要 320k 则可设置为 320000,其他类推
-    pub async fn song_url(&self, ids: &Vec<usize>) -> Result<ApiResponse> {
+    pub async fn song_url(&self, ids: &[usize]) -> Result<ApiResponse> {
         let mut rb = ApiRequestBuilder::post(API_ROUTE["song_url"])
             .set_crypto(Eapi)
             .add_cookie("os", "pc")

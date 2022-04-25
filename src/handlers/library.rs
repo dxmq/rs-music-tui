@@ -33,15 +33,12 @@ pub fn handles(key: Key, app: &mut App) {
         }
         // `library` should probably be an array of structs with enums rather than just using indexes
         // like this
-        Key::Enter => match app.library.selected_index {
-            // Made For You,
-            0 => {
+        Key::Enter => {
+            if app.library.selected_index == 0 {
                 // app.get_made_for_you();
                 app.push_navigation_stack(RouteId::MadeForYou, ActiveBlock::MadeForYou);
             }
-            // This is required because Rust can't tell if this pattern in exhaustive
-            _ => {}
-        },
+        }
         _ => {}
     }
 }

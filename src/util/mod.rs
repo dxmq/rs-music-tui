@@ -25,10 +25,10 @@ pub fn get_color((is_active, is_hovered): (bool, bool), theme: Theme) -> Style {
 }
 
 // 获取歌手string，以,分隔
-pub fn create_artist_string(artists: &Vec<Artist>) -> String {
+pub fn create_artist_string(artists: &[Artist]) -> String {
     artists
         .iter()
-        .map(|artist| artist.name.clone().unwrap().to_string())
+        .map(|artist| artist.name.clone().unwrap())
         .collect::<Vec<String>>()
         .join(", ")
 }
