@@ -1,3 +1,4 @@
+#[allow(unused)]
 extern crate rodio;
 extern crate tempfile;
 extern crate tokio;
@@ -73,6 +74,7 @@ impl Nplayer {
         }
     }
 
+    #[allow(unused)]
     pub fn get_duration(&self) -> Option<u64> {
         match self.player.current.clone() {
             Some(current) => Some(current.duration.as_millis() as u64),
@@ -80,11 +82,13 @@ impl Nplayer {
         }
     }
 
+    #[allow(unused)]
     pub fn seek_forwards(&mut self) {
         // let next_duration = self.get_position().unwrap() + 3000;
         // self.player.seek(ClockTime::from_mseconds(next_duration))
     }
 
+    #[allow(unused)]
     pub fn seek_backwards(&mut self) {
         // let song_progress_ms = self.get_position().unwrap();
         // let next_duration = if song_progress_ms < 3000 {
@@ -107,6 +111,7 @@ impl Nplayer {
         // self.player.seek(ClockTime::from_mseconds(position))
     }
 
+    #[allow(unused)]
     pub fn increase_volume(&mut self) {
         let current = self.player.get_volume();
         let volume = if current < 9.9 {
@@ -117,6 +122,7 @@ impl Nplayer {
         self.player.set_volume(volume);
     }
 
+    #[allow(unused)]
     pub fn decrease_volume(&mut self) {
         let current = self.player.get_volume();
         let volume = if current > 0.1 {

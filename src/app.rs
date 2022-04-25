@@ -2,18 +2,16 @@ use std::collections::HashSet;
 use std::sync::mpsc::Sender;
 use std::time::Instant;
 
+use anyhow::Error;
 use tui::layout::Rect;
 
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::enums::PlayingItem;
-use crate::model::page::{Page, ScrollableResultPages};
-use crate::model::playlist::SimplifiedPlaylist;
+use crate::model::playlist::{Playlist, PlaylistDetail};
 use crate::model::table::TrackTable;
-use crate::network::ncm::TError;
-use anyhow::Result;
-use ncmapi::types::{Playlist, PlaylistDetail, UserProfile};
+use crate::model::user::UserProfile;
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
@@ -34,7 +32,6 @@ pub const LIBRARY_OPTIONS: [&str; 6] = [
 pub struct Library {
     // 当前选中的索引
     pub selected_index: usize,
-    pub made_for_you_playlists: ScrollableResultPages<Page<SimplifiedPlaylist>>,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -126,6 +123,7 @@ pub struct App {
     pub track_table: TrackTable,
     pub instant_since_last_current_playback_poll: Instant,
     pub is_fetching_current_playback: bool,
+    pub large_search_limit: u32,
 }
 
 impl App {
@@ -211,49 +209,29 @@ impl App {
         }
     }
 
-    pub fn handle_error(&mut self, e: TError) {
+    pub fn handle_error(&mut self, e: Error) {
         self.push_navigation_stack(RouteId::Error, ActiveBlock::Error);
         self.api_error = e.to_string();
     }
 
-    fn apply_seek(&mut self, seek_ms: u32) {
-        if let Some(CurrentlyPlaybackContext {
-            item: Some(item), ..
-        }) = &self.current_playback_context
-        {
-            let duration_ms = match item {
-                PlayingItem::Track(track) => track.duration as u32,
-                PlayingItem::Episode(episode) => episode.duration_ms,
-            };
-
-            // let event = if seek_ms < duration_ms {
-            //     IoEvent::Seek(seek_ms)
-            // } else {
-            //     IoEvent::NextTrack
-            // };
-
-            // self.dispatch(event);
-        }
-    }
-
-    fn poll_current_playback(&mut self) {
-        // Poll every 5 seconds
-        let poll_interval_ms = 5_000;
-
-        let elapsed = self
-            .instant_since_last_current_playback_poll
-            .elapsed()
-            .as_millis();
-
-        if !self.is_fetching_current_playback && elapsed >= poll_interval_ms {
-            self.is_fetching_current_playback = true;
-            // Trigger the seek if the user has set a new position
-            // match self.seek_ms {
-            //     Some(seek_ms) => self.apply_seek(seek_ms as u32),
-            //     None => self.dispatch(IoEvent::GetCurrentPlayback),
-            // }
-        }
-    }
+    // fn poll_current_playback(&mut self) {
+    //     // Poll every 5 seconds
+    //     let poll_interval_ms = 5_000;
+    //
+    //     let elapsed = self
+    //         .instant_since_last_current_playback_poll
+    //         .elapsed()
+    //         .as_millis();
+    //
+    //     if !self.is_fetching_current_playback && elapsed >= poll_interval_ms {
+    //         self.is_fetching_current_playback = true;
+    //         // Trigger the seek if the user has set a new position
+    //         // match self.seek_ms {
+    //         //     Some(seek_ms) => self.apply_seek(seek_ms as u32),
+    //         //     None => self.dispatch(IoEvent::GetCurrentPlayback),
+    //         // }
+    //     }
+    // }
 
     pub fn update_on_tick(&mut self) {
         // self.poll_current_playback();
@@ -276,7 +254,6 @@ impl App {
 
             let duration_ms = match item {
                 PlayingItem::Track(track) => track.duration as u32,
-                PlayingItem::Episode(episode) => episode.duration_ms,
             };
 
             if elapsed < u128::from(duration_ms) {
@@ -311,10 +288,7 @@ impl Default for App {
             liked_song_ids_set: HashSet::new(),
             song_progress_ms: 0,
             seek_ms: None,
-            library: Library {
-                selected_index: 0,
-                made_for_you_playlists: ScrollableResultPages::new(),
-            },
+            library: Library { selected_index: 0 },
             playlists: None,
             playlist_tracks: None,
             api_error: String::new(),
@@ -325,6 +299,7 @@ impl Default for App {
             track_table: Default::default(),
             instant_since_last_current_playback_poll: Instant::now(),
             is_fetching_current_playback: false,
+            large_search_limit: 20,
         }
     }
 }

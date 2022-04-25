@@ -9,6 +9,7 @@ pub struct Page<T> {
 }
 
 impl<T> Page<T> {
+    #[allow(unused)]
     pub fn new(items: Vec<T>, total: u32, offset: u32, limit: u32) -> Page<T> {
         Page {
             total,
@@ -21,11 +22,14 @@ impl<T> Page<T> {
 
 #[derive(Clone)]
 pub struct ScrollableResultPages<T> {
+    #[allow(unused)]
     index: usize,
+    #[allow(unused)]
     pub pages: Vec<T>,
 }
 
 impl<T> ScrollableResultPages<T> {
+    #[allow(unused)]
     pub fn new() -> ScrollableResultPages<T> {
         ScrollableResultPages {
             index: 0,
@@ -33,14 +37,17 @@ impl<T> ScrollableResultPages<T> {
         }
     }
 
+    #[allow(unused)]
     pub fn get_results(&self, at_index: Option<usize>) -> Option<&T> {
         self.pages.get(at_index.unwrap_or(self.index))
     }
 
+    #[allow(unused)]
     pub fn get_mut_results(&mut self, at_index: Option<usize>) -> Option<&mut T> {
         self.pages.get_mut(at_index.unwrap_or(self.index))
     }
 
+    #[allow(unused)]
     pub fn add_pages(&mut self, new_pages: T) {
         self.pages.push(new_pages);
         // Whenever a new page is added, set the active index to the end of the vector

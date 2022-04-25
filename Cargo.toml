@@ -20,12 +20,11 @@ serde_json = "1.0.67"
 clap = "2.33.3"
 crossterm = "0.20"
 thiserror = "1.0.29"
-reqwest = { version = "0.11.10", default-features = false, features = ["json", "socks"]}
+reqwest = { version = "0.11", features = ["json", "cookies"]}
 tokio = { version = "1.11.0", features = ["full"] }
 rand = "0.8.4"
 anyhow = "1.0.43"
 lazy_static = "1.4.0"
-ncmapi = "0.1.8"
 dirs = "3.0.2"
 tui = { version = "0.16.0", features = ["crossterm"], default-features = false }
 unicode-width = "0.1.8"
@@ -33,3 +32,12 @@ rodio = "0.15.0"
 tempfile = "3.3.0"
 futures = "0.3.1"
 mp3-duration = "0.1.7"
+phf = { version = "0.10", features = ["macros"] }
+openssl = "0.10"
+base64 = "0.13"
+hex = "0.4"
+memory-cache-rs = "0.2.0"
+regex = "1.5"
+cookie = "0.15"
+
+

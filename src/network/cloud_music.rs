@@ -1,40 +1,29 @@
-use std::collections::HashMap;
 use std::sync::Arc;
 
-use anyhow::private::format_err;
-use anyhow::{Error, Result};
-use ncmapi::types::{
-    Playlist, PlaylistDetail, PlaylistDetailResp, SongUrl, SongUrlResp, UserAccountResp,
-    UserPlaylistResp, UserProfile,
-};
-use serde::Deserialize;
+use anyhow::Result;
 use tokio::sync::Mutex;
 
 use crate::app::App;
-use crate::config::user_config;
-use crate::model::page::Page;
-use crate::network::api;
+use crate::http::api::CloudMusicApi;
+use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
+use crate::model::track::{TrackUrl, TrackUrlResp};
+use crate::model::user::{UserAccountResp, UserProfile};
 
-pub type TResult<T> = std::result::Result<T, TError>;
-pub type TError = Box<dyn std::error::Error>;
+pub struct CloudMusic {
+    api: CloudMusicApi,
+}
 
-#[derive(Default)]
-pub struct CloudMusic {}
+impl Default for CloudMusic {
+    fn default() -> Self {
+        CloudMusic {
+            api: CloudMusicApi::default(),
+        }
+    }
+}
 
 impl CloudMusic {
-    // pub fn convert_result<'a, T: Deserialize<'a>>(&self, input: &'a str) -> Result<T, Error> {
-    //     let result = serde_json::from_str::<T>(input).map_err(|e| {
-    //         format_err!(
-    //             "convert result failed, reason: {:?}; content: [{:?}]",
-    //             e,
-    //             input
-    //         )
-    //     })?;
-    //     Ok(result)
-    // }
-
-    pub async fn current_user(&self) -> TResult<Option<UserProfile>> {
-        let resp = api().user_account().await?;
+    pub async fn current_user(&self) -> Result<Option<UserProfile>> {
+        let resp = self.api.user_account().await?;
         let resp = serde_json::from_slice::<UserAccountResp>(resp.data())?;
         Ok(resp.profile)
     }
@@ -44,7 +33,7 @@ impl CloudMusic {
         limit: L,
         offset: O,
         app: &Arc<Mutex<App>>,
-    ) -> TResult<Vec<Playlist>> {
+    ) -> Result<Vec<Playlist>> {
         let app = app.lock().await;
         let cache_file_path = app
             .user_config
@@ -67,27 +56,28 @@ impl CloudMusic {
         params.insert("offset".to_owned(), offset);
         let params = serde_json::Value::Object(params);
 
-        let resp = api()
+        let resp = self
+            .api
             .user_playlist(app.user.as_ref().unwrap().user_id, Some(params))
             .await?;
         let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data())?;
 
         let json_res = serde_json::to_string(&resp.playlist);
         if let Ok(json) = json_res {
-            std::fs::write(&cache_file_path, json);
+            std::fs::write(&cache_file_path, json).unwrap();
         }
         Ok(resp.playlist)
     }
 
-    pub async fn playlist_tracks(&self, playlist_id: usize) -> TResult<PlaylistDetail> {
-        let resp = api().playlist_detail(playlist_id, None).await?;
+    pub async fn playlist_tracks(&self, playlist_id: usize) -> Result<PlaylistDetail> {
+        let resp = self.api.playlist_detail(playlist_id, None).await?;
         let result = serde_json::from_slice::<PlaylistDetailResp>(resp.data())?;
         Ok(result.playlist.unwrap())
     }
 
-    pub async fn song_url(&self, track_id: Vec<usize>) -> TResult<Vec<SongUrl>> {
-        let resp = api().song_url(&track_id).await?;
-        let song_url_resp = serde_json::from_slice::<SongUrlResp>(resp.data())?;
+    pub async fn song_url(&self, track_id: Vec<usize>) -> Result<Vec<TrackUrl>> {
+        let resp = self.api.song_url(&track_id).await?;
+        let song_url_resp = serde_json::from_slice::<TrackUrlResp>(resp.data())?;
         Ok(song_url_resp.data)
     }
 }

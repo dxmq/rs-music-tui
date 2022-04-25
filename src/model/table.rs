@@ -1,23 +1,30 @@
+#[allow(unused)]
 use crate::model::context::TrackTableContext;
-use crate::model::track::FullTrack;
-use ncmapi::types::Song;
-use serde::{Deserialize, Serialize};
+use crate::model::track::Track;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct TrackTable {
-    pub tracks: Vec<Song>,
+    pub tracks: Vec<Track>,
     pub selected_index: usize,
     pub context: Option<TrackTableContext>,
 }
 
 pub enum TableId {
+    #[allow(unused)]
     Album,
+    #[allow(unused)]
     AlbumList,
+    #[allow(unused)]
     Artist,
+    #[allow(unused)]
     Podcast,
+    #[allow(unused)]
     Song,
+    #[allow(unused)]
     RecentlyPlayed,
+    #[allow(unused)]
     MadeForYou,
+    #[allow(unused)]
     PodcastEpisodes,
 }
 

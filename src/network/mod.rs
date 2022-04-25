@@ -1,18 +1,12 @@
-pub(crate) mod ncm;
+use crate::event::IoEvent;
+use crate::network::network::Network;
+
+pub(crate) mod cloud_music;
 pub(crate) mod network;
 
-use crate::config::client_config::ClientConfig;
-use ncmapi::NcmApi;
-pub use network::start_tokio;
-
-pub fn api() -> NcmApi {
-    let config = ClientConfig::default();
-    let cookie_path = config.cookie_path.to_str().unwrap();
-    NcmApi::new(
-        config.cache,
-        config.cache_exp,
-        config.cache_clean_interval,
-        config.preserve_cookies,
-        cookie_path,
-    )
+#[tokio::main]
+pub async fn start_tokio<'a>(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network) {
+    while let Ok(io_event) = io_rx.recv() {
+        network.handle_network_event(io_event).await;
+    }
 }

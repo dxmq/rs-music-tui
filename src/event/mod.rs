@@ -1,6 +1,6 @@
 pub use self::events::{Event, Events};
 pub use self::key::Key;
-use ncmapi::types::{Song, SongUrl};
+use crate::model::track::Track;
 
 mod events;
 mod key;
@@ -12,10 +12,10 @@ pub enum IoEvent {
     UpdateSearchLimits(u32, u32),
     GetPlaylists,
     GetUser,
-    GetPlaylistTracks(usize),
-    CurrentUserSavedTracksContains(Vec<String>),
-    StartPlayback(Song),
-    GetCurrentPlayback(Song),
-    PausePlayback,
+    GetPlaylistTracks(usize, u32),
+    // CurrentUserSavedTracksContains(Vec<String>),
+    StartPlayback(Track),
+    // GetCurrentPlayback(Track),
+    // PausePlayback,
     TogglePlayBack,
 }

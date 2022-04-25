@@ -3,8 +3,6 @@ use super::{
     common_key_events,
 };
 use crate::event::{IoEvent, Key};
-use crate::model::context::CurrentlyPlaybackContext;
-use crate::model::enums::PlayingItem;
 
 pub fn handler(key: Key, app: &mut App) {
     match key {

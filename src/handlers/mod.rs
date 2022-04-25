@@ -1,8 +1,7 @@
 pub use input::handler as input_handler;
 
 use crate::app::{ActiveBlock, App, RouteId};
-use crate::event::{IoEvent, Key};
-use crate::model::enums::Type;
+use crate::event::Key;
 
 pub(crate) mod common_key_events;
 pub(crate) mod empty;
@@ -29,9 +28,7 @@ pub fn handle_app(key: Key, app: &mut App) {
         _ if key == app.user_config.keys.basic_view => {
             app.push_navigation_stack(RouteId::BasicView, ActiveBlock::BasicView);
         }
-        _ if key == app.user_config.keys.jump_to_context => {
-            handle_jump_to_context(app);
-        }
+        _ if key == app.user_config.keys.jump_to_context => {}
         _ => handle_block_events(key, app),
     }
 }
@@ -69,19 +66,6 @@ pub fn handle_block_events(key: Key, app: &mut App) {
             playbar::handler(key, app);
         }
         _ => {}
-    }
-}
-
-fn handle_jump_to_context(app: &mut App) {
-    if let Some(current_playback_context) = &app.current_playback_context {
-        if let Some(play_context) = current_playback_context.context.clone() {
-            match play_context._type {
-                // rspotify::senum::Type::Album => handle_jump_to_album(app),
-                // rspotify::senum::Type::Artist => handle_jump_to_artist_album(app),
-                Type::Playlist => app.dispatch(IoEvent::GetPlaylistTracks(498339500)),
-                _ => {}
-            }
-        }
     }
 }
 

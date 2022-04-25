@@ -128,6 +128,7 @@ impl Player {
         self.state.is_playing()
     }
 
+    #[allow(unused)]
     pub fn get_volume(&self) -> f32 {
         self.sink.volume()
     }

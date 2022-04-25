@@ -1,5 +1,4 @@
-use crate::model::{show, track};
-use ncmapi::types::Song;
+use crate::model::track::Track;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, Hash)]
@@ -84,9 +83,7 @@ pub enum DeviceType {
 #[serde(untagged)]
 pub enum PlayingItem {
     // 完整的曲子
-    Track(Song),
-    // 片段
-    Episode(show::FullEpisode),
+    Track(Track),
 }
 
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]

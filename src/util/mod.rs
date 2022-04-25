@@ -1,7 +1,6 @@
 use crate::app::App;
 use crate::config::theme::Theme;
-use crate::model::artist::SimplifiedArtist;
-use ncmapi::types::Artist;
+use crate::model::artist::Artist;
 use tui::style::Style;
 
 pub const BASIC_VIEW_HEIGHT: u16 = 6;

@@ -1,7 +1,6 @@
 use std::fmt::{Display, Formatter};
 
 use crossterm::event;
-use crossterm::event::KeyEvent;
 
 /// keyboard represents
 #[derive(PartialEq, Eq, Clone, Copy, Hash, Debug)]
