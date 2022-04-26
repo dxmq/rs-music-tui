@@ -7,7 +7,7 @@ use crate::app::App;
 use crate::http::api::CloudMusicApi;
 use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
 use crate::model::table::RecentlyPlayedResp;
-use crate::model::track::{Track, TrackUrl, TrackUrlResp};
+use crate::model::track::{RecommendedSongsResp, Track, TrackUrl, TrackUrlResp};
 use crate::model::user::{UserAccountResp, UserProfile};
 
 #[derive(Default)]
@@ -76,8 +76,7 @@ impl CloudMusic {
     }
 
     pub async fn recent_song_list(&self, limit: u32) -> Result<Vec<Track>> {
-        let api = CloudMusicApi::default();
-        let resp = api.recent_song_list(limit).await.unwrap();
+        let resp = self.api.recent_song_list(limit).await.unwrap();
         let resp = serde_json::from_slice::<RecentlyPlayedResp>(resp.data()).unwrap();
         let recently_list = resp.data.list;
         let tracks = recently_list
@@ -85,5 +84,25 @@ impl CloudMusic {
             .map(|item| item.data)
             .collect::<Vec<Track>>();
         Ok(tracks)
+    }
+
+    pub async fn recommend_song_list(&self) -> Result<Vec<Track>> {
+        let resp = self.api.recommend_song_list().await?;
+        let resp = serde_json::from_slice::<RecommendedSongsResp>(resp.data())?;
+        match resp.data {
+            Some(data) => Ok(data.daily_songs),
+            None => Ok(vec![]),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::network::cloud_music::CloudMusic;
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_recommend_song_list() {
+        let result = CloudMusic::default().recommend_song_list().await;
+        println!("{:#?}", result.unwrap());
     }
 }

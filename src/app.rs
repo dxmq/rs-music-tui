@@ -19,7 +19,7 @@ const DEFAULT_ROUTE: Route = Route {
     hovered_block: ActiveBlock::Library,
 };
 
-pub const LIBRARY_OPTIONS: [&str; 2] = ["我喜欢", "最近播放"];
+pub const LIBRARY_OPTIONS: [&str; 2] = ["最近播放", "每日推荐"];
 
 #[derive(Clone)]
 pub struct Library {
@@ -55,6 +55,7 @@ pub enum ActiveBlock {
 pub enum RouteId {
     Home,
     Search,
+    #[allow(unused)]
     MadeForYou,
     Error,
     BasicView,
@@ -121,6 +122,7 @@ pub struct App {
     pub large_search_limit: u32,
     pub volume: f32,
     pub recently_played: RecentlyPlayed,
+    pub title: String,
 }
 
 impl App {
@@ -299,6 +301,7 @@ impl Default for App {
             large_search_limit: 20,
             volume: 0f32,
             recently_played: Default::default(),
+            title: String::from("歌曲列表"),
         }
     }
 }

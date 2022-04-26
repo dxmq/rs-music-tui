@@ -35,11 +35,11 @@ pub fn handles(key: Key, app: &mut App) {
         // like this
         Key::Enter => {
             if app.library.selected_index == 0 {
-                // app.get_made_for_you();
-                app.push_navigation_stack(RouteId::MadeForYou, ActiveBlock::MadeForYou);
-            } else if app.library.selected_index == 1 {
                 app.dispatch(IoEvent::GetRecentlyPlayed(500));
                 app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
+            } else if app.library.selected_index == 1 {
+                app.dispatch(IoEvent::GetRecommendTracks);
+                // app.push_navigation_stack(RouteId::TrackTable, ActiveBlock::TrackTable);
             }
         }
         _ => {}

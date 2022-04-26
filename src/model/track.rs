@@ -32,3 +32,18 @@ pub struct TrackUrlResp {
     #[serde(default)]
     pub data: Vec<TrackUrl>,
 }
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecommendedTracks {
+    #[serde(default)]
+    pub daily_songs: Vec<Track>,
+    #[serde(default)]
+    pub order_songs: Vec<Track>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct RecommendedSongsResp {
+    pub code: usize,
+    pub data: Option<RecommendedTracks>,
+}

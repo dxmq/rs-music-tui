@@ -491,7 +491,7 @@ where
         f,
         app,
         layout_chunk,
-        ("歌曲列表", &header),
+        (&app.title, &header),
         &items,
         app.track_table.selected_index,
         highlight_state,

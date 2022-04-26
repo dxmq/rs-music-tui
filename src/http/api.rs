@@ -160,6 +160,15 @@ impl CloudMusicApi {
             .build();
         self.client.request(r).await
     }
+
+    /// 说明 : 调用此接口 , 可获得每日推荐歌曲 ( 需要登录 )
+    pub async fn recommend_song_list(&self) -> Result<ApiResponse> {
+        let r = ApiRequestBuilder::post(API_ROUTE["recommend_songs"])
+            .add_cookie("os", "ios")
+            .build();
+
+        self.client.request(r).await
+    }
 }
 
 fn md5_hex(pt: &[u8]) -> String {
@@ -201,5 +210,12 @@ mod tests {
 
         // let res = resp.unwrap().deserialize_to_implict();
         // assert_eq!(res.code, 200);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_recommend_songs() {
+        let api = CloudMusicApi::default();
+        let resp = api.recommend_song_list().await.unwrap();
+        println!("{:?}", resp);
     }
 }
