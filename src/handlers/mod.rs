@@ -12,6 +12,7 @@ pub(crate) mod input;
 pub(crate) mod library;
 pub(crate) mod playbar;
 pub(crate) mod playlist;
+pub(crate) mod recently_played;
 pub(crate) mod track_table;
 
 pub fn handle_app(key: Key, app: &mut App) {
@@ -64,6 +65,9 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::PlayBar => {
             playbar::handler(key, app);
+        }
+        ActiveBlock::RecentlyPlayed => {
+            recently_played::handler(key, app);
         }
         _ => {}
     }

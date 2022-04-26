@@ -6,7 +6,8 @@ use tokio::sync::Mutex;
 use crate::app::App;
 use crate::http::api::CloudMusicApi;
 use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
-use crate::model::track::{TrackUrl, TrackUrlResp};
+use crate::model::table::RecentlyPlayedResp;
+use crate::model::track::{Track, TrackUrl, TrackUrlResp};
 use crate::model::user::{UserAccountResp, UserProfile};
 
 #[derive(Default)]
@@ -72,5 +73,17 @@ impl CloudMusic {
         let resp = self.api.song_url(&track_id).await?;
         let song_url_resp = serde_json::from_slice::<TrackUrlResp>(resp.data())?;
         Ok(song_url_resp.data)
+    }
+
+    pub async fn recent_song_list(&self) -> Result<Vec<Track>> {
+        let api = CloudMusicApi::default();
+        let resp = api.recent_song_list().await.unwrap();
+        let resp = serde_json::from_slice::<RecentlyPlayedResp>(resp.data()).unwrap();
+        let recently_list = resp.data.list;
+        let tracks = recently_list
+            .into_iter()
+            .map(|item| item.data)
+            .collect::<Vec<Track>>();
+        Ok(tracks)
     }
 }

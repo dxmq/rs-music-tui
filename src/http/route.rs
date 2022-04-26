@@ -241,4 +241,5 @@ pub(crate) static API_ROUTE: Map<&'static str, &'static str> = phf_map! {
     "yunbei_tasks"=>             "https://music.163.com/api/usertool/task/list/all",
     "yunbei_tasks_todo"=>        "https://music.163.com/api/usertool/task/todo/query",
     "yunbei_today"=>             "https://music.163.com/api/point/today/get",
+    "recent_song_list" =>             "https://music.163.com/api/play-record/song/list"
 };

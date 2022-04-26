@@ -79,8 +79,8 @@ pub fn on_low_press_handler<T>(selection_data: &[T]) -> usize {
 }
 
 pub fn handle_right_event(app: &mut App) {
-    if app.get_current_route().hovered_block == ActiveBlock::Library {
-        match app.get_current_route().id {
+    match app.get_current_route().hovered_block {
+        ActiveBlock::MyPlaylists | ActiveBlock::Library => match app.get_current_route().id {
             RouteId::MadeForYou => {
                 app.set_current_route_state(
                     Some(ActiveBlock::MadeForYou),
@@ -102,10 +102,15 @@ pub fn handle_right_event(app: &mut App) {
                     Some(ActiveBlock::SearchResultBlock),
                 );
             }
+            RouteId::RecentlyPlayed => app.set_current_route_state(
+                Some(ActiveBlock::RecentlyPlayed),
+                Some(ActiveBlock::RecentlyPlayed),
+            ),
             RouteId::Error => {}
             RouteId::BasicView => {}
             RouteId::Dialog => {}
-        }
+        },
+        _ => {}
     }
 }
 

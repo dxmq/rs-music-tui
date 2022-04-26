@@ -151,6 +151,13 @@ impl CloudMusicApi {
         let r = ApiRequestBuilder::post(API_ROUTE["user_account"]).build();
         self.client.request(r).await
     }
+
+    pub async fn recent_song_list(&self) -> Result<ApiResponse> {
+        let r = ApiRequestBuilder::post(API_ROUTE["recent_song_list"])
+            .set_data(json!({"limit": 500}))
+            .build();
+        self.client.request(r).await
+    }
 }
 
 fn md5_hex(pt: &[u8]) -> String {
@@ -167,6 +174,7 @@ fn limit_offset(limit: usize, offset: usize) -> Value {
 #[cfg(test)]
 mod tests {
     use crate::http::api::CloudMusicApi;
+    use crate::model::table::RecentlyPlayedResp;
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_login_phone() {
@@ -177,5 +185,18 @@ mod tests {
 
         let res = resp.unwrap().deserialize_to_implict();
         assert_eq!(res.code, 200);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_recent_song() {
+        let api = CloudMusicApi::default();
+        let resp = api.recent_song_list().await.unwrap();
+        // println!("{:?}", resp);
+        let resp = serde_json::from_slice::<RecentlyPlayedResp>(resp.data()).unwrap();
+        let vec = resp.data;
+        println!("{:?}", vec);
+
+        // let res = resp.unwrap().deserialize_to_implict();
+        // assert_eq!(res.code, 200);
     }
 }

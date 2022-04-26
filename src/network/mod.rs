@@ -58,11 +58,27 @@ impl<'a> Network<'a> {
             IoEvent::TogglePlayBack => {
                 self.toggle_playback().await;
             }
+            IoEvent::GetRecentlyPlayed => {
+                self.load_recently_played().await;
+            }
             _ => {}
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn load_recently_played(&mut self) {
+        match self.cloud_music.recent_song_list().await {
+            Ok(recent_play_list) => {
+                let mut app = self.app.lock().await;
+                app.recently_played.tracks = recent_play_list;
+                app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
+            }
+            Err(e) => {
+                self.handle_error(e).await;
+            }
+        }
     }
 
     async fn toggle_playback(&mut self) {
@@ -107,7 +123,7 @@ impl<'a> Network<'a> {
 
                     app.instant_since_last_current_playback_poll = Instant::now();
                     self.player.play_url(track_url.url.as_str());
-
+                    app.volume = self.player.get_volume();
                     app.current_playback_context = Some(context);
                 }
             }

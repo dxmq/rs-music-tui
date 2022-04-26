@@ -9,6 +9,36 @@ pub struct TrackTable {
     pub context: Option<TrackTableContext>,
 }
 
+#[derive(Default, Clone)]
+pub struct RecentlyPlayed {
+    pub tracks: Vec<Track>,
+    pub selected_index: usize,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecentlyPlayedResp {
+    pub code: usize,
+    #[serde(default)]
+    pub data: RecentlyPlayedData,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecentlyPlayedData {
+    pub total: usize,
+    pub list: Vec<RecentlyPlayedDetail>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecentlyPlayedDetail {
+    pub resource_id: String,
+    pub play_time: u64,
+    pub resource_type: String,
+    pub data: Track,
+}
+
 pub enum TableId {
     #[allow(unused)]
     Album,

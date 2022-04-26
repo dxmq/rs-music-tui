@@ -10,23 +10,16 @@ use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::enums::PlayingItem;
 use crate::model::playlist::{Playlist, PlaylistDetail};
-use crate::model::table::TrackTable;
+use crate::model::table::{RecentlyPlayed, TrackTable};
 use crate::model::user::UserProfile;
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
-    active_block: ActiveBlock::MyPlaylists,
+    active_block: ActiveBlock::Library,
     hovered_block: ActiveBlock::Library,
 };
 
-pub const LIBRARY_OPTIONS: [&str; 6] = [
-    "Made For You",
-    "Recently Played",
-    "Liked Songs",
-    "Albums",
-    "Artists",
-    "Podcasts",
-];
+pub const LIBRARY_OPTIONS: [&str; 2] = ["我喜欢", "最近播放"];
 
 #[derive(Clone)]
 pub struct Library {
@@ -55,6 +48,7 @@ pub enum ActiveBlock {
     MadeForYou,
     // 歌曲表格
     TrackTable,
+    RecentlyPlayed,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -66,6 +60,7 @@ pub enum RouteId {
     BasicView,
     Dialog,
     TrackTable,
+    RecentlyPlayed,
 }
 
 #[derive(Debug)]
@@ -124,6 +119,8 @@ pub struct App {
     pub instant_since_last_current_playback_poll: Instant,
     pub is_fetching_current_playback: bool,
     pub large_search_limit: u32,
+    pub volume: f32,
+    pub recently_played: RecentlyPlayed,
 }
 
 impl App {
@@ -300,6 +297,8 @@ impl Default for App {
             instant_since_last_current_playback_poll: Instant::now(),
             is_fetching_current_playback: false,
             large_search_limit: 20,
+            volume: 0f32,
+            recently_played: Default::default(),
         }
     }
 }

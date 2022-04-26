@@ -134,6 +134,11 @@ impl Nplayer {
         };
         self.player.set_volume(volume);
     }
+
+    #[allow(unused)]
+    pub fn get_volume(&self) -> f32 {
+        self.player.sink.volume()
+    }
 }
 
 #[allow(unused)]
