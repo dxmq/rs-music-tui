@@ -152,9 +152,11 @@ impl CloudMusicApi {
         self.client.request(r).await
     }
 
-    pub async fn recent_song_list(&self) -> Result<ApiResponse> {
+    // 说明 : 调用此接口 , 可获得最近播放-歌曲
+    // 可选参数 : limit : 返回数量 , 默认为 100
+    pub async fn recent_song_list(&self, limit: u32) -> Result<ApiResponse> {
         let r = ApiRequestBuilder::post(API_ROUTE["recent_song_list"])
-            .set_data(json!({"limit": 500}))
+            .set_data(json!({ "limit": limit }))
             .build();
         self.client.request(r).await
     }
@@ -190,10 +192,11 @@ mod tests {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_recent_song() {
         let api = CloudMusicApi::default();
-        let resp = api.recent_song_list().await.unwrap();
+        let resp = api.recent_song_list(10).await.unwrap();
         // println!("{:?}", resp);
         let resp = serde_json::from_slice::<RecentlyPlayedResp>(resp.data()).unwrap();
         let vec = resp.data;
+        assert_eq!(vec.list.len(), 10);
         println!("{:?}", vec);
 
         // let res = resp.unwrap().deserialize_to_implict();

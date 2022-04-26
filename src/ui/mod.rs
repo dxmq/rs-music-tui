@@ -139,10 +139,11 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
 
         // 如果刚启动（第一次渲染）
         if is_first_render {
-            // 加载播放列表
             app.dispatch(IoEvent::GetUser);
+            // 加载播放列表
             app.dispatch(IoEvent::GetPlaylists);
-            // app.dispatch(IoEvent::GetCurrentPlayback);
+            // 获取最近播放
+            app.dispatch(IoEvent::GetRecentlyPlayed(1));
             app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
             is_first_render = false;
         }

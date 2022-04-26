@@ -60,6 +60,7 @@ impl Nplayer {
         self.player.pause()
     }
 
+    #[allow(unused)]
     pub fn play(&mut self) {
         self.player.play()
     }

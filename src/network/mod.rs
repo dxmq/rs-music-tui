@@ -1,5 +1,3 @@
-pub(crate) mod cloud_music;
-
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -13,6 +11,8 @@ use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
 use crate::model::track::Track;
 use crate::network::cloud_music::CloudMusic;
 use crate::player::Nplayer;
+
+pub(crate) mod cloud_music;
 
 pub struct Network<'a> {
     // 最大搜索限制
@@ -58,8 +58,8 @@ impl<'a> Network<'a> {
             IoEvent::TogglePlayBack => {
                 self.toggle_playback().await;
             }
-            IoEvent::GetRecentlyPlayed => {
-                self.load_recently_played().await;
+            IoEvent::GetRecentlyPlayed(usize) => {
+                self.load_recently_played(usize).await;
             }
             _ => {}
         }
@@ -68,12 +68,26 @@ impl<'a> Network<'a> {
         app.is_loading = false;
     }
 
-    async fn load_recently_played(&mut self) {
-        match self.cloud_music.recent_song_list().await {
+    async fn load_recently_played(&mut self, limit: u32) {
+        match self.cloud_music.recent_song_list(limit).await {
             Ok(recent_play_list) => {
                 let mut app = self.app.lock().await;
-                app.recently_played.tracks = recent_play_list;
-                app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
+
+                if limit == 500 {
+                    app.recently_played.tracks = recent_play_list;
+                    app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
+                } else if limit == 1 {
+                    let context = CurrentlyPlaybackContext {
+                        is_playing: false,
+                        progress_ms: Some(0),
+                        timestamp: 0,
+                        currently_playing_type: CurrentlyPlayingType::Track,
+                        repeat_state: RepeatState::Off,
+                        shuffle_state: false,
+                        item: Some(PlayingItem::Track(recent_play_list.get(0).unwrap().clone())),
+                    };
+                    app.current_playback_context = Some(context);
+                }
             }
             Err(e) => {
                 self.handle_error(e).await;
@@ -93,11 +107,19 @@ impl<'a> Network<'a> {
                     app.current_playback_context = Some(context);
                     self.player.pause();
                 } else {
-                    context.is_playing = true;
-                    context.progress_ms = Some(app.song_progress_ms as u32);
-                    app.instant_since_last_current_playback_poll = Instant::now();
-                    app.current_playback_context = Some(context);
-                    self.player.play();
+                    let track = context.item.as_ref().unwrap();
+                    let PlayingItem::Track(track) = track;
+                    match self.cloud_music.song_url(vec![track.id]).await {
+                        Ok(urls) => {
+                            context.is_playing = true;
+                            context.progress_ms = Some(app.song_progress_ms as u32);
+                            app.instant_since_last_current_playback_poll = Instant::now();
+                            self.player.play_url(urls.get(0).unwrap().url.as_str());
+                            app.volume = self.player.get_volume();
+                            app.current_playback_context = Some(context);
+                        }
+                        Err(e) => self.handle_error(e).await,
+                    }
                 }
             }
             None => {

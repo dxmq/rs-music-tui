@@ -75,9 +75,9 @@ impl CloudMusic {
         Ok(song_url_resp.data)
     }
 
-    pub async fn recent_song_list(&self) -> Result<Vec<Track>> {
+    pub async fn recent_song_list(&self, limit: u32) -> Result<Vec<Track>> {
         let api = CloudMusicApi::default();
-        let resp = api.recent_song_list().await.unwrap();
+        let resp = api.recent_song_list(limit).await.unwrap();
         let resp = serde_json::from_slice::<RecentlyPlayedResp>(resp.data()).unwrap();
         let recently_list = resp.data.list;
         let tracks = recently_list

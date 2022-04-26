@@ -38,7 +38,7 @@ pub fn handles(key: Key, app: &mut App) {
                 // app.get_made_for_you();
                 app.push_navigation_stack(RouteId::MadeForYou, ActiveBlock::MadeForYou);
             } else if app.library.selected_index == 1 {
-                app.dispatch(IoEvent::GetRecentlyPlayed);
+                app.dispatch(IoEvent::GetRecentlyPlayed(500));
                 app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
             }
         }
