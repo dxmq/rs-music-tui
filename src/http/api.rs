@@ -179,6 +179,17 @@ impl CloudMusicApi {
 
         self.client.request(r).await
     }
+
+    // 说明 : 调用此接口 , 传入音乐 id 可获得对应音乐的歌词 ( 不需要登录 )
+    // 必选参数 : id: 音乐 id
+    pub async fn lyric(&self, id: usize) -> Result<ApiResponse> {
+        let r = ApiRequestBuilder::post(API_ROUTE["lyric"])
+            .add_cookie("os", "ios")
+            .set_data(json!({ "id": id, "lv": -1, "tv": -1, "kv": -1 }))
+            .build();
+
+        self.client.request(r).await
+    }
 }
 
 fn md5_hex(pt: &[u8]) -> String {
@@ -236,6 +247,14 @@ mod tests {
         let resp = api.like_list(354192143).await.unwrap();
         let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data()).unwrap();
 
+        println!("{:?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_lyric() {
+        let api = CloudMusicApi::default();
+        let resp = api.lyric(1479526505).await.unwrap();
+        // let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data()).unwrap();
         println!("{:?}", resp);
     }
 }

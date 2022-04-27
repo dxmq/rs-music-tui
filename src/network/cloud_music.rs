@@ -1,14 +1,14 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use tokio::sync::Mutex;
 
 use crate::app::App;
 use crate::http::api::CloudMusicApi;
 use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
 use crate::model::table::RecentlyPlayedResp;
-use crate::model::track::{RecommendedSongsResp, Track, TrackUrl, TrackUrlResp};
+use crate::model::track::{LyricResp, RecommendedTracksResp, Track, TrackUrl, TrackUrlResp};
 use crate::model::user::{LikeTrackIdListResp, UserAccountResp, UserProfile};
 
 #[derive(Default)]
@@ -89,7 +89,10 @@ impl CloudMusic {
 
     pub async fn recommend_song_list(&self) -> Result<Vec<Track>> {
         let resp = self.api.recommend_song_list().await?;
-        let resp = serde_json::from_slice::<RecommendedSongsResp>(resp.data())?;
+        let resp = serde_json::from_slice::<RecommendedTracksResp>(resp.data())?;
+        if resp.code != 200 {
+            return Ok(vec![]);
+        }
         match resp.data {
             Some(data) => Ok(data.daily_songs),
             None => Ok(vec![]),
@@ -100,6 +103,18 @@ impl CloudMusic {
         let resp = self.api.like_list(user_id).await?;
         let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data())?;
         Ok(resp.ids)
+    }
+
+    pub async fn lyric(&self, track_id: usize) -> Result<String> {
+        let resp = self.api.lyric(track_id).await?;
+        let resp = serde_json::from_slice::<LyricResp>(resp.data())?;
+        if resp.code != 200 {
+            return Err(anyhow!("get song lyric failed."));
+        }
+        match resp.data {
+            Some(data) => Ok(data.lrc.lyric),
+            None => return Err(anyhow!("get song lyric failed")),
+        }
     }
 }
 

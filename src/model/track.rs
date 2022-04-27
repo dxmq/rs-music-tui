@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::model::album::Album;
 use crate::model::artist::Artist;
 
@@ -43,7 +45,46 @@ pub struct RecommendedTracks {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct RecommendedSongsResp {
+pub struct RecommendedTracksResp {
     pub code: usize,
     pub data: Option<RecommendedTracks>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+
+pub struct LyricResp {
+    pub code: usize,
+    pub data: Option<LyricWrapper>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LyricWrapper {
+    pub lrc: Lrc,
+    pub tlyric: Lrc,
+}
+
+#[derive(
+    Default,
+    Debug,
+    Clone,
+    PartialEq,
+    serde::Serialize,
+    serde::Deserialize,
+    Default,
+    Debug,
+    Clone,
+    PartialEq,
+    serde::Serialize,
+    serde::Deserialize,
+)]
+#[serde(rename_all = "camelCase")]
+pub struct Lrc {
+    pub lyric: String,
+}
+
+#[serde(rename_all = "camelCase")]
+pub struct Lyric {
+    pub lyric: String,
+    pub timeline: Duration,
 }
