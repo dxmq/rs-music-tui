@@ -144,6 +144,8 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             app.dispatch(IoEvent::GetPlaylists);
             // 获取最近播放
             app.dispatch(IoEvent::GetRecentlyPlayed(1));
+            // 获取喜欢的音乐
+            app.dispatch(IoEvent::GetLikeList);
             app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
             is_first_render = false;
         }

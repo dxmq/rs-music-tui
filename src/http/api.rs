@@ -169,6 +169,16 @@ impl CloudMusicApi {
 
         self.client.request(r).await
     }
+
+    /// 说明 : 调用此接口 , 传入用户 id, 可获取已喜欢音乐 id 列表(id 数组)
+    // 必选参数 : uid: 用户 id
+    pub async fn like_list(&self, uid: usize) -> Result<ApiResponse> {
+        let r = ApiRequestBuilder::post(API_ROUTE["likelist"])
+            .set_data(json!({ "uid": uid }))
+            .build();
+
+        self.client.request(r).await
+    }
 }
 
 fn md5_hex(pt: &[u8]) -> String {
@@ -186,6 +196,7 @@ fn limit_offset(limit: usize, offset: usize) -> Value {
 mod tests {
     use crate::http::api::CloudMusicApi;
     use crate::model::table::RecentlyPlayedResp;
+    use crate::model::user::LikeTrackIdListResp;
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_login_phone() {
@@ -216,6 +227,15 @@ mod tests {
     async fn test_recommend_songs() {
         let api = CloudMusicApi::default();
         let resp = api.recommend_song_list().await.unwrap();
+        println!("{:?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_like_list() {
+        let api = CloudMusicApi::default();
+        let resp = api.like_list(354192143).await.unwrap();
+        let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data()).unwrap();
+
         println!("{:?}", resp);
     }
 }

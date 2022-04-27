@@ -22,4 +22,5 @@ pub enum IoEvent {
     GetRecommendTracks,
     DecreaseVolume,
     IncreaseVolume,
+    GetLikeList,
 }

@@ -91,6 +91,6 @@ pub struct TableHeaderItem<'a> {
 
 #[derive(Debug)]
 pub struct TableItem {
-    pub id: String,
+    pub id: usize,
     pub format: Vec<String>,
 }

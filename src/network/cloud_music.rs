@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -8,7 +9,7 @@ use crate::http::api::CloudMusicApi;
 use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
 use crate::model::table::RecentlyPlayedResp;
 use crate::model::track::{RecommendedSongsResp, Track, TrackUrl, TrackUrlResp};
-use crate::model::user::{UserAccountResp, UserProfile};
+use crate::model::user::{LikeTrackIdListResp, UserAccountResp, UserProfile};
 
 #[derive(Default)]
 pub struct CloudMusic {
@@ -93,6 +94,12 @@ impl CloudMusic {
             Some(data) => Ok(data.daily_songs),
             None => Ok(vec![]),
         }
+    }
+
+    pub async fn like_track_id_list(&self, user_id: usize) -> Result<HashSet<usize>> {
+        let resp = self.api.like_list(user_id).await?;
+        let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data())?;
+        Ok(resp.ids)
     }
 }
 

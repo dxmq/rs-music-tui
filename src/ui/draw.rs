@@ -278,11 +278,11 @@ where
             let (item_id, name, duration_ms) = match track_item {
                 PlayingItem::Track(track) => {
                     let duration = track.duration as u32;
-                    (track.id.to_string(), track.name.to_owned(), duration)
+                    (track.id, track.name.to_owned(), duration)
                 }
             };
 
-            let track_name = if app.liked_song_ids_set.contains(&item_id) {
+            let track_name = if app.liked_track_ids_set.contains(&item_id) {
                 format!("{}{}", &app.user_config.padded_liked_icon(), name)
             } else {
                 name
@@ -419,7 +419,7 @@ where
             .tracks
             .iter()
             .map(|item| TableItem {
-                id: item.id.to_string(),
+                id: item.id,
                 format: vec![
                     "".to_string(),
                     item.name.to_owned(),
@@ -486,7 +486,7 @@ where
         .tracks
         .iter()
         .map(|item| TableItem {
-            id: item.id.to_string(),
+            id: item.id,
             format: vec![
                 "".to_string(),
                 item.name.to_owned(),
@@ -801,7 +801,7 @@ fn draw_table<B>(
     let track_playing_index = app.current_playback_context.to_owned().and_then(|ctx| {
         ctx.item.and_then(|item| match item {
             PlayingItem::Track(track) => items.iter().position(|item| {
-                track.id.to_string() == item.id
+                track.id == item.id
                 // track.id.to_string().to_owned()
                 // .map(|id| id == item.id)
                 // .unwrap_or(false)
@@ -843,7 +843,7 @@ fn draw_table<B>(
 
                 // Show this the liked icon if the song is liked
                 if let Some(liked_idx) = header.get_index(ColumnId::Liked) {
-                    if app.liked_song_ids_set.contains(item.id.as_str()) {
+                    if app.liked_track_ids_set.contains(&item.id) {
                         formatted_row[liked_idx] = app.user_config.padded_liked_icon();
                     }
                 }

@@ -71,11 +71,24 @@ impl<'a> Network<'a> {
             IoEvent::IncreaseVolume => {
                 self.increase_volume().await;
             }
+            IoEvent::GetLikeList => {
+                self.load_like_track_id_list().await;
+            }
             _ => {}
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn load_like_track_id_list(&mut self) {
+        let mut app = self.app.lock().await;
+        if let Some(profile) = app.user.clone() {
+            if let Ok(liked_track_ids) = self.cloud_music.like_track_id_list(profile.user_id).await
+            {
+                app.liked_track_ids_set = liked_track_ids;
+            }
+        }
     }
 
     async fn decrease_volume(&mut self) {

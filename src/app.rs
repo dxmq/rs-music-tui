@@ -100,8 +100,6 @@ pub struct App {
     pub help_menu_offset: u32,
     pub home_scroll: u16,
     pub current_playback_context: Option<CurrentlyPlaybackContext>,
-    // 喜欢的歌曲hashset
-    pub liked_song_ids_set: HashSet<String>,
     // 歌曲播放进度毫秒
     pub song_progress_ms: u128,
     // 滑动进度毫秒
@@ -129,6 +127,8 @@ pub struct App {
     pub title: String,
     // 正在播放的歌曲列表
     pub my_play_tracks: TrackTable,
+    // 喜欢的歌曲hashset
+    pub liked_track_ids_set: HashSet<usize>,
 }
 
 impl App {
@@ -409,7 +409,6 @@ impl Default for App {
             help_menu_offset: 0,
             home_scroll: 0,
             current_playback_context: None,
-            liked_song_ids_set: HashSet::new(),
             song_progress_ms: 0,
             seek_ms: None,
             library: Library { selected_index: 0 },
@@ -427,6 +426,7 @@ impl Default for App {
             recently_played: Default::default(),
             title: String::from("歌曲列表"),
             my_play_tracks: Default::default(),
+            liked_track_ids_set: HashSet::new(),
         }
     }
 }
