@@ -84,8 +84,7 @@ fn on_enter(app: &mut App) {
                         //         .map(|selected_playlist| selected_playlist.id.to_owned()),
                         //     _ => None,
                         // };
-                        app.my_play_tracks = app.track_table.clone();
-                        app.dispatch(IoEvent::StartPlayback(track.clone()));
+                        app.dispatch(IoEvent::StartPlayback(track.clone(), selected_index));
                     };
                 }
             }

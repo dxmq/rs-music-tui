@@ -53,8 +53,8 @@ impl<'a> Network<'a> {
                 self.load_playlist_tracks(playlist_id, playlist_offset)
                     .await;
             }
-            IoEvent::StartPlayback(track) => {
-                self.start_playback(track).await;
+            IoEvent::StartPlayback(track, selected_index) => {
+                self.start_playback(track, selected_index).await;
             }
             IoEvent::TogglePlayBack => {
                 self.toggle_playback().await;
@@ -152,7 +152,7 @@ impl<'a> Network<'a> {
         }
     }
 
-    async fn start_playback(&mut self, track: Track) {
+    async fn start_playback(&mut self, track: Track, selected_index: usize) {
         match self.cloud_music.song_url(vec![track.id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
@@ -171,6 +171,11 @@ impl<'a> Network<'a> {
                     self.player.play_url(track_url.url.as_str());
                     app.volume = self.player.get_volume();
                     app.current_playback_context = Some(context);
+                    app.my_play_tracks = TrackTable {
+                        tracks: vec![],
+                        selected_index,
+                        context: Some(TrackTableContext::MyPlaylists),
+                    }
                 }
             }
             Err(e) => self.handle_error(e).await,

@@ -281,7 +281,8 @@ impl App {
         if let Some(context) = &self.current_playback_context {
             match context.repeat_state {
                 RepeatState::Track => {
-                    self.dispatch(IoEvent::StartPlayback(track));
+                    let list = self.my_play_tracks.clone();
+                    self.dispatch(IoEvent::StartPlayback(track, list.selected_index));
                 }
                 RepeatState::Context => {
                     let mut list = self.my_play_tracks.clone();
@@ -290,7 +291,7 @@ impl App {
                     list.selected_index = next_index;
 
                     let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-                    self.dispatch(IoEvent::StartPlayback(track));
+                    self.dispatch(IoEvent::StartPlayback(track, next_index));
                 }
                 _ => {
                     if context.shuffle_state {
@@ -300,7 +301,7 @@ impl App {
                         list.selected_index = next_index;
 
                         let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-                        self.dispatch(IoEvent::StartPlayback(track));
+                        self.dispatch(IoEvent::StartPlayback(track, next_index));
                     }
                 }
             }
