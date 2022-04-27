@@ -13,8 +13,6 @@ pub struct CurrentlyPlaybackContext {
     pub currently_playing_type: CurrentlyPlayingType,
     // 重复状态
     pub repeat_state: RepeatState,
-    // 是否随机播放
-    pub shuffle_state: bool,
     // 当前播放项
     pub item: Option<PlayingItem>,
 }

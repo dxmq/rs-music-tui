@@ -2,6 +2,7 @@ pub use input::handler as input_handler;
 
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::Key;
+use crate::model::enums::ToggleState;
 
 pub(crate) mod common_key_events;
 pub(crate) mod empty;
@@ -30,6 +31,24 @@ pub fn handle_app(key: Key, app: &mut App) {
             app.push_navigation_stack(RouteId::BasicView, ActiveBlock::BasicView);
         }
         _ if key == app.user_config.keys.jump_to_context => {}
+        _ if key == app.user_config.keys.toggle_playback => {
+            app.toggle_playback();
+        }
+        _ if key == app.user_config.keys.next_track => {
+            app.next_or_prev_track(ToggleState::Next);
+        }
+        _ if key == app.user_config.keys.previous_track => {
+            app.next_or_prev_track(ToggleState::Prev);
+        }
+        _ if key == app.user_config.keys.repeat => {
+            app.toggle_play_state();
+        }
+        _ if key == app.user_config.keys.decrease_volume => {
+            app.decrease_volume();
+        }
+        _ if key == app.user_config.keys.increase_volume => {
+            app.increase_volume();
+        }
         _ => handle_block_events(key, app),
     }
 }

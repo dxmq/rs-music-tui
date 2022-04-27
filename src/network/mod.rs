@@ -53,8 +53,8 @@ impl<'a> Network<'a> {
                 self.load_playlist_tracks(playlist_id, playlist_offset)
                     .await;
             }
-            IoEvent::StartPlayback(track, selected_index) => {
-                self.start_playback(track, selected_index).await;
+            IoEvent::StartPlayback(track) => {
+                self.start_playback(track).await;
             }
             IoEvent::TogglePlayBack => {
                 self.toggle_playback().await;
@@ -65,11 +65,29 @@ impl<'a> Network<'a> {
             IoEvent::GetRecommendTracks => {
                 self.load_recommend_tracks().await;
             }
+            IoEvent::DecreaseVolume => {
+                self.decrease_volume().await;
+            }
+            IoEvent::IncreaseVolume => {
+                self.increase_volume().await;
+            }
             _ => {}
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn decrease_volume(&mut self) {
+        self.player.decrease_volume();
+        let mut app = self.app.lock().await;
+        app.volume = self.player.get_volume();
+    }
+
+    async fn increase_volume(&mut self) {
+        self.player.increase_volume();
+        let mut app = self.app.lock().await;
+        app.volume = self.player.get_volume();
     }
 
     async fn load_recommend_tracks(&mut self) {
@@ -101,8 +119,7 @@ impl<'a> Network<'a> {
                         progress_ms: Some(0),
                         timestamp: 0,
                         currently_playing_type: CurrentlyPlayingType::Track,
-                        repeat_state: RepeatState::Context,
-                        shuffle_state: false,
+                        repeat_state: RepeatState::Off,
                         item: Some(PlayingItem::Track(recent_play_list.get(0).unwrap().clone())),
                     };
                     app.current_playback_context = Some(context);
@@ -112,6 +129,7 @@ impl<'a> Network<'a> {
                         context: Some(TrackTableContext::MyPlaylists),
                     };
                 }
+                app.volume = self.player.get_volume();
             }
             Err(e) => {
                 self.handle_error(e).await;
@@ -139,12 +157,12 @@ impl<'a> Network<'a> {
                             context.progress_ms = Some(app.song_progress_ms as u32);
                             app.instant_since_last_current_playback_poll = Instant::now();
                             self.player.play_url(urls.get(0).unwrap().url.as_str());
-                            app.volume = self.player.get_volume();
                             app.current_playback_context = Some(context);
                         }
                         Err(e) => self.handle_error(e).await,
                     }
                 }
+                app.volume = self.player.get_volume();
             }
             None => {
                 self.player.pause();
@@ -152,30 +170,33 @@ impl<'a> Network<'a> {
         }
     }
 
-    async fn start_playback(&mut self, track: Track, selected_index: usize) {
+    async fn start_playback(&mut self, track: Track) {
         match self.cloud_music.song_url(vec![track.id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
                     let mut app = self.app.lock().await;
-                    let context = CurrentlyPlaybackContext {
-                        is_playing: true,
-                        progress_ms: Some(0),
-                        timestamp: 0,
-                        currently_playing_type: CurrentlyPlayingType::Track,
-                        repeat_state: RepeatState::Context,
-                        shuffle_state: false,
-                        item: Some(PlayingItem::Track(track)),
-                    };
 
+                    match app.current_playback_context.clone() {
+                        Some(mut context) => {
+                            context.is_playing = true;
+                            context.item = Some(PlayingItem::Track(track));
+                            app.current_playback_context = Some(context);
+                        }
+                        None => {
+                            let context = CurrentlyPlaybackContext {
+                                is_playing: true,
+                                progress_ms: Some(0),
+                                timestamp: 0,
+                                currently_playing_type: CurrentlyPlayingType::Track,
+                                repeat_state: RepeatState::Off,
+                                item: Some(PlayingItem::Track(track)),
+                            };
+                            app.current_playback_context = Some(context);
+                        }
+                    }
                     app.instant_since_last_current_playback_poll = Instant::now();
                     self.player.play_url(track_url.url.as_str());
                     app.volume = self.player.get_volume();
-                    app.current_playback_context = Some(context);
-                    app.my_play_tracks = TrackTable {
-                        tracks: vec![],
-                        selected_index,
-                        context: Some(TrackTableContext::MyPlaylists),
-                    }
                 }
             }
             Err(e) => self.handle_error(e).await,

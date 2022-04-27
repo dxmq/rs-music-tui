@@ -231,25 +231,32 @@ where
                 "Paused"
             };
 
-            let shuffle_text = if current_playback_context.shuffle_state {
-                "On"
-            } else {
-                "Off"
+            // let shuffle_text = if current_playback_context.shuffle_state {
+            //     "On"
+            // } else {
+            //     "Off"
+            // };
+
+            let play_state_text = match current_playback_context.repeat_state {
+                RepeatState::Off => "顺序播放",
+                RepeatState::Track => "单曲循环",
+                RepeatState::Context => "列表循环",
+                RepeatState::Shuffle => "随机播放",
             };
 
-            let repeat_text = match current_playback_context.repeat_state {
-                RepeatState::Off => "Off",
-                RepeatState::Track => "Track",
-                RepeatState::Context => "All",
-            };
-
+            // let title = format!(
+            //     "{:-7} (Shuffle: {:-3} | Repeat: {:-5} Volume: {:-1}%)",
+            //     play_title,
+            //     // current_playback_context.device.name,
+            //     shuffle_text,
+            //     repeat_text,
+            //     (app.volume * 100f32).ceil() // current_playback_context.device.volume_percent
+            // );
             let title = format!(
-                "{:-7} (Shuffle: {:-3} | Repeat: {:-5})",
+                "{:-7} ({:-3} Volume: {:-1}%)",
                 play_title,
-                // current_playback_context.device.name,
-                shuffle_text,
-                repeat_text,
-                // current_playback_context.device.volume_percent
+                play_state_text,
+                (app.volume * 100f32).ceil() // current_playback_context.device.volume_percent
             );
 
             let current_route = app.get_current_route();
@@ -891,4 +898,13 @@ fn draw_table<B>(
         .style(Style::default().fg(app.user_config.theme.text))
         .widths(&widths);
     f.render_widget(table, layout_chunk);
+}
+
+#[test]
+fn test() {
+    let f = 79.99999_f32;
+    println!("{}", f.ceil());
+    // assert_eq!(f.ceil(), 80);
+    // assert_eq!(g.floor(), 3.0);
+    // assert_eq!(h.floor(), -4.0);
 }

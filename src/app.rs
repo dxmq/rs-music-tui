@@ -281,31 +281,75 @@ impl App {
         if let Some(context) = &self.current_playback_context {
             match context.repeat_state {
                 RepeatState::Track => {
-                    let list = self.my_play_tracks.clone();
-                    self.dispatch(IoEvent::StartPlayback(track, list.selected_index));
+                    self.dispatch(IoEvent::StartPlayback(track));
                 }
                 RepeatState::Context => {
+                    self.next_or_prev_track(state);
+                }
+                RepeatState::Shuffle => {
+                    self.shuffle();
+                }
+                RepeatState::Off => {
                     let mut list = self.my_play_tracks.clone();
                     let next_index =
                         App::next_index(&list.tracks, Some(list.selected_index), state);
-                    list.selected_index = next_index;
-
                     let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-                    self.dispatch(IoEvent::StartPlayback(track, next_index));
-                }
-                _ => {
-                    if context.shuffle_state {
-                        let mut list = self.my_play_tracks.clone();
-                        let mut rng = rand::thread_rng();
-                        let next_index = rng.gen_range(0..list.tracks.len());
-                        list.selected_index = next_index;
 
-                        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-                        self.dispatch(IoEvent::StartPlayback(track, next_index));
+                    if next_index != list.tracks.len() {
+                        list.selected_index = next_index;
+                        self.dispatch(IoEvent::StartPlayback(track));
+                    } else {
+                        if (self.song_progress_ms - track.duration as u128) < 1000 {
+                            let mut context = context.clone();
+                            context.is_playing = false;
+                            self.current_playback_context = Some(context);
+                        }
                     }
                 }
             }
         }
+    }
+
+    pub fn next_or_prev_track(&mut self, state: ToggleState) {
+        let mut list = self.my_play_tracks.clone();
+        let next_index = App::next_index(&list.tracks, Some(list.selected_index), state);
+        list.selected_index = next_index;
+
+        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+        self.dispatch(IoEvent::StartPlayback(track));
+    }
+
+    pub fn shuffle(&mut self) {
+        let mut list = self.my_play_tracks.clone();
+        let mut rng = rand::thread_rng();
+        let next_index = rng.gen_range(0..list.tracks.len());
+        list.selected_index = next_index;
+
+        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+
+        self.dispatch(IoEvent::StartPlayback(track));
+    }
+
+    pub fn toggle_play_state(&mut self) {
+        let context = self.current_playback_context.clone();
+        if let Some(mut context) = context {
+            let next_repeat_state = match context.repeat_state {
+                RepeatState::Context => RepeatState::Track,
+                RepeatState::Track => RepeatState::Shuffle,
+                RepeatState::Shuffle => RepeatState::Off,
+                RepeatState::Off => RepeatState::Context,
+            };
+            context.repeat_state = next_repeat_state;
+            self.current_playback_context = Some(context);
+        }
+    }
+
+    pub fn decrease_volume(&mut self) {
+        self.dispatch(IoEvent::DecreaseVolume);
+    }
+
+    pub fn increase_volume(&mut self) {
+        self.dispatch(IoEvent::IncreaseVolume);
     }
 
     pub fn next_index<T>(
@@ -338,6 +382,10 @@ impl App {
             }
             None => 0,
         }
+    }
+
+    pub fn toggle_playback(&mut self) {
+        self.dispatch(IoEvent::TogglePlayBack);
     }
 }
 

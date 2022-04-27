@@ -47,12 +47,14 @@ pub enum Type {
 
 #[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RepeatState {
-    // 不循环
+    // 顺序播放
     Off,
     // 单曲循环
     Track,
     // 列表循环
     Context,
+    // 随机
+    Shuffle,
 }
 
 // 当前播放的类型
