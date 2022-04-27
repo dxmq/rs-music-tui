@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use tokio::sync::Mutex;
@@ -8,7 +9,7 @@ use crate::app::App;
 use crate::http::api::CloudMusicApi;
 use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
 use crate::model::table::RecentlyPlayedResp;
-use crate::model::track::{LyricResp, RecommendedTracksResp, Track, TrackUrl, TrackUrlResp};
+use crate::model::track::{Lyric, LyricResp, RecommendedTracksResp, Track, TrackUrl, TrackUrlResp};
 use crate::model::user::{LikeTrackIdListResp, UserAccountResp, UserProfile};
 
 #[derive(Default)]
@@ -105,15 +106,60 @@ impl CloudMusic {
         Ok(resp.ids)
     }
 
-    pub async fn lyric(&self, track_id: usize) -> Result<String> {
+    pub async fn lyric(&self, track_id: usize) -> Result<Vec<Lyric>> {
         let resp = self.api.lyric(track_id).await?;
         let resp = serde_json::from_slice::<LyricResp>(resp.data())?;
         if resp.code != 200 {
             return Err(anyhow!("get song lyric failed."));
         }
-        match resp.data {
-            Some(data) => Ok(data.lrc.lyric),
-            None => return Err(anyhow!("get song lyric failed")),
+
+        let mut lyric: Vec<Lyric> = Vec::new();
+        let re = regex::Regex::new(r#"((?:\[\w+:\w+\.\w+\])+)(.*?)$"#).unwrap();
+        let re_time = regex::Regex::new(r#"\[(\w+):(\w+)\.(\w+)\]"#).unwrap();
+        for s in resp.lrc.lyric.lines() {
+            if let Some(cap) = re.captures(&s) {
+                let timestamps = cap[1].to_string();
+                for t in re_time.captures_iter(&timestamps) {
+                    lyric.push(CloudMusic::mk_lyric(cap[2].to_string(), t, 0));
+                }
+            } else {
+                lyric.push(Lyric {
+                    lyric: String::new(),
+                    timeline: Duration::new(0, 0),
+                });
+            }
+        }
+        if !resp.tlyric.lyric.is_empty() {
+            for s in resp.tlyric.lyric.lines() {
+                if let Some(cap) = re.captures(&s) {
+                    let timestamps = cap[1].to_string();
+                    for t in re_time.captures_iter(&timestamps) {
+                        lyric.push(CloudMusic::mk_lyric(cap[2].to_string(), t, 1));
+                    }
+                }
+            }
+        }
+        lyric.sort_by(|a, b| a.timeline.cmp(&b.timeline));
+        if !lyric.is_empty() {
+            return Ok(lyric);
+        } else {
+            let lyric = vec![Lyric {
+                lyric: "no lyric".to_string(),
+                timeline: Duration::new(0, 0),
+            }];
+            Ok(lyric)
+        }
+    }
+
+    #[allow(unused)]
+    fn mk_lyric(value: String, timestamp: regex::Captures, offset: u32) -> Lyric {
+        let minute = timestamp[1].parse::<u64>().unwrap_or(0);
+        let second = timestamp[2].parse::<u64>().unwrap_or(0);
+        let nano = timestamp[3][..1].parse::<u32>().unwrap_or(0) * 10000000;
+        let duration_min = minute * 60 + second;
+        Lyric {
+            lyric: value,
+            timeline: Duration::new(duration_min, nano + offset),
         }
     }
 }
@@ -125,6 +171,12 @@ mod tests {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_recommend_song_list() {
         let result = CloudMusic::default().recommend_song_list().await;
+        println!("{:#?}", result.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_lyric() {
+        let result = CloudMusic::default().lyric(1479526505).await;
         println!("{:#?}", result.unwrap());
     }
 }

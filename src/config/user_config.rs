@@ -70,6 +70,7 @@ impl UserConfig {
                 audio_analysis: Key::Char('v'),
                 basic_view: Key::Char('B'),
                 add_item_to_queue: Key::Char('z'),
+                show_lyric: Key::Ctrl('l'),
             },
         }
     }

@@ -29,6 +29,7 @@ pub struct KeyBindings {
     pub audio_analysis: Key,
     pub basic_view: Key,
     pub add_item_to_queue: Key,
+    pub show_lyric: Key,
 }
 
 #[derive(Default, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -59,4 +60,5 @@ pub struct KeyBindingsString {
     pub audio_analysis: Option<String>,
     pub basic_view: Option<String>,
     pub add_item_to_queue: Option<String>,
+    pub show_lyric: Option<String>,
 }

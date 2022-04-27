@@ -25,6 +25,7 @@ use crate::event::Key;
 use crate::handlers;
 use crate::util::SMALL_TERMINAL_HEIGHT;
 
+pub(crate) mod circle;
 pub(crate) mod draw;
 mod help;
 

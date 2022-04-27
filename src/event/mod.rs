@@ -23,4 +23,5 @@ pub enum IoEvent {
     DecreaseVolume,
     IncreaseVolume,
     GetLikeList,
+    GetLyric(usize),
 }

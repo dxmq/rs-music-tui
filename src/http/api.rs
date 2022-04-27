@@ -207,6 +207,7 @@ fn limit_offset(limit: usize, offset: usize) -> Value {
 mod tests {
     use crate::http::api::CloudMusicApi;
     use crate::model::table::RecentlyPlayedResp;
+    use crate::model::track::LyricResp;
     use crate::model::user::LikeTrackIdListResp;
 
     #[tokio::test(flavor = "multi_thread")]
@@ -254,7 +255,7 @@ mod tests {
     async fn test_lyric() {
         let api = CloudMusicApi::default();
         let resp = api.lyric(1479526505).await.unwrap();
-        // let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data()).unwrap();
+        let resp = serde_json::from_slice::<LyricResp>(resp.data());
         println!("{:?}", resp);
     }
 }

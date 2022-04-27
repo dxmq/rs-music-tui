@@ -5,6 +5,7 @@ use std::time::Instant;
 use anyhow::Error;
 use rand::Rng;
 use tui::layout::Rect;
+use tui::style::Color;
 
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
@@ -12,8 +13,9 @@ use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
 use crate::model::playlist::Playlist;
 use crate::model::table::{RecentlyPlayed, TrackTable};
-use crate::model::track::Track;
+use crate::model::track::{Lyric, Track};
 use crate::model::user::UserProfile;
+use crate::ui::circle::{Circle, CIRCLE, CIRCLE_TICK};
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
@@ -51,6 +53,8 @@ pub enum ActiveBlock {
     // 歌曲表格
     TrackTable,
     RecentlyPlayed,
+    // 歌词
+    Lyric,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -65,7 +69,7 @@ pub enum RouteId {
     TrackTable,
     RecentlyPlayed,
     #[allow(unused)]
-    PlayingDetail,
+    Lyric,
 }
 
 #[derive(Debug)]
@@ -129,6 +133,11 @@ pub struct App {
     pub my_play_tracks: TrackTable,
     // 喜欢的歌曲hashset
     pub liked_track_ids_set: HashSet<usize>,
+    // 歌词
+    pub lyric: Option<Vec<Lyric>>,
+    pub lyric_index: usize,
+    pub playing_circle: Circle,
+    pub circle_flag: bool,
 }
 
 impl App {
@@ -273,6 +282,35 @@ impl App {
                         self.toggle_track(track, ToggleState::Next);
                     }
                 }
+            }
+            if self.get_current_route().active_block == ActiveBlock::Lyric {
+                if self.circle_flag {
+                    self.playing_circle = Circle {
+                        circle: &CIRCLE,
+                        color: Color::Reset,
+                    }
+                } else {
+                    self.playing_circle = Circle {
+                        circle: &CIRCLE_TICK,
+                        color: Color::Cyan,
+                    }
+                }
+                self.circle_flag = !self.circle_flag;
+            }
+            match &self.lyric {
+                Some(lyrics) => {
+                    let next_lyric = lyrics.get(self.lyric_index + 1);
+                    // check current ms and lyric timeline
+                    match next_lyric {
+                        Some(next_lyric) => {
+                            if self.song_progress_ms as u128 >= next_lyric.timeline.as_millis() {
+                                self.lyric_index += 1;
+                            }
+                        }
+                        None => {}
+                    }
+                }
+                None => {}
             }
         }
     }
@@ -427,6 +465,10 @@ impl Default for App {
             title: String::from("歌曲列表"),
             my_play_tracks: Default::default(),
             liked_track_ids_set: HashSet::new(),
+            lyric_index: 0,
+            lyric: None,
+            playing_circle: Circle::default(),
+            circle_flag: true,
         }
     }
 }

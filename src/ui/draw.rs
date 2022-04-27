@@ -2,6 +2,7 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
+use tui::widgets::canvas::Canvas;
 use tui::widgets::{
     Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph, Row, Table, Wrap,
 };
@@ -367,14 +368,130 @@ where
         RouteId::RecentlyPlayed => {
             draw_recently_played_table(f, app, chunks[1]);
         }
-        RouteId::PlayingDetail => {
+        RouteId::Lyric => {
             // draw playing lyric ui
+            draw_lyric(f, app, chunks[1]);
         }
         RouteId::Error => {} // This is handled as a "full screen" route in main.rs
         RouteId::BasicView => {} // This is handled as a "full screen" route in main.rs
         RouteId::Dialog => {} // This is handled in the draw_dialog function in mod.rs
         _ => {}
     }
+}
+
+pub fn draw_lyric<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::Lyric,
+        current_route.hovered_block == ActiveBlock::Lyric,
+    );
+
+    let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        // .margin(2)
+        .split(layout_chunk);
+
+    let canvas = Canvas::default()
+        .block(
+            Block::default()
+                .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM)
+                .title("Playing")
+                .border_style(get_color(highlight_state, app.user_config.theme)),
+        )
+        .paint(|ctx| {
+            ctx.draw(&app.playing_circle);
+        })
+        .x_bounds([-90.0, 90.0])
+        .y_bounds([-90.0, 90.0]);
+    f.render_widget(canvas, chunks[0]);
+
+    let lyric_items = match &app.lyric {
+        Some(l) => l.iter().map(|item| vec![item.lyric.to_owned()]).collect(),
+        None => vec![],
+    };
+    let selected_index = app.lyric_index;
+
+    let interval = (layout_chunk.height / 2) as usize;
+    let (row_items, margin) = if !lyric_items.is_empty() {
+        let count = (layout_chunk.height - 4) as usize;
+        let total = lyric_items.len();
+        if selected_index >= count - interval && total > count {
+            if selected_index >= total - interval {
+                let margin = total - count;
+                (&lyric_items[margin..], margin)
+            } else {
+                let margin = selected_index + interval - count;
+                (&lyric_items[margin..], margin)
+            }
+        } else {
+            (lyric_items.as_ref(), 0 as usize)
+        }
+    } else {
+        (lyric_items.as_ref(), 0 as usize)
+    };
+
+    let header = TableHeader {
+        id: TableId::Lyric,
+        items: vec![TableHeaderItem {
+            id: ColumnId::Title,
+            text: "",
+            width: get_percentage_width(layout_chunk.width, 0.5),
+        }],
+    };
+    let selected_style = get_color(highlight_state, app.user_config.theme);
+    let rows = row_items.iter().enumerate().map(|(i, item)| {
+        let mut style = Style::default().fg(Color::White); // default styling
+        if i == selected_index - margin {
+            style = selected_style;
+        }
+        // Return row styled data
+        Row::new(item.clone()).style(style)
+    });
+    // let items = app
+    //     .track_table
+    //     .tracks
+    //     .iter()
+    //     .map(|item| TableItem {
+    //         id: item.id,
+    //         format: vec![
+    //             "".to_string(),
+    //             item.name.to_owned(),
+    //             create_artist_string(&item.artists),
+    //             item.album.name.to_owned().unwrap(),
+    //             millis_to_minutes2(item.duration),
+    //         ],
+    //     })
+    //     .collect::<Vec<TableItem>>();
+    // let rows = items.iter().skip(offset).enumerate().map(|(i, item)| {
+    //     let mut formatted_row = item.format.clone();
+    //     let mut style = Style::default().fg(app.user_config.theme.text); // default styling
+    //                                                                      // Return row styled data
+    //     Row::new(formatted_row).style(style)
+    // });
+
+    let widths = header
+        .items
+        .iter()
+        .map(|h| Constraint::Length(h.width))
+        .collect::<Vec<tui::layout::Constraint>>();
+
+    let header = Row::new(header.items.iter().map(|h| h.text))
+        .style(Style::default().fg(app.user_config.theme.header));
+    let table = Table::new(rows)
+        .header(header)
+        .block(
+            Block::default()
+                .borders(Borders::RIGHT | Borders::TOP | Borders::BOTTOM)
+                .style(Style::default().fg(Color::White))
+                .border_style(get_color(highlight_state, app.user_config.theme)),
+        )
+        .style(Style::default().fg(Color::White))
+        .widths(&widths);
+    f.render_widget(table, chunks[1]);
 }
 
 pub fn draw_recently_played_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)

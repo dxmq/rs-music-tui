@@ -11,6 +11,7 @@ pub(crate) mod help_menu;
 pub(crate) mod home;
 pub(crate) mod input;
 pub(crate) mod library;
+pub(crate) mod lyric;
 pub(crate) mod playbar;
 pub(crate) mod playlist;
 pub(crate) mod recently_played;
@@ -48,6 +49,10 @@ pub fn handle_app(key: Key, app: &mut App) {
         }
         _ if key == app.user_config.keys.increase_volume => {
             app.increase_volume();
+        }
+        _ if key == app.user_config.keys.show_lyric => {
+            app.push_navigation_stack(RouteId::Lyric, ActiveBlock::Lyric);
+            // app.set_current_route_state(Some(ActiveBlock::Lyric), None);
         }
         _ => handle_block_events(key, app),
     }
@@ -87,6 +92,9 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::RecentlyPlayed => {
             recently_played::handler(key, app);
+        }
+        ActiveBlock::Lyric => {
+            lyric::handler(key, app);
         }
         _ => {}
     }

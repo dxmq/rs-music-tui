@@ -56,6 +56,8 @@ pub enum TableId {
     MadeForYou,
     #[allow(unused)]
     PodcastEpisodes,
+    #[allow(unused)]
+    Lyric,
 }
 
 #[derive(PartialEq)]
