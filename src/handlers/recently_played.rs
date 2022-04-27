@@ -1,6 +1,7 @@
 use crate::app::App;
-use crate::event::Key;
+use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
+use crate::model::table::RecentlyPlayed;
 
 pub fn handler(key: Key, app: &mut App) {
     match key {
@@ -32,7 +33,17 @@ pub fn handler(key: Key, app: &mut App) {
             let next_index = common_key_events::on_low_press_handler(&app.recently_played.tracks);
             app.recently_played.selected_index = next_index;
         }
-        Key::Enter => {}
+        Key::Enter => {
+            let RecentlyPlayed {
+                selected_index,
+                tracks,
+                ..
+            } = app.recently_played.clone();
+            app.my_play_tracks = app.track_table.clone();
+            if let Some(track) = tracks.get(selected_index) {
+                app.dispatch(IoEvent::StartPlayback(track.clone()));
+            }
+        }
         _ => {}
     }
 }
