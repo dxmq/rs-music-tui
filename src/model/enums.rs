@@ -26,6 +26,13 @@ pub enum DisallowKey {
     TransferringPlayback,
 }
 
+#[derive(Clone, Copy)]
+pub enum ToggleState {
+    Next,
+    #[allow(unused)]
+    Prev,
+}
+
 #[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum Type {
@@ -39,10 +46,12 @@ pub enum Type {
 }
 
 #[derive(Clone, Debug, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
 pub enum RepeatState {
+    // 不循环
     Off,
+    // 单曲循环
     Track,
+    // 列表循环
     Context,
 }
 

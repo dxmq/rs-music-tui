@@ -360,6 +360,9 @@ where
         RouteId::RecentlyPlayed => {
             draw_recently_played_table(f, app, chunks[1]);
         }
+        RouteId::PlayingDetail => {
+            // draw playing lyric ui
+        }
         RouteId::Error => {} // This is handled as a "full screen" route in main.rs
         RouteId::BasicView => {} // This is handled as a "full screen" route in main.rs
         RouteId::Dialog => {} // This is handled in the draw_dialog function in mod.rs

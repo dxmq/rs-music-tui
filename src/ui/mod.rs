@@ -140,7 +140,7 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
         // 如果刚启动（第一次渲染）
         if is_first_render {
             app.dispatch(IoEvent::GetUser);
-            // 加载播放列表
+            // 加载歌单列表
             app.dispatch(IoEvent::GetPlaylists);
             // 获取最近播放
             app.dispatch(IoEvent::GetRecentlyPlayed(1));

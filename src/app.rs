@@ -3,14 +3,16 @@ use std::sync::mpsc::Sender;
 use std::time::Instant;
 
 use anyhow::Error;
+use rand::Rng;
 use tui::layout::Rect;
 
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
-use crate::model::enums::PlayingItem;
-use crate::model::playlist::{Playlist, PlaylistDetail};
+use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
+use crate::model::playlist::Playlist;
 use crate::model::table::{RecentlyPlayed, TrackTable};
+use crate::model::track::Track;
 use crate::model::user::UserProfile;
 
 const DEFAULT_ROUTE: Route = Route {
@@ -62,6 +64,8 @@ pub enum RouteId {
     Dialog,
     TrackTable,
     RecentlyPlayed,
+    #[allow(unused)]
+    PlayingDetail,
 }
 
 #[derive(Debug)]
@@ -105,10 +109,11 @@ pub struct App {
     // 左侧菜单
     pub library: Library,
     // 歌单列表
-    // pub playlists: Option<Page<SimplifiedPlaylist>>,
     pub playlists: Option<Vec<Playlist>>,
+    // 歌单偏移量
     pub playlist_offset: u32,
-    pub playlist_tracks: Option<PlaylistDetail>,
+    // 歌单歌曲列表
+    pub track_table: TrackTable,
     // 接口错误
     pub api_error: String,
     pub dialog: Option<String>,
@@ -116,13 +121,14 @@ pub struct App {
     pub confirm: bool,
     pub made_for_you_index: usize,
     pub user: Option<UserProfile>,
-    pub track_table: TrackTable,
     pub instant_since_last_current_playback_poll: Instant,
     pub is_fetching_current_playback: bool,
     pub large_search_limit: u32,
     pub volume: f32,
     pub recently_played: RecentlyPlayed,
     pub title: String,
+    // 正在播放的歌曲列表
+    pub my_play_tracks: TrackTable,
 }
 
 impl App {
@@ -260,6 +266,76 @@ impl App {
             } else {
                 self.song_progress_ms = duration_ms.into();
             }
+            match item {
+                PlayingItem::Track(track) => {
+                    if track.duration as u128 - self.song_progress_ms < 1000 {
+                        let track = track.clone();
+                        self.toggle_track(track, ToggleState::Next);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn toggle_track(&mut self, track: Track, state: ToggleState) {
+        if let Some(context) = &self.current_playback_context {
+            match context.repeat_state {
+                RepeatState::Track => {
+                    self.dispatch(IoEvent::StartPlayback(track));
+                }
+                RepeatState::Context => {
+                    let mut list = self.my_play_tracks.clone();
+                    let next_index =
+                        App::next_index(&list.tracks, Some(list.selected_index), state);
+                    list.selected_index = next_index;
+
+                    let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+                    self.dispatch(IoEvent::StartPlayback(track));
+                }
+                _ => {
+                    if context.shuffle_state {
+                        let mut list = self.my_play_tracks.clone();
+                        let mut rng = rand::thread_rng();
+                        let next_index = rng.gen_range(0..list.tracks.len());
+                        list.selected_index = next_index;
+
+                        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+                        self.dispatch(IoEvent::StartPlayback(track));
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn next_index<T>(
+        selection_data: &[T],
+        selection_index: Option<usize>,
+        state: ToggleState,
+    ) -> usize {
+        match selection_index {
+            Some(selection_index) => {
+                if !selection_data.is_empty() {
+                    return match state {
+                        ToggleState::Next => {
+                            let next_index = selection_index + 1;
+                            if next_index > selection_data.len() - 1 {
+                                0
+                            } else {
+                                next_index
+                            }
+                        }
+                        ToggleState::Prev => {
+                            if selection_index <= 1 {
+                                0
+                            } else {
+                                selection_index - 1
+                            }
+                        }
+                    };
+                }
+                0
+            }
+            None => 0,
         }
     }
 }
@@ -289,7 +365,6 @@ impl Default for App {
             seek_ms: None,
             library: Library { selected_index: 0 },
             playlists: None,
-            playlist_tracks: None,
             api_error: String::new(),
             dialog: None,
             confirm: false,
@@ -302,6 +377,7 @@ impl Default for App {
             volume: 0f32,
             recently_played: Default::default(),
             title: String::from("歌曲列表"),
+            my_play_tracks: Default::default(),
         }
     }
 }

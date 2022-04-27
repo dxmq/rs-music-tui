@@ -6,8 +6,9 @@ use tokio::sync::Mutex;
 
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::IoEvent;
-use crate::model::context::CurrentlyPlaybackContext;
+use crate::model::context::{CurrentlyPlaybackContext, TrackTableContext};
 use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
+use crate::model::table::TrackTable;
 use crate::model::track::Track;
 use crate::network::cloud_music::CloudMusic;
 use crate::player::Nplayer;
@@ -87,7 +88,7 @@ impl<'a> Network<'a> {
     }
 
     async fn load_recently_played(&mut self, limit: u32) {
-        match self.cloud_music.recent_song_list(limit).await {
+        match self.cloud_music.recent_song_list(500).await {
             Ok(recent_play_list) => {
                 let mut app = self.app.lock().await;
 
@@ -100,11 +101,16 @@ impl<'a> Network<'a> {
                         progress_ms: Some(0),
                         timestamp: 0,
                         currently_playing_type: CurrentlyPlayingType::Track,
-                        repeat_state: RepeatState::Off,
+                        repeat_state: RepeatState::Context,
                         shuffle_state: false,
                         item: Some(PlayingItem::Track(recent_play_list.get(0).unwrap().clone())),
                     };
                     app.current_playback_context = Some(context);
+                    app.my_play_tracks = TrackTable {
+                        tracks: recent_play_list,
+                        selected_index: 0,
+                        context: Some(TrackTableContext::MyPlaylists),
+                    };
                 }
             }
             Err(e) => {
@@ -156,7 +162,7 @@ impl<'a> Network<'a> {
                         progress_ms: Some(0),
                         timestamp: 0,
                         currently_playing_type: CurrentlyPlayingType::Track,
-                        repeat_state: RepeatState::Off,
+                        repeat_state: RepeatState::Context,
                         shuffle_state: false,
                         item: Some(PlayingItem::Track(track)),
                     };
@@ -183,7 +189,7 @@ impl<'a> Network<'a> {
 
                 app.track_table.tracks = playlist_tracks.tracks.clone();
                 // self.set_playlist_tracks_to_table(&playlist_tracks).await;
-                app.playlist_tracks = Some(playlist_tracks);
+                // app.playlist_tracks = Some(playlist_tracks);
                 app.title = String::from("歌曲列表");
                 app.push_navigation_stack(RouteId::TrackTable, ActiveBlock::TrackTable);
             }
