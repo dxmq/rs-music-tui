@@ -219,9 +219,9 @@ where
         .split(layout_chunk);
 
     let playbar = Block::default()
-        .title(Span::styled("playbar!", Style::default().fg(Color::Blue)))
+        .title(Span::styled("", Style::default().fg(Color::LightRed)))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Blue));
+        .border_style(Style::default().fg(Color::LightRed));
     f.render_widget(playbar, chunks[0]);
 
     if let Some(current_playback_context) = &app.current_playback_context {

@@ -338,12 +338,10 @@ impl App {
                         if next_index != list.tracks.len() {
                             list.selected_index = next_index;
                             self.dispatch(IoEvent::StartPlayback(track));
-                        } else {
-                            if (self.song_progress_ms - track.duration as u128) < 1000 {
-                                let mut context = context.clone();
-                                context.is_playing = false;
-                                self.current_playback_context = Some(context);
-                            }
+                        } else if (self.song_progress_ms - track.duration as u128) < 1000 {
+                            let mut context = context.clone();
+                            context.is_playing = false;
+                            self.current_playback_context = Some(context);
                         }
                     }
                 }

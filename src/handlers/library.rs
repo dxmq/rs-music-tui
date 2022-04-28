@@ -39,7 +39,7 @@ pub fn handles(key: Key, app: &mut App) {
                 app.dispatch(IoEvent::GetRecentlyPlayed(500));
                 app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
             } else if app.library.selected_index == 1 {
-                app.track_table.context = Some(TrackTableContext::MyPlaylists);
+                app.track_table.context = Some(TrackTableContext::RecommendedTracks);
                 app.dispatch(IoEvent::GetRecommendTracks);
             }
         }

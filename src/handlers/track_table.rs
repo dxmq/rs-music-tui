@@ -73,28 +73,34 @@ fn on_enter(app: &mut App) {
         selected_index,
         tracks,
     } = app.track_table.clone();
+    let track = tracks.get(selected_index);
     match &context {
-        Some(context) => {
-            if context == &TrackTableContext::MyPlaylists {
-                {
-                    if let Some(track) = tracks.get(selected_index) {
-                        // let playlist_id = match (&app.active_playlist_index, &app.playlists) {
-                        //     (Some(active_playlist_index), Some(playlists)) => playlists
-                        //         .get(active_playlist_index.to_owned())
-                        //         .map(|selected_playlist| selected_playlist.id.to_owned()),
-                        //     _ => None,
-                        // };
-                        let tracks = tracks.clone();
-                        app.my_play_tracks = TrackTable {
-                            tracks,
-                            selected_index,
-                            context: Some(TrackTableContext::MyPlaylists),
-                        };
-                        app.dispatch(IoEvent::StartPlayback(track.clone()));
+        Some(context) => match context {
+            TrackTableContext::MyPlaylists => {
+                if track.is_some() {
+                    let tracks = tracks.clone();
+                    app.my_play_tracks = TrackTable {
+                        tracks,
+                        selected_index,
+                        context: Some(TrackTableContext::MyPlaylists),
                     };
                 }
             }
-        }
+            TrackTableContext::RecommendedTracks => {
+                if track.is_some() {
+                    let tracks = tracks.clone();
+                    app.my_play_tracks = TrackTable {
+                        tracks,
+                        selected_index,
+                        context: Some(TrackTableContext::RecommendedTracks),
+                    };
+                }
+            }
+            _ => {}
+        },
         None => {}
     };
+    if let Some(track) = track {
+        app.dispatch(IoEvent::StartPlayback(track.clone()));
+    }
 }

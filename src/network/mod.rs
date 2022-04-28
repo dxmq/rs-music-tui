@@ -123,8 +123,11 @@ impl<'a> Network<'a> {
         match self.cloud_music.recommend_song_list().await {
             Ok(tracks) => {
                 let mut app = self.app.lock().await;
-
-                app.track_table.tracks = tracks;
+                app.track_table = TrackTable {
+                    tracks,
+                    selected_index: 0,
+                    context: Some(TrackTableContext::RecommendedTracks),
+                };
                 app.push_navigation_stack(RouteId::TrackTable, ActiveBlock::TrackTable);
                 app.title = String::from("每日推荐");
             }
@@ -277,7 +280,11 @@ impl<'a> Network<'a> {
             Ok(playlist_tracks) => {
                 let mut app = self.app.lock().await;
 
-                app.track_table.tracks = playlist_tracks.tracks.clone();
+                app.track_table = TrackTable {
+                    tracks: playlist_tracks.tracks.clone(),
+                    selected_index: 0,
+                    context: Some(TrackTableContext::MyPlaylists),
+                };
                 // self.set_playlist_tracks_to_table(&playlist_tracks).await;
                 // app.playlist_tracks = Some(playlist_tracks);
                 app.title = String::from("歌曲列表");
