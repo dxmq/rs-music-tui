@@ -113,10 +113,10 @@ impl CloudMusic {
         }
 
         let mut lyric: Vec<Lyric> = Vec::new();
-        let re = regex::Regex::new(r#"((?:\[\w+:\w+\.\w+\])+)(.*?)$"#).unwrap();
-        let re_time = regex::Regex::new(r#"\[(\w+):(\w+)\.(\w+)\]"#).unwrap();
+        let re = regex::Regex::new(r#"((?:\[\w+:\w+[:\.]\w+\])+)(.*?)$"#).unwrap();
+        let re_time = regex::Regex::new(r#"\[(\w+):(\w+)[:\.](\w+)\]"#).unwrap();
         for s in resp.lrc.lyric.lines() {
-            if let Some(cap) = re.captures(&s) {
+            if let Some(cap) = re.captures(s) {
                 let timestamps = cap[1].to_string();
                 for t in re_time.captures_iter(&timestamps) {
                     lyric.push(CloudMusic::mk_lyric(cap[2].to_string(), t, 0));
@@ -130,7 +130,7 @@ impl CloudMusic {
         }
         if !resp.tlyric.lyric.is_empty() {
             for s in resp.tlyric.lyric.lines() {
-                if let Some(cap) = re.captures(&s) {
+                if let Some(cap) = re.captures(s) {
                     let timestamps = cap[1].to_string();
                     for t in re_time.captures_iter(&timestamps) {
                         lyric.push(CloudMusic::mk_lyric(cap[2].to_string(), t, 1));
@@ -140,7 +140,7 @@ impl CloudMusic {
         }
         lyric.sort_by(|a, b| a.timeline.cmp(&b.timeline));
         if !lyric.is_empty() {
-            return Ok(lyric);
+            Ok(lyric)
         } else {
             let lyric = vec![Lyric {
                 lyric: "no lyric".to_string(),
@@ -165,6 +165,7 @@ impl CloudMusic {
 
 #[cfg(test)]
 mod tests {
+    use crate::model::track::Lyric;
     use crate::network::cloud_music::CloudMusic;
 
     #[tokio::test(flavor = "multi_thread")]
@@ -177,5 +178,29 @@ mod tests {
     async fn test_lyric() {
         let result = CloudMusic::default().lyric(1479526505).await;
         println!("{:#?}", result.unwrap());
+    }
+
+    #[test]
+    fn test_match_lyric() {
+        let lyric = "[00:00.000] 作词 : Hank\n[00:00.000] 作曲 : DMYoung\n[00:00:00]再来一杯\n[00:08:02] 演唱：Mr.mo/肥皂菌/祈lnory/西瓜Kune/佑可猫/呦猫UNEKO\n[00:13:11] 作曲：DMYoung 作词：Hank\n[00:18:21] 吉他：战场原妖精 混音：刘巍\n[00:23:14]【佑可猫】曾经我觉得我被世间遗忘\n[00:28:23]没有人可以诉说苦闷与悲伤\n[00:34:09]【西瓜Kune】无法去理解人情世故炎凉\n[00:39:18]分不清成长和伪装有什么两样\n[00:45:04]【祈lnory】无处不在的好奇与打量目光\n[00:50:13]【呦猫UNEKO】命令一般的关怀该如何抵抗\n[04:32:08]LaLaLaLa LaLaLa……\n[04:28:23]未来一定就在前方\n[04:23:14]让我们携手再次举杯歌唱\n[01:07:09]…\n[04:18:21]所有情感历经岁月后更闪亮\n[04:13:11]感谢你 给我勇气黑暗中追逐光芒\n[04:10:02]不断鞭策与鼓掌\n[04:07:09] 【合】那些关怀的 那些赞许的\n[04:02:16]感谢你曾经付出陪伴在我身旁\n[03:59:07]并肩闯荡的过往\n[03:56:15] 【佑可猫】那些离去的 那些消失的\n[03:50:13]去燃烧！！\n[03:45:20] 【合】不切实际的梦才值得我们\n[01:47:20]【Inter】\n[02:08:18]【Mr.mo】现在我觉得自己有了方向\n[02:14:03]到处是令人兴奋和惊奇的景象\n[02:19:13] 【西瓜Kune】第一次带着笑容进入梦乡\n[02:24:22]每一天都是那么令人值得期望\n[02:30:08] 【肥皂菌】终于明白成长和伪装不一样\n[02:35:17] 【祈lnory】已不必在意旁人不解的目光\n[02:41:19] 【呦猫UNEKO】不再一个人流浪，有了专属的避风港\n[02:46:12]漫长人生不再漫长\n[02:54:14] 【合】那些温暖的那些热血的\n[02:57:07]那些不自量力的抵抗\n[03:00:00]每一次在柔软后都更令人坚强\n[03:05:09]那些快乐的 那些欢笑的\n[03:08:02]那些无忧无虑时光\n[03:10:18]每一滴泪水在感动后更充满力量\n[03:16:20]所有美好的喜悦勇气和希望\n[03:21:13]已经融入血液，在体内流淌\n[03:26:23]不断温暖我的胸膛\n[03:30:08] 【西瓜Kune】道路越是煎熬 就越坦然面对微笑\n[03:35:17] 【祈lnory】风浪刮得越高，就要越心高气傲\n[03:41:02] 【呦猫UNEKO】世界有太多美好等待寻找\n[05:18:21]【End】\n[00:56.46]【肥皂菌】突破重重的阻挡\n[00:59.04]撕破了所有的伪装\n[01:01.72]终于来到这个地方\n[01:12.78]【合】那些误解的 那些冲动的\n[01:15.26]那些曾经年少轻狂\n[01:18.23]每一次宣泄在悔恨后让人成长\n[01:23.28]那些孤独的 那些迷茫的\n[01:26.08]那些曾经无助彷徨\n[01:28.94]每一次尝试在失败后更充满希望\n[01:34.38]所有的苦痛烦恼忧愁与悲伤\n[01:39.06]随着时间长河静静地流淌\n[01:44.17]不间断地奔向远方\n";
+        // let lines = ;
+        for s in lyric.lines() {
+            // // println!("{}", s);
+            let re = regex::Regex::new(r#"((?:\[\w+:\w+[:\.]\w+\])+)(.*?)$"#).unwrap();
+            let re_time = regex::Regex::new(r#"\[(\w+):(\w+)[:\.](\w+)\]"#).unwrap();
+            let x: Vec<_> = re.split(s).collect();
+
+            let mut lyric_vec: Vec<Lyric> = Vec::new();
+            if let Some(cap) = re.captures(s) {
+                let timestamps = cap[1].to_string();
+                println!("timestamps--------{}", timestamps);
+                let lyric = cap[2].to_string();
+                println!("lyric--------{}", lyric);
+                for t in re_time.captures_iter(&timestamps) {
+                    lyric_vec.push(CloudMusic::mk_lyric(cap[2].to_string(), t, 0));
+                }
+            }
+            println!("{:?}", lyric_vec);
+        }
     }
 }

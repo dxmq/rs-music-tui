@@ -206,6 +206,7 @@ fn limit_offset(limit: usize, offset: usize) -> Value {
 #[cfg(test)]
 mod tests {
     use crate::http::api::CloudMusicApi;
+    use crate::model::playlist::{PlaylistDetailResp, UserPlaylistResp};
     use crate::model::table::RecentlyPlayedResp;
     use crate::model::track::LyricResp;
     use crate::model::user::LikeTrackIdListResp;
@@ -253,10 +254,11 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_lyric() {
+        // 再来一杯 id 527629786 / id 1479526505 犯贱
         let api = CloudMusicApi::default();
-        let resp = api.lyric(1479526505).await.unwrap();
+        let resp = api.lyric(527629786).await.unwrap();
         let resp = serde_json::from_slice::<LyricResp>(resp.data());
-        println!("{:?}", resp);
+        println!("{:#?}", resp);
     }
 
     #[tokio::test(flavor = "multi_thread")]
@@ -264,5 +266,23 @@ mod tests {
         let api = CloudMusicApi::default();
         let resp = api.song_url(&[174960]).await.unwrap();
         println!("{:?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_user_playlists() {
+        let api = CloudMusicApi::default();
+        let resp = api.user_playlist(354192143, None).await.unwrap();
+        let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data());
+
+        println!("{:#?}", resp.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_pl() {
+        let api = CloudMusicApi::default();
+        let resp = api.playlist_detail(498339500, None).await.unwrap();
+        let resp = serde_json::from_slice::<PlaylistDetailResp>(resp.data());
+
+        println!("{:#?}", resp.unwrap());
     }
 }
