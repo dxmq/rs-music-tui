@@ -1,18 +1,17 @@
+use std::io::prelude::*;
+
 use anyhow::Error;
 use futures::channel::oneshot::Sender;
-use log::debug;
 use reqwest::header::{
     HeaderMap, ACCEPT, ACCEPT_ENCODING, CACHE_CONTROL, PRAGMA, UPGRADE_INSECURE_REQUESTS,
     USER_AGENT,
 };
 use reqwest::Method;
-use std::io::prelude::*;
 use tempfile::NamedTempFile;
 
 #[tokio::main]
-pub async fn fetch_data(url: &str, buffer: NamedTempFile, tx: Sender<String>) -> Result<(), Error> {
-    let mut buffer = buffer;
-
+pub async fn fetch_data(url: &str, tx: Sender<String>) -> Result<(), Error> {
+    // let mut buffer = buffer;
     let mut headers = HeaderMap::new();
     headers.insert(CACHE_CONTROL, "no-cache".parse().unwrap());
     headers.insert(PRAGMA, "no-cache".parse().unwrap());
@@ -24,26 +23,23 @@ pub async fn fetch_data(url: &str, buffer: NamedTempFile, tx: Sender<String>) ->
         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/13.10586".parse().unwrap(),
     );
     let client = reqwest::Client::builder().build().expect("builder error");
-    let builder = client.request(Method::GET, url).headers(headers);
-    let mut res = builder.send().await?;
-
-    debug!("start download");
-    if let Some(chunk) = res.chunk().await? {
-        debug!("first chunk");
-        Write::write_all(&mut buffer, &chunk[..]).unwrap();
-        // buffer.write(&chunk[..]).unwrap();
-        send_msg(tx);
-    }
+    let mut res = client
+        .request(Method::GET, url)
+        .headers(headers)
+        .send()
+        .await?;
+    let mut file = NamedTempFile::new()?;
 
     while let Some(chunk) = res.chunk().await? {
-        // bytes
-        // buffer.write(&chunk[..]).unwrap();
-        Write::write_all(&mut buffer, &chunk[..]).unwrap();
+        Write::write_all(&mut file, &chunk[..]).unwrap();
     }
-    debug!("finish downloa");
+    let path = file.into_temp_path();
+    let path = path.keep()?;
+    let file_path = path.to_string_lossy().to_string();
+    send_msg(tx, file_path.as_str());
     Ok(())
 }
 
-fn send_msg(tx: Sender<String>) {
-    tx.send("ok".to_owned()).expect("send error");
+fn send_msg(tx: Sender<String>, filename: &str) {
+    tx.send(filename.to_owned()).expect("send error");
 }

@@ -258,4 +258,11 @@ mod tests {
         let resp = serde_json::from_slice::<LyricResp>(resp.data());
         println!("{:?}", resp);
     }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_song_url() {
+        let api = CloudMusicApi::default();
+        let resp = api.song_url(&[174960]).await.unwrap();
+        println!("{:?}", resp);
+    }
 }

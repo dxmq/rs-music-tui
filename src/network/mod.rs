@@ -49,9 +49,8 @@ impl<'a> Network<'a> {
             IoEvent::GetUser => {
                 self.load_user().await;
             }
-            IoEvent::GetPlaylistTracks(playlist_id, playlist_offset) => {
-                self.load_playlist_tracks(playlist_id, playlist_offset)
-                    .await;
+            IoEvent::GetPlaylistTracks(playlist_id) => {
+                self.load_playlist_tracks(playlist_id).await;
             }
             IoEvent::StartPlayback(track) => {
                 self.start_playback(track).await;
@@ -195,11 +194,18 @@ impl<'a> Network<'a> {
                             let PlayingItem::Track(track) = track;
                             match self.cloud_music.song_url(vec![track.id]).await {
                                 Ok(urls) => {
-                                    context.is_playing = true;
-                                    context.progress_ms = Some(app.song_progress_ms as u32);
-                                    app.instant_since_last_current_playback_poll = Instant::now();
-                                    self.player.play_url(urls.get(0).unwrap().url.as_str());
-                                    app.current_playback_context = Some(context);
+                                    match self.player.play_url(urls.get(0).unwrap().url.as_str()) {
+                                        Ok(()) => {
+                                            context.is_playing = true;
+                                            context.progress_ms = Some(app.song_progress_ms as u32);
+                                            app.instant_since_last_current_playback_poll =
+                                                Instant::now();
+                                            app.current_playback_context = Some(context);
+                                        }
+                                        Err(e) => {
+                                            app.handle_error(e);
+                                        }
+                                    }
                                 }
                                 Err(e) => self.handle_error(e).await,
                             }
@@ -214,36 +220,48 @@ impl<'a> Network<'a> {
         }
     }
 
-    async fn start_playback(&mut self, track: Track) {
+    async fn start_playback(&mut self, mut track: Track) {
         let id = track.id;
         match self.cloud_music.song_url(vec![track.id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
                     let mut app = self.app.lock().await;
+                    match self.player.play_url(track_url.url.as_str()) {
+                        Ok(()) => {
+                            match app.current_playback_context.clone() {
+                                Some(mut context) => {
+                                    context.is_playing = true;
+                                    if track_url.fee == 1 {
+                                        if let Some(info) = track_url.free_trial_info.clone() {
+                                            let duration = (info.end - info.start) * 1000;
+                                            track.duration = duration;
+                                        }
+                                    }
+                                    context.item = Some(PlayingItem::Track(track));
+                                    app.current_playback_context = Some(context);
+                                }
+                                None => {
+                                    let context = CurrentlyPlaybackContext {
+                                        is_playing: true,
+                                        progress_ms: Some(0),
+                                        timestamp: 0,
+                                        currently_playing_type: CurrentlyPlayingType::Track,
+                                        repeat_state: RepeatState::Off,
+                                        item: Some(PlayingItem::Track(track)),
+                                    };
+                                    app.current_playback_context = Some(context);
+                                }
+                            }
+                            app.instant_since_last_current_playback_poll = Instant::now();
 
-                    match app.current_playback_context.clone() {
-                        Some(mut context) => {
-                            context.is_playing = true;
-                            context.item = Some(PlayingItem::Track(track));
-                            app.current_playback_context = Some(context);
+                            app.volume = self.player.get_volume();
+
+                            app.dispatch(IoEvent::GetLyric(id));
                         }
-                        None => {
-                            let context = CurrentlyPlaybackContext {
-                                is_playing: true,
-                                progress_ms: Some(0),
-                                timestamp: 0,
-                                currently_playing_type: CurrentlyPlayingType::Track,
-                                repeat_state: RepeatState::Off,
-                                item: Some(PlayingItem::Track(track)),
-                            };
-                            app.current_playback_context = Some(context);
+                        Err(e) => {
+                            app.handle_error(e);
                         }
                     }
-                    app.instant_since_last_current_playback_poll = Instant::now();
-                    self.player.play_url(track_url.url.as_str());
-                    app.volume = self.player.get_volume();
-
-                    app.dispatch(IoEvent::GetLyric(id));
                 }
             }
             Err(e) => self.handle_error(e).await,
@@ -254,8 +272,7 @@ impl<'a> Network<'a> {
         app.is_fetching_current_playback = false;
     }
 
-    async fn load_playlist_tracks(&mut self, playlist_idk: usize, playlist_offset: u32) {
-        println!("{}", playlist_offset);
+    async fn load_playlist_tracks(&mut self, playlist_idk: usize) {
         match self.cloud_music.playlist_tracks(playlist_idk).await {
             Ok(playlist_tracks) => {
                 let mut app = self.app.lock().await;

@@ -12,7 +12,7 @@ pub enum IoEvent {
     UpdateSearchLimits(u32, u32),
     GetPlaylists,
     GetUser,
-    GetPlaylistTracks(usize, u32),
+    GetPlaylistTracks(usize),
     // CurrentUserSavedTracksContains(Vec<String>),
     StartPlayback(Track),
     // GetCurrentPlayback(Track),

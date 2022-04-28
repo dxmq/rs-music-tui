@@ -5,9 +5,9 @@ extern crate tokio;
 mod fetch;
 mod track;
 
-use self::tempfile::NamedTempFile;
 use crate::player::fetch::fetch_data;
 use crate::player::track::Track;
+use anyhow::Result;
 use futures::channel::oneshot;
 use log::debug;
 use std::sync::mpsc::Sender;
@@ -48,8 +48,8 @@ impl Nplayer {
         Nplayer { player: mplayer }
     }
 
-    pub fn play_url(&mut self, url: &str) {
-        self.player.load(url.to_owned(), true);
+    pub fn play_url(&mut self, url: &str) -> Result<()> {
+        self.player.load(url.to_owned(), true)
     }
 
     pub fn is_playing(&mut self) -> bool {
@@ -172,7 +172,7 @@ impl Player {
         }
     }
 
-    pub fn load(&mut self, url: String, start_playing: bool) {
+    pub fn load(&mut self, url: String, start_playing: bool) -> Result<()> {
         match &self.current {
             Some(track) => {
                 fs::remove_file(track.file()).ok();
@@ -181,24 +181,21 @@ impl Player {
             None => {}
         }
 
-        let temp_file = NamedTempFile::new().unwrap();
-        let path = temp_file.path().to_string_lossy().to_string();
         let (ptx, mut prx) = oneshot::channel::<String>();
 
         thread::spawn(move || {
-            fetch_data(&url.to_owned(), temp_file, ptx).expect("error thread task");
+            fetch_data(&url.to_owned(), ptx).expect("error thread task");
         });
         if start_playing {
             loop {
                 if let Ok(p) = prx.try_recv() {
                     if p.is_some() {
-                        if let Ok(track) = Track::load(path) {
-                            let mut track = track;
-                            self.load_track(track.clone(), start_playing);
-                            track.resume();
-                            self.current = Some(track);
-                            self.state = PlayerState::Playing {};
-                        }
+                        let track = Track::load(p.unwrap().clone())?;
+                        let mut track = track;
+                        self.load_track(track.clone(), start_playing)?;
+                        track.resume();
+                        self.current = Some(track);
+                        self.state = PlayerState::Playing {};
                         break;
                     }
                 }
@@ -206,16 +203,18 @@ impl Player {
                 thread::sleep(t);
             }
         }
+        Ok(())
     }
 
-    pub fn load_track(&mut self, track: Track, playing: bool) {
+    pub fn load_track(&mut self, track: Track, playing: bool) -> Result<()> {
         if playing {
-            let f = std::fs::File::open(&track.file).unwrap();
-            let source = rodio::Decoder::new(std::io::BufReader::new(f)).unwrap();
+            let f = std::fs::File::open(&track.file)?;
+            let source = rodio::Decoder::new(std::io::BufReader::new(f))?;
 
             self.sink.play();
             self.sink.append(source);
         }
+        Ok(())
     }
 
     pub fn start(&mut self) {

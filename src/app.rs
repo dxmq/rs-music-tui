@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::ops::Not;
 use std::sync::mpsc::Sender;
 use std::time::Instant;
 
@@ -329,18 +330,20 @@ impl App {
                 }
                 RepeatState::Off => {
                     let mut list = self.my_play_tracks.clone();
-                    let next_index =
-                        App::next_index(&list.tracks, Some(list.selected_index), state);
-                    let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+                    if list.tracks.is_empty().not() {
+                        let next_index =
+                            App::next_index(&list.tracks, Some(list.selected_index), state);
+                        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
 
-                    if next_index != list.tracks.len() {
-                        list.selected_index = next_index;
-                        self.dispatch(IoEvent::StartPlayback(track));
-                    } else {
-                        if (self.song_progress_ms - track.duration as u128) < 1000 {
-                            let mut context = context.clone();
-                            context.is_playing = false;
-                            self.current_playback_context = Some(context);
+                        if next_index != list.tracks.len() {
+                            list.selected_index = next_index;
+                            self.dispatch(IoEvent::StartPlayback(track));
+                        } else {
+                            if (self.song_progress_ms - track.duration as u128) < 1000 {
+                                let mut context = context.clone();
+                                context.is_playing = false;
+                                self.current_playback_context = Some(context);
+                            }
                         }
                     }
                 }
@@ -350,11 +353,13 @@ impl App {
 
     pub fn next_or_prev_track(&mut self, state: ToggleState) {
         let mut list = self.my_play_tracks.clone();
-        let next_index = App::next_index(&list.tracks, Some(list.selected_index), state);
-        list.selected_index = next_index;
+        if list.tracks.is_empty().not() {
+            let next_index = App::next_index(&list.tracks, Some(list.selected_index), state);
+            list.selected_index = next_index;
 
-        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-        self.dispatch(IoEvent::StartPlayback(track));
+            let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+            self.dispatch(IoEvent::StartPlayback(track));
+        }
     }
 
     pub fn shuffle(&mut self) {

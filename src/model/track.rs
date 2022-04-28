@@ -22,10 +22,20 @@ pub struct Track {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TrackUrl {
     pub id: usize,
     pub url: String,
     pub br: usize,
+    // 1vip收费，0免费
+    pub fee: usize,
+    pub free_trial_info: Option<FreeTrialInfo>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct FreeTrialInfo {
+    pub start: usize,
+    pub end: usize,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

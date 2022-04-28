@@ -31,20 +31,19 @@ impl CloudMusic {
         app: &Arc<Mutex<App>>,
     ) -> Result<Vec<Playlist>> {
         let app = app.lock().await;
-        let cache_file_path = app
-            .user_config
-            .path_to_config
-            .as_ref()
-            .unwrap()
-            .cache_file_path
-            .clone();
-        let json_string = std::fs::read_to_string(&cache_file_path);
-        if let Ok(json_string) = json_string {
-            if let Ok(playlist) = serde_json::from_str::<Vec<Playlist>>(&json_string) {
-                return Ok(playlist);
-            }
-        }
-
+        // let cache_file_path = app
+        //     .user_config
+        //     .path_to_config
+        //     .as_ref()
+        //     .unwrap()
+        //     .cache_file_path
+        //     .clone();
+        // let json_string = std::fs::read_to_string(&cache_file_path);
+        // if let Ok(json_string) = json_string {
+        //     if let Ok(playlist) = serde_json::from_str::<Vec<Playlist>>(&json_string) {
+        //         return Ok(playlist);
+        //     }
+        // }
         let mut params = serde_json::Map::new();
         let limit = serde_json::Value::String(limit.into().unwrap_or(50).to_string());
         let offset = serde_json::Value::String(offset.into().unwrap_or(0).to_string());
@@ -58,10 +57,10 @@ impl CloudMusic {
             .await?;
         let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data())?;
 
-        let json_res = serde_json::to_string(&resp.playlist);
-        if let Ok(json) = json_res {
-            std::fs::write(&cache_file_path, json).unwrap();
-        }
+        // let json_res = serde_json::to_string(&resp.playlist);
+        // if let Ok(json) = json_res {
+        //     std::fs::write(&cache_file_path, json).unwrap();
+        // }
         Ok(resp.playlist)
     }
 

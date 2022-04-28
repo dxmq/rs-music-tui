@@ -1,4 +1,4 @@
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use rodio::{source::Source, Decoder};
 use std::convert::AsRef;
 use std::time::Duration;
@@ -76,17 +76,22 @@ impl Track {
     }
 
     pub fn load(file: String) -> Result<Self, Error> {
-        let f = std::fs::File::open(&file).unwrap();
-        let source = Decoder::new(std::io::BufReader::new(f)).unwrap();
-        let duration = match source.total_duration() {
-            Some(d) => d,
-            None => mp3_duration::from_path(&file).unwrap(),
-        };
-        Ok(Self {
-            duration,
-            file,
-            status: Status::Stopped(::std::time::Duration::from_nanos(0)),
-        })
+        match std::fs::File::open(&file) {
+            Ok(f) => {
+                let source = Decoder::new(std::io::BufReader::new(f)).unwrap();
+                let duration = match source.total_duration() {
+                    Some(d) => d,
+                    None => mp3_duration::from_path(&file)?,
+                };
+                Ok(Self {
+                    duration,
+                    file,
+                    status: Status::Stopped(::std::time::Duration::from_nanos(0)),
+                })
+            }
+            // Err(e) => Err(anyhow!("播放失败")),
+            Err(e) => Err(anyhow!(e)),
+        }
     }
 }
 
