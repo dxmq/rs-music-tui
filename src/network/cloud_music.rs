@@ -188,7 +188,7 @@ mod tests {
             // // println!("{}", s);
             let re = regex::Regex::new(r#"((?:\[\w+:\w+[:\.]\w+\])+)(.*?)$"#).unwrap();
             let re_time = regex::Regex::new(r#"\[(\w+):(\w+)[:\.](\w+)\]"#).unwrap();
-            let x: Vec<_> = re.split(s).collect();
+            // let x: Vec<_> = re.split(s).collect();
 
             let mut lyric_vec: Vec<Lyric> = Vec::new();
             if let Some(cap) = re.captures(s) {

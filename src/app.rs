@@ -13,7 +13,7 @@ use crate::event::IoEvent;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
 use crate::model::playlist::Playlist;
-use crate::model::table::{RecentlyPlayed, TrackTable};
+use crate::model::table::TrackTable;
 use crate::model::track::{Lyric, Track};
 use crate::model::user::UserProfile;
 use crate::ui::circle::{Circle, CIRCLE, CIRCLE_TICK};
@@ -53,7 +53,6 @@ pub enum ActiveBlock {
     MadeForYou,
     // 歌曲表格
     TrackTable,
-    RecentlyPlayed,
     // 歌词
     Lyric,
 }
@@ -68,7 +67,6 @@ pub enum RouteId {
     BasicView,
     Dialog,
     TrackTable,
-    RecentlyPlayed,
     #[allow(unused)]
     Lyric,
 }
@@ -128,7 +126,6 @@ pub struct App {
     pub is_fetching_current_playback: bool,
     pub large_search_limit: u32,
     pub volume: f32,
-    pub recently_played: RecentlyPlayed,
     pub title: String,
     // 正在播放的歌曲列表
     pub my_play_tracks: TrackTable,
@@ -320,7 +317,9 @@ impl App {
         if let Some(context) = &self.current_playback_context {
             match context.repeat_state {
                 RepeatState::Track => {
+                    let id = track.id;
                     self.dispatch(IoEvent::StartPlayback(track));
+                    self.re_render_lyric(id);
                 }
                 RepeatState::Context => {
                     self.next_or_prev_track(state);
@@ -334,7 +333,7 @@ impl App {
                         let next_index =
                             App::next_index(&list.tracks, Some(list.selected_index), state);
                         let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-
+                        let id = track.id;
                         if next_index != list.tracks.len() {
                             list.selected_index = next_index;
                             self.dispatch(IoEvent::StartPlayback(track));
@@ -343,6 +342,7 @@ impl App {
                             context.is_playing = false;
                             self.current_playback_context = Some(context);
                         }
+                        self.re_render_lyric(id);
                     }
                 }
             }
@@ -356,8 +356,19 @@ impl App {
             list.selected_index = next_index;
 
             let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+            let id = track.id;
             self.dispatch(IoEvent::StartPlayback(track));
+            self.re_render_lyric(id);
         }
+    }
+
+    fn re_render_lyric(&mut self, track_id: usize) {
+        let current_route = self.get_current_route();
+        if current_route.id == RouteId::Lyric && current_route.active_block == ActiveBlock::Lyric
+            || (current_route.hovered_block == ActiveBlock::Lyric)
+        {
+            self.dispatch(IoEvent::GetLyric(track_id));
+        };
     }
 
     pub fn shuffle(&mut self) {
@@ -367,8 +378,9 @@ impl App {
         list.selected_index = next_index;
 
         let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-
+        let id = track.id;
         self.dispatch(IoEvent::StartPlayback(track));
+        self.re_render_lyric(id);
     }
 
     pub fn toggle_play_state(&mut self) {
@@ -464,7 +476,6 @@ impl Default for App {
             is_fetching_current_playback: false,
             large_search_limit: 20,
             volume: 0f32,
-            recently_played: Default::default(),
             title: String::from("歌曲列表"),
             my_play_tracks: Default::default(),
             liked_track_ids_set: HashSet::new(),

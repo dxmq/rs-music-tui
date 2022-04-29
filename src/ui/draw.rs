@@ -219,9 +219,9 @@ where
         .split(layout_chunk);
 
     let playbar = Block::default()
-        .title(Span::styled("", Style::default().fg(Color::LightRed)))
+        .title(Span::styled("", Style::default().fg(Color::Reset)))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::LightRed));
+        .border_style(Style::default().fg(Color::Reset));
     f.render_widget(playbar, chunks[0]);
 
     if let Some(current_playback_context) = &app.current_playback_context {
@@ -365,9 +365,6 @@ where
         RouteId::MadeForYou => {
             // draw_made_for_you(f, app, chunks[1]);
         }
-        RouteId::RecentlyPlayed => {
-            draw_recently_played_table(f, app, chunks[1]);
-        }
         RouteId::Lyric => {
             // draw playing lyric ui
             draw_lyric(f, app, chunks[1]);
@@ -428,10 +425,10 @@ where
                 (&lyric_items[margin..], margin)
             }
         } else {
-            (lyric_items.as_ref(), 0 as usize)
+            (lyric_items.as_ref(), 0_usize)
         }
     } else {
-        (lyric_items.as_ref(), 0 as usize)
+        (lyric_items.as_ref(), 0_usize)
     };
 
     let header = TableHeader {
@@ -442,7 +439,8 @@ where
             width: get_percentage_width(layout_chunk.width, 0.5),
         }],
     };
-    let selected_style = get_color(highlight_state, app.user_config.theme);
+    // let selected_style = get_color(highlight_state, app.user_config.theme);
+    let selected_style = Style::default().fg(Color::LightRed);
     let rows = row_items.iter().enumerate().map(|(i, item)| {
         let mut style = Style::default().fg(Color::White); // default styling
         if i == selected_index - margin {
@@ -492,70 +490,6 @@ where
         .style(Style::default().fg(Color::White))
         .widths(&widths);
     f.render_widget(table, chunks[1]);
-}
-
-pub fn draw_recently_played_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
-where
-    B: Backend,
-{
-    let header = TableHeader {
-        id: TableId::RecentlyPlayed,
-        items: vec![
-            TableHeaderItem {
-                id: ColumnId::Liked,
-                text: "",
-                width: 2,
-            },
-            TableHeaderItem {
-                id: ColumnId::Title,
-                text: "标题",
-                width: get_percentage_width(layout_chunk.width, 2.0 / 5.0) - 2,
-            },
-            TableHeaderItem {
-                text: "歌手",
-                width: get_percentage_width(layout_chunk.width, 2.0 / 5.0),
-                ..Default::default()
-            },
-            TableHeaderItem {
-                text: "时间",
-                width: get_percentage_width(layout_chunk.width, 1.0 / 5.0),
-                ..Default::default()
-            },
-        ],
-    };
-
-    let current_route = app.get_current_route();
-    let highlight_state = (
-        current_route.active_block == ActiveBlock::RecentlyPlayed,
-        current_route.hovered_block == ActiveBlock::RecentlyPlayed,
-    );
-
-    if !app.recently_played.tracks.is_empty() {
-        let items = app
-            .recently_played
-            .tracks
-            .iter()
-            .map(|item| TableItem {
-                id: item.id,
-                format: vec![
-                    "".to_string(),
-                    item.name.to_owned(),
-                    create_artist_string(&item.artists),
-                    millis_to_minutes2(item.duration),
-                ],
-            })
-            .collect::<Vec<TableItem>>();
-        // let items = vec![];
-        draw_table(
-            f,
-            app,
-            layout_chunk,
-            ("最近播放", &header),
-            &items,
-            app.recently_played.selected_index,
-            highlight_state,
-        )
-    };
 }
 
 pub fn draw_song_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)

@@ -1,4 +1,4 @@
-use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
+use crate::app::{App, LIBRARY_OPTIONS};
 use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
 use crate::model::context::TrackTableContext;
@@ -37,7 +37,6 @@ pub fn handles(key: Key, app: &mut App) {
         Key::Enter => {
             if app.library.selected_index == 0 {
                 app.dispatch(IoEvent::GetRecentlyPlayed(500));
-                app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
             } else if app.library.selected_index == 1 {
                 app.track_table.context = Some(TrackTableContext::RecommendedTracks);
                 app.dispatch(IoEvent::GetRecommendTracks);

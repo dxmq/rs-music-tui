@@ -96,6 +96,16 @@ fn on_enter(app: &mut App) {
                     };
                 }
             }
+            TrackTableContext::RecentlyPlayed => {
+                if track.is_some() {
+                    let tracks = tracks.clone();
+                    app.my_play_tracks = TrackTable {
+                        tracks,
+                        selected_index,
+                        context: Some(TrackTableContext::RecentlyPlayed),
+                    };
+                }
+            }
             _ => {}
         },
         None => {}

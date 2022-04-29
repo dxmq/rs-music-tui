@@ -1,8 +1,8 @@
 pub use input::handler as input_handler;
 
 use crate::app::{ActiveBlock, App, RouteId};
-use crate::event::Key;
-use crate::model::enums::ToggleState;
+use crate::event::{IoEvent, Key};
+use crate::model::enums::{PlayingItem, ToggleState};
 
 pub(crate) mod common_key_events;
 pub(crate) mod empty;
@@ -14,7 +14,6 @@ pub(crate) mod library;
 pub(crate) mod lyric;
 pub(crate) mod playbar;
 pub(crate) mod playlist;
-pub(crate) mod recently_played;
 pub(crate) mod track_table;
 
 pub fn handle_app(key: Key, app: &mut App) {
@@ -51,8 +50,15 @@ pub fn handle_app(key: Key, app: &mut App) {
             app.increase_volume();
         }
         _ if key == app.user_config.keys.show_lyric => {
-            app.push_navigation_stack(RouteId::Lyric, ActiveBlock::Lyric);
-            // app.set_current_route_state(Some(ActiveBlock::Lyric), None);
+            if let Some(context) = app.current_playback_context.clone() {
+                if let Some(item) = &context.item {
+                    match item {
+                        PlayingItem::Track(track) => {
+                            app.dispatch(IoEvent::GetLyric(track.id));
+                        }
+                    }
+                }
+            }
         }
         _ => handle_block_events(key, app),
     }
@@ -89,9 +95,6 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::PlayBar => {
             playbar::handler(key, app);
-        }
-        ActiveBlock::RecentlyPlayed => {
-            recently_played::handler(key, app);
         }
         ActiveBlock::Lyric => {
             lyric::handler(key, app);

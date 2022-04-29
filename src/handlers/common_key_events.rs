@@ -102,10 +102,6 @@ pub fn handle_right_event(app: &mut App) {
                     Some(ActiveBlock::SearchResultBlock),
                 );
             }
-            RouteId::RecentlyPlayed => app.set_current_route_state(
-                Some(ActiveBlock::RecentlyPlayed),
-                Some(ActiveBlock::RecentlyPlayed),
-            ),
             RouteId::Error => {}
             RouteId::BasicView => {}
             RouteId::Dialog => {}

@@ -96,7 +96,9 @@ impl<'a> Network<'a> {
                 app.lyric = None;
             }
         }
+        app.push_navigation_stack(RouteId::Lyric, ActiveBlock::Lyric);
     }
+
     async fn load_like_track_id_list(&mut self) {
         let mut app = self.app.lock().await;
         if let Some(profile) = app.user.clone() {
@@ -143,8 +145,10 @@ impl<'a> Network<'a> {
                 let mut app = self.app.lock().await;
 
                 if limit == 500 {
-                    app.recently_played.tracks = recent_play_list;
-                    app.push_navigation_stack(RouteId::RecentlyPlayed, ActiveBlock::RecentlyPlayed);
+                    app.track_table.tracks = recent_play_list;
+                    app.track_table.context = Some(TrackTableContext::RecentlyPlayed);
+                    app.title = "最近播放".to_string();
+                    app.push_navigation_stack(RouteId::TrackTable, ActiveBlock::TrackTable);
                 } else if limit == 1 {
                     let play_list = recent_play_list.clone();
                     let track = recent_play_list.get(0).unwrap();
@@ -160,9 +164,8 @@ impl<'a> Network<'a> {
                     app.my_play_tracks = TrackTable {
                         tracks: play_list,
                         selected_index: 0,
-                        context: Some(TrackTableContext::MyPlaylists),
+                        context: Some(TrackTableContext::RecentlyPlayed),
                     };
-                    app.dispatch(IoEvent::GetLyric(track.id));
                 }
                 app.volume = self.player.get_volume();
             }
@@ -224,7 +227,6 @@ impl<'a> Network<'a> {
     }
 
     async fn start_playback(&mut self, mut track: Track) {
-        let id = track.id;
         match self.cloud_music.song_url(vec![track.id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
@@ -258,8 +260,6 @@ impl<'a> Network<'a> {
                             app.instant_since_last_current_playback_poll = Instant::now();
 
                             app.volume = self.player.get_volume();
-
-                            app.dispatch(IoEvent::GetLyric(id));
                         }
                         Err(e) => {
                             app.handle_error(e);
@@ -285,8 +285,6 @@ impl<'a> Network<'a> {
                     selected_index: 0,
                     context: Some(TrackTableContext::MyPlaylists),
                 };
-                // self.set_playlist_tracks_to_table(&playlist_tracks).await;
-                // app.playlist_tracks = Some(playlist_tracks);
                 app.title = String::from("歌曲列表");
                 app.push_navigation_stack(RouteId::TrackTable, ActiveBlock::TrackTable);
             }
