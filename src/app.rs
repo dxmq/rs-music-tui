@@ -315,11 +315,10 @@ impl App {
 
     pub fn toggle_track(&mut self, track: Track, state: ToggleState) {
         if let Some(context) = &self.current_playback_context {
+            let id = track.id;
             match context.repeat_state {
                 RepeatState::Track => {
-                    let id = track.id;
                     self.dispatch(IoEvent::StartPlayback(track));
-                    self.re_render_lyric(id);
                 }
                 RepeatState::Context => {
                     self.next_or_prev_track(state);
@@ -330,10 +329,16 @@ impl App {
                 RepeatState::Off => {
                     let mut list = self.my_play_tracks.clone();
                     if list.tracks.is_empty().not() {
+                        let mut current_play_track_index = 0;
+                        for (i, x) in list.tracks.iter().enumerate() {
+                            if x.id == track.id {
+                                current_play_track_index = i;
+                            }
+                        }
                         let next_index =
-                            App::next_index(&list.tracks, Some(list.selected_index), state);
+                            App::next_index(&list.tracks, Some(current_play_track_index), state);
+
                         let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-                        let id = track.id;
                         if next_index != list.tracks.len() {
                             list.selected_index = next_index;
                             self.dispatch(IoEvent::StartPlayback(track));
@@ -342,23 +347,35 @@ impl App {
                             context.is_playing = false;
                             self.current_playback_context = Some(context);
                         }
-                        self.re_render_lyric(id);
                     }
                 }
             }
+            self.re_render_lyric(id);
         }
     }
 
     pub fn next_or_prev_track(&mut self, state: ToggleState) {
         let mut list = self.my_play_tracks.clone();
         if list.tracks.is_empty().not() {
-            let next_index = App::next_index(&list.tracks, Some(list.selected_index), state);
+            let mut current_play_track_index = 0;
+            if let Some(context) = self.current_playback_context.clone() {
+                if let Some(item) = context.item {
+                    match item {
+                        PlayingItem::Track(track) => {
+                            for (i, x) in list.tracks.iter().enumerate() {
+                                if x.id == track.id {
+                                    current_play_track_index = i;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            let next_index = App::next_index(&list.tracks, Some(current_play_track_index), state);
             list.selected_index = next_index;
 
             let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-            let id = track.id;
             self.dispatch(IoEvent::StartPlayback(track));
-            self.re_render_lyric(id);
         }
     }
 
@@ -373,14 +390,14 @@ impl App {
 
     pub fn shuffle(&mut self) {
         let mut list = self.my_play_tracks.clone();
-        let mut rng = rand::thread_rng();
-        let next_index = rng.gen_range(0..list.tracks.len());
-        list.selected_index = next_index;
+        if list.tracks.is_empty().not() {
+            let mut rng = rand::thread_rng();
+            let next_index = rng.gen_range(0..list.tracks.len());
+            list.selected_index = next_index;
 
-        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-        let id = track.id;
-        self.dispatch(IoEvent::StartPlayback(track));
-        self.re_render_lyric(id);
+            let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+            self.dispatch(IoEvent::StartPlayback(track));
+        }
     }
 
     pub fn toggle_play_state(&mut self) {
