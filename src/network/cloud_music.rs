@@ -167,6 +167,7 @@ impl CloudMusic {
 mod tests {
     use crate::model::track::Lyric;
     use crate::network::cloud_music::CloudMusic;
+    use pad::{Alignment, PadStr};
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_recommend_song_list() {
@@ -194,7 +195,7 @@ mod tests {
             if let Some(cap) = re.captures(s) {
                 let timestamps = cap[1].to_string();
                 println!("timestamps--------{}", timestamps);
-                let lyric = cap[2].to_string();
+                let lyric = cap[2].pad_to_width_with_alignment(50, Alignment::Middle);
                 println!("lyric--------{}", lyric);
                 for t in re_time.captures_iter(&timestamps) {
                     lyric_vec.push(CloudMusic::mk_lyric(cap[2].to_string(), t, 0));
@@ -202,5 +203,11 @@ mod tests {
             }
             println!("{:?}", lyric_vec);
         }
+    }
+
+    #[test]
+    fn padding_char() {
+        let s = "I'm over here".pad_to_width_with_alignment(50, Alignment::Middle);
+        println!("{}", s);
     }
 }

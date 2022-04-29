@@ -1,3 +1,4 @@
+use pad::{Alignment as PadAlignment, PadStr};
 use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
@@ -407,7 +408,14 @@ where
     f.render_widget(canvas, chunks[0]);
 
     let lyric_items = match &app.lyric {
-        Some(l) => l.iter().map(|item| vec![item.lyric.to_owned()]).collect(),
+        Some(l) => l
+            .iter()
+            .map(|item| {
+                vec![item
+                    .lyric
+                    .pad_to_width_with_alignment(30, PadAlignment::MiddleRight)]
+            })
+            .collect(),
         None => vec![],
     };
     let selected_index = app.lyric_index;
