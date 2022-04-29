@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use std::sync::{mpsc, Arc};
-use std::thread;
+use std::{panic, thread};
 
 use anyhow::Result;
 use tokio::sync::Mutex;
@@ -10,7 +10,7 @@ use crate::cli::clap::ClapApplication;
 use crate::config::user_config::{UserConfig, UserConfigPath};
 use crate::event::IoEvent;
 use crate::http::login_phone;
-use crate::network::{start_tokio, Network};
+use crate::network::{panic_hook, start_tokio, Network};
 
 // mod api;
 mod app;
@@ -27,6 +27,9 @@ mod util;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    panic::set_hook(Box::new(|info| {
+        panic_hook(info);
+    }));
     let mut clap_app = ClapApplication::new();
     let matches = clap_app.app.clone().get_matches();
     if let Some(s) = matches.value_of("completions") {

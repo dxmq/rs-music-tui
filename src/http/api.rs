@@ -3,10 +3,11 @@ use openssl::hash::{hash, MessageDigest};
 use rand::RngCore;
 use serde_json::json;
 use serde_json::Value;
+use std::collections::HashMap;
 
 use crate::http::client::ApiClient;
 use crate::http::crypto::Crypto::Eapi;
-use crate::http::request::ApiRequestBuilder;
+use crate::http::request::{ApiRequestBuilder, UA};
 use crate::http::response::ApiResponse;
 use crate::http::route::API_ROUTE;
 
@@ -190,6 +191,50 @@ impl CloudMusicApi {
 
         self.client.request(r).await
     }
+
+    pub async fn weblog(&self, track_id: usize) -> Result<ApiResponse> {
+        let data = format!(
+            r#"
+            [{{
+                "action": "play",
+                "json": {{
+                    "download": 0,
+                    "end": "playend",
+                    "id": {},
+                    "sourceId": "",
+                    "time": 240,
+                    "type":"song",
+                    "wifi": 0
+                }}
+            }}]
+        "#,
+            track_id
+        );
+        let r = ApiRequestBuilder::post(API_ROUTE["weblog"])
+            .set_data(json!({"logs": data.to_string()}))
+            .set_ua(UA::Android)
+            .build();
+
+        self.client.request(r).await
+    }
+
+    // 获取用户播放记录
+    // 说明 : 登录后调用此接口 , 传入用户 id, 可获取用户播放记录
+    //
+    // 必选参数 : uid : 用户 id
+    //
+    // 可选参数 : type : type=1 时只返回 weekData, type=0 时返回 allData
+    pub async fn play_record(&self, uid: usize, record_type: Option<usize>) -> Result<ApiResponse> {
+        let mut r_type = 0;
+        if record_type.is_some() {
+            r_type = record_type.unwrap();
+        }
+        let r = ApiRequestBuilder::post(API_ROUTE["user_record"])
+            .set_data(json!({ "uid": uid, "type": r_type }))
+            .build();
+
+        self.client.request(r).await
+    }
 }
 
 fn md5_hex(pt: &[u8]) -> String {
@@ -284,5 +329,20 @@ mod tests {
         let resp = serde_json::from_slice::<PlaylistDetailResp>(resp.data());
 
         println!("{:#?}", resp.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_weblog() {
+        let api = CloudMusicApi::default();
+        let resp = api.weblog(527629786).await.unwrap();
+
+        println!("{:#?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_play_record() {
+        let api = CloudMusicApi::default();
+        let resp = api.play_record(354192143, Some(1)).await.unwrap();
+        println!("{:#?}", resp);
     }
 }

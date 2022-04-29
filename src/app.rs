@@ -315,10 +315,11 @@ impl App {
 
     pub fn toggle_track(&mut self, track: Track, state: ToggleState) {
         if let Some(context) = &self.current_playback_context {
-            let id = track.id;
             match context.repeat_state {
                 RepeatState::Track => {
+                    let id = track.id;
                     self.dispatch(IoEvent::StartPlayback(track));
+                    self.re_render_lyric(id);
                 }
                 RepeatState::Context => {
                     self.next_or_prev_track(state);
@@ -339,6 +340,7 @@ impl App {
                             App::next_index(&list.tracks, Some(current_play_track_index), state);
 
                         let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+                        let id = track.id;
                         if next_index != list.tracks.len() {
                             list.selected_index = next_index;
                             self.dispatch(IoEvent::StartPlayback(track));
@@ -347,10 +349,10 @@ impl App {
                             context.is_playing = false;
                             self.current_playback_context = Some(context);
                         }
+                        self.re_render_lyric(id);
                     }
                 }
             }
-            self.re_render_lyric(id);
         }
     }
 
@@ -375,7 +377,9 @@ impl App {
             list.selected_index = next_index;
 
             let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+            let id = track.id;
             self.dispatch(IoEvent::StartPlayback(track));
+            self.re_render_lyric(id);
         }
     }
 
@@ -396,7 +400,9 @@ impl App {
             list.selected_index = next_index;
 
             let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+            let id = track.id;
             self.dispatch(IoEvent::StartPlayback(track));
+            self.re_render_lyric(id);
         }
     }
 

@@ -65,6 +65,7 @@ pub enum ColumnId {
     None,
     Title,
     Liked,
+    Fee,
 }
 
 impl Default for ColumnId {
@@ -94,5 +95,6 @@ pub struct TableHeaderItem<'a> {
 #[derive(Debug)]
 pub struct TableItem {
     pub id: usize,
+    pub fee: usize,
     pub format: Vec<String>,
 }

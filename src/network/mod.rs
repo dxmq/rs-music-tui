@@ -1,7 +1,15 @@
+use std::panic::PanicInfo;
 use std::sync::Arc;
 use std::time::Instant;
 
 use anyhow::Error;
+use backtrace::Backtrace;
+use crossterm::{
+    event::DisableMouseCapture,
+    execute,
+    style::Print,
+    terminal::{disable_raw_mode, LeaveAlternateScreen},
+};
 use tokio::sync::Mutex;
 
 use crate::app::{ActiveBlock, App, RouteId};
@@ -331,5 +339,33 @@ impl<'a> Network<'a> {
 pub async fn start_tokio(io_rx: std::sync::mpsc::Receiver<IoEvent>, network: &mut Network) {
     while let Ok(io_event) = io_rx.recv() {
         network.handle_network_event(io_event).await;
+    }
+}
+
+pub fn panic_hook(info: &PanicInfo<'_>) {
+    if cfg!(debug_assertions) {
+        let location = info.location().unwrap();
+
+        let msg = match info.payload().downcast_ref::<&'static str>() {
+            Some(s) => *s,
+            None => match info.payload().downcast_ref::<String>() {
+                Some(s) => &s[..],
+                None => "Box<Any>",
+            },
+        };
+
+        let stacktrace: String = format!("{:?}", Backtrace::new()).replace('\n', "\n\r");
+
+        disable_raw_mode().unwrap();
+        execute!(
+            std::io::stdout(),
+            LeaveAlternateScreen,
+            Print(format!(
+                "thread '<unnamed>' panicked at '{}', {}\n\r{}",
+                msg, location, stacktrace
+            )),
+            DisableMouseCapture
+        )
+        .unwrap();
     }
 }

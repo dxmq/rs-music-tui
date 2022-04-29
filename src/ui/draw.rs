@@ -413,7 +413,8 @@ where
             .map(|item| {
                 vec![item
                     .lyric
-                    .pad_to_width_with_alignment(30, PadAlignment::MiddleRight)]
+                    .pad_to_width_with_alignment(10, PadAlignment::Left)
+                    .pad_to_width_with_alignment(30, PadAlignment::Middle)]
             })
             .collect(),
         None => vec![],
@@ -546,6 +547,7 @@ where
         .iter()
         .map(|item| TableItem {
             id: item.id,
+            fee: item.fee,
             format: vec![
                 "".to_string(),
                 item.name.to_owned(),
@@ -654,8 +656,6 @@ where
             .constraints([Constraint::Percentage(30), Constraint::Percentage(70)].as_ref())
             .split(layout_chunk);
 
-        // Search input and help
-        draw_input_and_help_box(f, app, chunks[0]);
         draw_library_block(f, app, chunks[0]);
         draw_playlist_block(f, app, chunks[1]);
     }
@@ -886,6 +886,11 @@ fn draw_table<B>(
         // if table displays songs
         match header.id {
             TableId::Song | TableId::RecentlyPlayed | TableId::Album => {
+                if item.fee == 1 {
+                    style = Style::default()
+                        .fg(Color::DarkGray)
+                        .add_modifier(Modifier::BOLD);
+                }
                 // First check if the song should be highlighted because it is currently playing
                 if let Some(title_idx) = header.get_index(ColumnId::Title) {
                     if let Some(track_playing_offset_index) =
