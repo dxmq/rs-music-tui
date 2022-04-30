@@ -1,6 +1,7 @@
 use crate::app::App;
 use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
+use crate::handlers::common_key_events::KeyAction;
 use crate::model::context::TrackTableContext;
 use crate::model::table::TrackTable;
 
@@ -32,6 +33,30 @@ pub fn handler(key: Key, app: &mut App) {
         k if common_key_events::low_event(k) => {
             let next_index = common_key_events::on_low_press_handler(&app.track_table.tracks);
             app.track_table.selected_index = next_index;
+        }
+        k if k == app.user_config.keys.next_page => {
+            let next_index = common_key_events::on_down_or_up_press_handler(
+                &app.track_table.tracks,
+                Some(app.track_table.selected_index),
+                KeyAction::Down,
+                20,
+            );
+            app.track_table.selected_index = next_index;
+        }
+        k if k == app.user_config.keys.previous_page => {
+            let next_index = common_key_events::on_down_or_up_press_handler(
+                &app.track_table.tracks,
+                Some(app.track_table.selected_index),
+                KeyAction::Up,
+                20,
+            );
+            app.track_table.selected_index = next_index;
+        }
+        k if k == app.user_config.keys.jump_to_end => {
+            app.track_table.selected_index = 0;
+        }
+        k if k == app.user_config.keys.jump_to_start => {
+            app.track_table.selected_index = app.track_table.tracks.len() - 1;
         }
         Key::Enter => {
             on_enter(app);
