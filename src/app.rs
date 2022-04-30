@@ -504,9 +504,11 @@ impl App {
                 if let Ok(context) = serde_json::from_str::<CurrentlyPlaybackContext>(&json_string)
                 {
                     self.current_playback_context = Some(context);
+                    return;
                 }
             }
         }
+        self.current_playback_context = Some(CurrentlyPlaybackContext::default());
     }
 }
 
@@ -535,7 +537,7 @@ impl Default for App {
             help_menu_max_lines: 0,
             help_menu_offset: 0,
             home_scroll: 0,
-            current_playback_context: Some(CurrentlyPlaybackContext::default()),
+            current_playback_context: None,
             song_progress_ms: 0,
             seek_ms: None,
             library: Library { selected_index: 0 },

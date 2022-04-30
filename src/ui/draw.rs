@@ -593,39 +593,13 @@ where
         .border_style(get_color(highlight_state, app.user_config.theme));
     f.render_widget(welcome, layout_chunk);
 
-    let changelog = include_str!("../../CHANGELOG.md").to_string();
-
-    // If debug mode show the "Unreleased" header. Otherwise it is a release so there should be no
-    // unreleased features
-    let clean_changelog = if cfg!(debug_assertions) {
-        changelog
-    } else {
-        changelog.replace("\n## [Unreleased]\n", "")
-    };
-
-    // Banner text with correct styling
     let mut top_text = Text::from(BANNER);
     top_text.patch_style(Style::default().fg(app.user_config.theme.banner));
 
-    let bottom_text_raw = format!(
-        "{}{}",
-        "\nPlease report any bugs or missing features to xxxxx\n\n", clean_changelog
-    );
-    let bottom_text = Text::from(bottom_text_raw.as_str());
-
-    // Contains the banner
     let top_text = Paragraph::new(top_text)
         .style(Style::default().fg(app.user_config.theme.text))
         .block(Block::default());
     f.render_widget(top_text, chunks[0]);
-
-    // CHANGELOG
-    let bottom_text = Paragraph::new(bottom_text)
-        .style(Style::default().fg(app.user_config.theme.text))
-        .block(Block::default())
-        .wrap(Wrap { trim: false })
-        .scroll((app.home_scroll, 0));
-    f.render_widget(bottom_text, chunks[1]);
 }
 
 pub fn draw_user_block<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
