@@ -150,6 +150,27 @@ impl CloudMusic {
         }
     }
 
+    pub async fn toggle_like_track(&self, track_id: usize, like: bool) -> Result<()> {
+        let resp = self.api.like(track_id, like).await;
+        match resp {
+            Err(e) => {
+                return Err(anyhow!(e));
+            }
+            Ok(resp) => {
+                let res = resp.deserialize_to_implict();
+                if !res.code == 200 {
+                    return Err(anyhow!(if like {
+                        "喜欢歌曲失败"
+                    } else {
+                        "取消喜欢歌曲失败"
+                    }));
+                }
+            }
+        }
+
+        Ok(())
+    }
+
     #[allow(unused)]
     fn mk_lyric(value: String, timestamp: regex::Captures, offset: u32) -> Lyric {
         let minute = timestamp[1].parse::<u64>().unwrap_or(0);

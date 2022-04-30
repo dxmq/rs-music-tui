@@ -236,6 +236,18 @@ impl CloudMusicApi {
 
         self.client.request(r).await
     }
+
+    // 必选参数 : id: 歌曲 id
+    // 可选参数 : like: 布尔值 , 默认为 true 即喜欢 , 若传 false, 则取消喜欢
+    pub async fn like(&self, track_id: usize, like: bool) -> Result<ApiResponse> {
+        let r = ApiRequestBuilder::post(API_ROUTE["like"])
+            .add_cookie("appver", "2.9.7")
+            .add_cookie("os", "pc")
+            .set_data(json!({ "trackId": track_id, "like": like , "time": 3, "alg": "itembased"}))
+            .build();
+
+        self.client.request(r).await
+    }
 }
 
 fn md5_hex(pt: &[u8]) -> String {
@@ -344,6 +356,14 @@ mod tests {
     async fn test_play_record() {
         let api = CloudMusicApi::default();
         let resp = api.play_record(354192143, Some(1)).await.unwrap();
+        println!("{:#?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_like() {
+        let api = CloudMusicApi::default();
+        let resp = api.like(527629786, true).await.unwrap();
+        // 我喜欢的歌单id 498339500
         println!("{:#?}", resp);
     }
 }

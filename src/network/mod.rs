@@ -84,11 +84,28 @@ impl<'a> Network<'a> {
             IoEvent::GetLyric(track_id) => {
                 self.load_track_lyric(track_id).await;
             }
+            IoEvent::ToggleLikeTrack(track_id) => {
+                self.toggle_like_track(track_id).await;
+            }
             _ => {}
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn toggle_like_track(&mut self, track_id: usize) {
+        let mut app = self.app.lock().await;
+        let like_ids_set = app.liked_track_ids_set.clone();
+        let like = !like_ids_set.contains(&track_id);
+        if let Err(e) = self.cloud_music.toggle_like_track(track_id, like).await {
+            app.handle_error(e);
+        };
+        if like {
+            app.liked_track_ids_set.insert(track_id);
+        } else {
+            app.liked_track_ids_set.remove(&track_id);
+        }
     }
 
     async fn load_track_lyric(&mut self, track_id: usize) {
@@ -314,8 +331,7 @@ impl<'a> Network<'a> {
                 let mut my_playlists = vec![];
                 // 我收藏的歌单列表
                 let mut subscribed_playlists = vec![];
-                let mut i = 0;
-                for play_list in list {
+                for (i, play_list) in list.into_iter().enumerate() {
                     if i != 0 {
                         match play_list.subscribed {
                             true => subscribed_playlists.push(play_list),
@@ -324,7 +340,6 @@ impl<'a> Network<'a> {
                     } else {
                         app.my_like_playlist_id = play_list.id;
                     }
-                    i += 1;
                 }
                 app.playlists = Some(my_playlists);
                 app.selected_playlist_index = Some(0);

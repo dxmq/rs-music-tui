@@ -49,7 +49,7 @@ impl ApiClient {
     pub async fn request(&self, req: ApiRequest) -> Result<ApiResponse> {
         let id = req.id();
 
-        if self.store.contains_key(&id) {
+        if self.config.cache && self.store.contains_key(&id) {
             return Ok(self.store.get(&id).unwrap());
         }
 
@@ -78,11 +78,14 @@ impl ApiClient {
         let body = resp.bytes().await?;
         let res = ApiResponse::new(body.to_vec());
 
-        // cache response
-        self.store
-            .insert(id.clone(), res, Some(self.config.cache_exp));
-
-        Ok(self.store.get(&id).unwrap())
+        if !self.config.cache {
+            Ok(res)
+        } else {
+            // cache response
+            self.store
+                .insert(id.clone(), res, Some(self.config.cache_exp));
+            Ok(self.store.get(&id).unwrap())
+        }
     }
 
     fn to_http_request(&self, req: ApiRequest) -> Result<Request> {

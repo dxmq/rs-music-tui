@@ -58,38 +58,20 @@ pub fn handler(key: Key, app: &mut App) {
         k if k == app.user_config.keys.jump_to_start => {
             app.track_table.selected_index = app.track_table.tracks.len() - 1;
         }
+        k if k == Key::Char('s') => handle_toggle_like_event(app),
         Key::Enter => {
             on_enter(app);
         }
-        // Scroll down
-        // k if k == app.user_config.keys.next_page => {
-        //     if let Some(context) = &app.track_table.context {
-        //         if context == &TrackTableContext::MyPlaylists {
-        //             if let (Some(playlists), Some(selected_playlist_index)) =
-        //                 (&app.playlists, &app.selected_playlist_index)
-        //             {
-        //                 if let Some(selected_playlist) =
-        //                     playlists.get(selected_playlist_index.to_owned())
-        //                 {
-        //                     if let Some(playlist_tracks) = &app.playlist_tracks {
-        //                         if app.playlist_offset + app.large_search_limit
-        //                             < playlist_tracks.tracks.len() as u32
-        //                         {
-        //                             app.playlist_offset += app.large_search_limit;
-        //                             let playlist_id = selected_playlist.id.to_owned();
-        //                             app.dispatch(IoEvent::GetPlaylistTracks(
-        //                                 playlist_id,
-        //                                 app.playlist_offset,
-        //                             ));
-        //                         }
-        //                     }
-        //                 }
-        //             };
-        //         }
-        //     }
-        // }
         _ => {}
     }
+}
+
+fn handle_toggle_like_event(app: &mut App) {
+    let (selected_index, tracks) = (&app.track_table.selected_index, &app.track_table.tracks);
+    if let Some(track) = tracks.get(*selected_index) {
+        let id = track.id;
+        app.dispatch(IoEvent::ToggleLikeTrack(id));
+    };
 }
 
 fn on_enter(app: &mut App) {
