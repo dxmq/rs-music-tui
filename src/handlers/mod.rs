@@ -14,6 +14,7 @@ pub(crate) mod library;
 pub(crate) mod lyric;
 pub(crate) mod my_playlist;
 pub(crate) mod playbar;
+pub(crate) mod search;
 mod subscribe_playlist;
 pub(crate) mod track_table;
 
