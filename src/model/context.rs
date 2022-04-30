@@ -1,4 +1,5 @@
 use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
+use crate::model::track::Track;
 use serde::{Deserialize, Serialize};
 
 // 当前回放上下文
@@ -15,6 +16,27 @@ pub struct CurrentlyPlaybackContext {
     pub repeat_state: RepeatState,
     // 当前播放项
     pub item: Option<PlayingItem>,
+}
+
+impl Default for CurrentlyPlaybackContext {
+    fn default() -> Self {
+        CurrentlyPlaybackContext {
+            is_playing: false,
+            progress_ms: None,
+            timestamp: 0,
+            currently_playing_type: CurrentlyPlayingType::Track,
+            repeat_state: RepeatState::Off,
+            item: Some(PlayingItem::Track(Track {
+                id: 0,
+                name: "".to_string(),
+                artists: vec![],
+                album: Default::default(),
+                duration: 0,
+                fee: 0,
+                pop: 0.0,
+            })),
+        }
+    }
 }
 
 // 对话框
@@ -39,7 +61,7 @@ pub enum TrackTableContext {
     #[allow(unused)]
     RecommendedTracks,
     #[allow(unused)]
-RecentlyPlayed,
+    RecentlyPlayed,
     #[allow(unused)]
     MadeForYou,
 }

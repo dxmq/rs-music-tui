@@ -95,7 +95,7 @@ impl CloudMusicApi {
             .merge(opt.unwrap_or_default())
             .merge(json!({"includeVideo": true, "uid": uid}))
             .build();
-        self.client.request(r).await
+        self.client.cache(true).request(r).await
     }
 
     /// 说明 : 歌单能看到歌单名字, 但看不到具体歌单内容 , 调用此接口 , 传入歌单 id,
@@ -143,7 +143,7 @@ impl CloudMusicApi {
             rb = rb.add_cookie("_ntes_nuid", &hex::encode(token));
         }
 
-        self.client.request(rb.build()).await
+        self.client.cache(true).request(rb.build()).await
     }
 
     /// 说明 : 登录后调用此接口 ,可获取用户账号信息
@@ -154,6 +154,7 @@ impl CloudMusicApi {
 
     // 说明 : 调用此接口 , 可获得最近播放-歌曲
     // 可选参数 : limit : 返回数量 , 默认为 100
+    #[allow(unused)]
     pub async fn recent_song_list(&self, limit: u32) -> Result<ApiResponse> {
         let r = ApiRequestBuilder::post(API_ROUTE["recent_song_list"])
             .set_data(json!({ "limit": limit }))

@@ -40,10 +40,16 @@ impl Default for ApiClient {
 
 impl ApiClient {
     /// cookie_path: file path of cookie cache
-    pub fn new(cookie_path: &str, is_cache: bool) -> ApiClient {
-        ApiClientBuilder::new(cookie_path, is_cache)
+    pub fn new(cookie_path: &str, cache: bool) -> ApiClient {
+        ApiClientBuilder::new(cookie_path, cache)
             .build()
             .expect("build api client fail")
+    }
+
+    pub fn cache(&self, cache: bool) -> ApiClient {
+        let mut client = ApiClient::default();
+        client.config.cache = cache;
+        client
     }
 
     pub async fn request(&self, req: ApiRequest) -> Result<ApiResponse> {
@@ -346,10 +352,10 @@ pub struct ApiClientBuilder {
 }
 
 impl ApiClientBuilder {
-    pub fn new(cookie_path: &str, is_cache: bool) -> Self {
+    pub fn new(cookie_path: &str, cache: bool) -> Self {
         ApiClientBuilder {
             config: Config {
-                cache: is_cache,
+                cache,
                 cache_exp: Duration::from_secs(3 * 60),
                 cache_clean_interval: Duration::from_secs(6 * 60),
                 base_url: BASE_URL.parse::<Url>().unwrap(),

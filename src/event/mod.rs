@@ -17,6 +17,7 @@ pub enum IoEvent {
     // GetCurrentPlayback(Track),
     // PausePlayback,
     TogglePlayBack,
+    #[allow(unused)]
     GetRecentlyPlayed(u32),
     GetRecommendTracks,
     DecreaseVolume,

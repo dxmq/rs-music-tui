@@ -144,7 +144,8 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             // 加载歌单列表
             app.dispatch(IoEvent::GetPlaylists);
             // 获取最近播放
-            app.dispatch(IoEvent::GetRecentlyPlayed(1));
+            // app.dispatch(IoEvent::GetRecentlyPlayed(1));
+            app.read_current_play_context();
             // 获取喜欢的音乐
             app.dispatch(IoEvent::GetLikeList);
             app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
@@ -152,6 +153,8 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
         }
     }
 
+    let mut app = app.lock().await;
+    app.record_current_play_context()?;
     terminal.show_cursor()?;
     close_application()?;
     Ok(())

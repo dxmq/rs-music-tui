@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 use std::ops::Not;
+use std::path::PathBuf;
 use std::sync::mpsc::Sender;
 use std::time::Instant;
 
@@ -475,6 +476,38 @@ impl App {
     pub fn toggle_playback(&mut self) {
         self.dispatch(IoEvent::TogglePlayBack);
     }
+
+    pub fn cache_file_path(&mut self) -> PathBuf {
+        self.user_config
+            .path_to_config
+            .as_ref()
+            .unwrap()
+            .cache_file_path
+            .clone()
+    }
+
+    pub fn record_current_play_context(&mut self) -> anyhow::Result<()> {
+        if let Some(context) = self.current_playback_context.clone() {
+            let json = serde_json::to_string(&context)?;
+            let cache_file_path = self.cache_file_path();
+            std::fs::write(&cache_file_path, json)?
+        }
+
+        Ok(())
+    }
+
+    pub fn read_current_play_context(&mut self) {
+        let cache_file_path = self.cache_file_path();
+        let json_string = std::fs::read_to_string(&cache_file_path);
+        if let Ok(json_string) = json_string {
+            if json_string.is_empty().not() {
+                if let Ok(context) = serde_json::from_str::<CurrentlyPlaybackContext>(&json_string)
+                {
+                    self.current_playback_context = Some(context);
+                }
+            }
+        }
+    }
 }
 
 impl Default for App {
@@ -502,7 +535,7 @@ impl Default for App {
             help_menu_max_lines: 0,
             help_menu_offset: 0,
             home_scroll: 0,
-            current_playback_context: None,
+            current_playback_context: Some(CurrentlyPlaybackContext::default()),
             song_progress_ms: 0,
             seek_ms: None,
             library: Library { selected_index: 0 },
