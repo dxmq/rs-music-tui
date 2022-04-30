@@ -36,7 +36,9 @@ pub fn handles(key: Key, app: &mut App) {
         // like this
         Key::Enter => {
             if app.library.selected_index == 0 {
-                app.dispatch(IoEvent::GetRecentlyPlayed(500));
+                // app.dispatch(IoEvent::GetRecentlyPlayed(500));
+                let playlist_id = app.my_like_playlist_id;
+                app.dispatch(IoEvent::GetPlaylistTracks(playlist_id));
             } else if app.library.selected_index == 1 {
                 app.track_table.context = Some(TrackTableContext::RecommendedTracks);
                 app.dispatch(IoEvent::GetRecommendTracks);

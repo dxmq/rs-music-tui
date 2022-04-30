@@ -665,12 +665,25 @@ pub fn draw_playlist_block<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
 where
     B: Backend,
 {
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        .split(layout_chunk);
+
     let current_route = app.get_current_route();
-    let highlight_state = (
+    let my_playlists_highlight_state = (
         current_route.active_block == ActiveBlock::MyPlaylists,
         current_route.hovered_block == ActiveBlock::MyPlaylists,
     );
-    let playlist_items = match &app.playlists {
+    let subscribed_playlists_highlight_state = (
+        current_route.active_block == ActiveBlock::SubscribedPlaylists,
+        current_route.hovered_block == ActiveBlock::SubscribedPlaylists,
+    );
+    let my_playlist_items = match &app.playlists {
+        Some(list) => list.iter().map(|item| item.name.to_owned()).collect(),
+        None => vec![],
+    };
+    let subscribed_playlist_items = match &app.sub_playlists {
         Some(list) => list.iter().map(|item| item.name.to_owned()).collect(),
         None => vec![],
     };
@@ -678,11 +691,21 @@ where
     draw_selectable_list(
         f,
         app,
-        layout_chunk,
-        "歌单",
-        &playlist_items,
-        highlight_state,
+        chunks[0],
+        "自建歌单",
+        &my_playlist_items,
+        my_playlists_highlight_state,
         app.selected_playlist_index,
+    );
+
+    draw_selectable_list(
+        f,
+        app,
+        chunks[1],
+        "收藏歌单",
+        &subscribed_playlist_items,
+        subscribed_playlists_highlight_state,
+        app.selected_sub_playlist_index,
     );
 }
 pub fn draw_library_block<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
@@ -694,11 +717,12 @@ where
         current_route.active_block == ActiveBlock::Library,
         current_route.hovered_block == ActiveBlock::Library,
     );
+
     draw_selectable_list(
         f,
         app,
         layout_chunk,
-        "目录",
+        "我的音乐",
         &LIBRARY_OPTIONS,
         highlight_state,
         Some(app.library.selected_index),

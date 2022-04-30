@@ -3,7 +3,6 @@ use openssl::hash::{hash, MessageDigest};
 use rand::RngCore;
 use serde_json::json;
 use serde_json::Value;
-use std::collections::HashMap;
 
 use crate::http::client::ApiClient;
 use crate::http::crypto::Crypto::Eapi;
@@ -192,6 +191,7 @@ impl CloudMusicApi {
         self.client.request(r).await
     }
 
+    #[allow(unused)]
     pub async fn weblog(&self, track_id: usize) -> Result<ApiResponse> {
         let data = format!(
             r#"
@@ -224,6 +224,7 @@ impl CloudMusicApi {
     // 必选参数 : uid : 用户 id
     //
     // 可选参数 : type : type=1 时只返回 weekData, type=0 时返回 allData
+    #[allow(unused)]
     pub async fn play_record(&self, uid: usize, record_type: Option<usize>) -> Result<ApiResponse> {
         let mut r_type = 0;
         if record_type.is_some() {
@@ -317,9 +318,9 @@ mod tests {
     async fn test_user_playlists() {
         let api = CloudMusicApi::default();
         let resp = api.user_playlist(354192143, None).await.unwrap();
-        let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data());
+        // let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data()).unwrap();
 
-        println!("{:#?}", resp.unwrap());
+        println!("{:#?}", resp);
     }
 
     #[tokio::test(flavor = "multi_thread")]

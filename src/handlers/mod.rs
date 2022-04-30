@@ -12,8 +12,9 @@ pub(crate) mod home;
 pub(crate) mod input;
 pub(crate) mod library;
 pub(crate) mod lyric;
+pub(crate) mod my_playlist;
 pub(crate) mod playbar;
-pub(crate) mod playlist;
+mod subscribe_playlist;
 pub(crate) mod track_table;
 
 pub fn handle_app(key: Key, app: &mut App) {
@@ -80,9 +81,13 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         ActiveBlock::Error => {
             error_screen::handler(key, app);
         }
-        // 我的歌单
+        // 我创建的歌单
         ActiveBlock::MyPlaylists => {
-            playlist::handler(key, app);
+            my_playlist::handler(key, app);
+        }
+        // 我的收藏的歌单
+        ActiveBlock::SubscribedPlaylists => {
+            subscribe_playlist::handler(key, app);
         }
         ActiveBlock::TrackTable => {
             track_table::handler(key, app);

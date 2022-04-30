@@ -13,6 +13,9 @@ pub fn handler(key: Key, app: &mut App) {
             ActiveBlock::Library => {
                 app.set_current_route_state(None, Some(ActiveBlock::MyPlaylists));
             }
+            ActiveBlock::MyPlaylists => {
+                app.set_current_route_state(None, Some(ActiveBlock::SubscribedPlaylists))
+            }
             // ActiveBlock::ArtistBlock
             // | ActiveBlock::AlbumList
             // | ActiveBlock::AlbumTracks
@@ -21,18 +24,21 @@ pub fn handler(key: Key, app: &mut App) {
             // | ActiveBlock::EpisodeTable
             ActiveBlock::Home
             | ActiveBlock::MadeForYou
-            | ActiveBlock::MyPlaylists
+            | ActiveBlock::SubscribedPlaylists
             | ActiveBlock::TrackTable => {
                 app.set_current_route_state(None, Some(ActiveBlock::PlayBar));
             }
             _ => {}
         },
         k if common_key_events::up_event(k) => match app.get_current_route().hovered_block {
+            ActiveBlock::SubscribedPlaylists => {
+                app.set_current_route_state(None, Some(ActiveBlock::MyPlaylists));
+            }
             ActiveBlock::MyPlaylists => {
                 app.set_current_route_state(None, Some(ActiveBlock::Library));
             }
             ActiveBlock::PlayBar => {
-                app.set_current_route_state(None, Some(ActiveBlock::MyPlaylists));
+                app.set_current_route_state(None, Some(ActiveBlock::SubscribedPlaylists));
             }
             _ => {}
         },

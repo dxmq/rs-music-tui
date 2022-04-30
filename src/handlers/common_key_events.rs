@@ -80,35 +80,37 @@ pub fn on_low_press_handler<T>(selection_data: &[T]) -> usize {
 
 pub fn handle_right_event(app: &mut App) {
     match app.get_current_route().hovered_block {
-        ActiveBlock::MyPlaylists | ActiveBlock::Library => match app.get_current_route().id {
-            RouteId::MadeForYou => {
-                app.set_current_route_state(
-                    Some(ActiveBlock::MadeForYou),
-                    Some(ActiveBlock::MadeForYou),
-                );
+        ActiveBlock::MyPlaylists | ActiveBlock::SubscribedPlaylists | ActiveBlock::Library => {
+            match app.get_current_route().id {
+                RouteId::MadeForYou => {
+                    app.set_current_route_state(
+                        Some(ActiveBlock::MadeForYou),
+                        Some(ActiveBlock::MadeForYou),
+                    );
+                }
+                RouteId::Home => {
+                    app.set_current_route_state(Some(ActiveBlock::Home), Some(ActiveBlock::Home));
+                }
+                RouteId::Search => {
+                    app.set_current_route_state(
+                        Some(ActiveBlock::SearchResultBlock),
+                        Some(ActiveBlock::SearchResultBlock),
+                    );
+                }
+                RouteId::TrackTable => {
+                    app.set_current_route_state(
+                        Some(ActiveBlock::TrackTable),
+                        Some(ActiveBlock::SearchResultBlock),
+                    );
+                }
+                RouteId::Error => {}
+                RouteId::BasicView => {}
+                RouteId::Dialog => {}
+                RouteId::Lyric => {
+                    app.set_current_route_state(Some(ActiveBlock::Lyric), Some(ActiveBlock::Lyric));
+                }
             }
-            RouteId::Home => {
-                app.set_current_route_state(Some(ActiveBlock::Home), Some(ActiveBlock::Home));
-            }
-            RouteId::Search => {
-                app.set_current_route_state(
-                    Some(ActiveBlock::SearchResultBlock),
-                    Some(ActiveBlock::SearchResultBlock),
-                );
-            }
-            RouteId::TrackTable => {
-                app.set_current_route_state(
-                    Some(ActiveBlock::TrackTable),
-                    Some(ActiveBlock::SearchResultBlock),
-                );
-            }
-            RouteId::Error => {}
-            RouteId::BasicView => {}
-            RouteId::Dialog => {}
-            RouteId::Lyric => {
-                app.set_current_route_state(Some(ActiveBlock::Lyric), Some(ActiveBlock::Lyric));
-            }
-        },
+        }
         _ => {}
     }
 }

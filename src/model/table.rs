@@ -65,7 +65,6 @@ pub enum ColumnId {
     None,
     Title,
     Liked,
-    Fee,
 }
 
 impl Default for ColumnId {

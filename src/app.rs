@@ -24,7 +24,7 @@ const DEFAULT_ROUTE: Route = Route {
     hovered_block: ActiveBlock::Library,
 };
 
-pub const LIBRARY_OPTIONS: [&str; 2] = ["最近播放", "每日推荐"];
+pub const LIBRARY_OPTIONS: [&str; 2] = ["我喜欢", "每日推荐"];
 
 #[derive(Clone)]
 pub struct Library {
@@ -42,8 +42,10 @@ pub enum ActiveBlock {
     HelpMenu,
     // 播放条
     PlayBar,
-    // 播放列表
+    // 我的歌单
     MyPlaylists,
+    // 收藏歌单
+    SubscribedPlaylists,
     // 错误页
     Error,
     // 基础视图
@@ -94,9 +96,6 @@ pub struct App {
     pub input_cursor_position: u16,
     // 是否在加载网络接口数据
     pub is_loading: bool,
-    // 当前播放列表索引
-    pub selected_playlist_index: Option<usize>,
-    pub active_playlist_index: Option<usize>,
     pub help_docs_size: u32,
     pub help_menu_page: u32,
     pub help_menu_max_lines: u32,
@@ -109,10 +108,23 @@ pub struct App {
     pub seek_ms: Option<u128>,
     // 左侧菜单
     pub library: Library,
-    // 歌单列表
+
+    // 创建的歌单列表
     pub playlists: Option<Vec<Playlist>>,
     // 歌单偏移量
     pub playlist_offset: u32,
+    // 当前播放列表索引
+    pub selected_playlist_index: Option<usize>,
+    pub active_playlist_index: Option<usize>,
+
+    pub sub_playlists: Option<Vec<Playlist>>,
+    pub sub_playlist_offset: u32,
+    pub selected_sub_playlist_index: Option<usize>,
+    pub active_sub_playlist_index: Option<usize>,
+
+    // 歌单【我喜欢的音乐】id
+    pub my_like_playlist_id: usize,
+
     // 歌单歌曲列表
     pub track_table: TrackTable,
     // 接口错误
@@ -476,9 +488,15 @@ impl Default for App {
             input_idx: 0,
             input_cursor_position: 0,
             is_loading: false,
+            playlists: None,
+            playlist_offset: 0,
             selected_playlist_index: None,
             active_playlist_index: None,
-            playlist_offset: 0,
+            sub_playlists: None,
+            sub_playlist_offset: 0,
+            selected_sub_playlist_index: None,
+            active_sub_playlist_index: None,
+            my_like_playlist_id: 0,
             help_docs_size: 0,
             help_menu_page: 0,
             help_menu_max_lines: 0,
@@ -488,7 +506,6 @@ impl Default for App {
             song_progress_ms: 0,
             seek_ms: None,
             library: Library { selected_index: 0 },
-            playlists: None,
             api_error: String::new(),
             dialog: None,
             confirm: false,

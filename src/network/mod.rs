@@ -310,8 +310,27 @@ impl<'a> Network<'a> {
         match result {
             Ok(list) => {
                 let mut app = self.app.lock().await;
-                app.playlists = Some(list);
+                // 我创建的歌单列表
+                let mut my_playlists = vec![];
+                // 我收藏的歌单列表
+                let mut subscribed_playlists = vec![];
+                let mut i = 0;
+                for play_list in list {
+                    if i != 0 {
+                        match play_list.subscribed {
+                            true => subscribed_playlists.push(play_list),
+                            false => my_playlists.push(play_list),
+                        }
+                    } else {
+                        app.my_like_playlist_id = play_list.id;
+                    }
+                    i += 1;
+                }
+                app.playlists = Some(my_playlists);
                 app.selected_playlist_index = Some(0);
+
+                app.sub_playlists = Some(subscribed_playlists);
+                app.selected_sub_playlist_index = Some(0);
             }
             Err(e) => {
                 self.handle_error(e).await;

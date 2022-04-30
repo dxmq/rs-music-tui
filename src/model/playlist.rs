@@ -7,6 +7,8 @@ pub struct Playlist {
     pub id: usize,
     pub name: String,
     pub description: Option<String>,
+    // 是否是收藏歌单，true/是，false/否
+    pub subscribed: bool,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
