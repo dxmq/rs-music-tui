@@ -25,7 +25,7 @@ const DEFAULT_ROUTE: Route = Route {
     hovered_block: ActiveBlock::Library,
 };
 
-pub const LIBRARY_OPTIONS: [&str; 2] = ["我喜欢", "每日推荐"];
+pub const LIBRARY_OPTIONS: [&str; 3] = ["我喜欢", "最近播放", "每日推荐"];
 
 #[derive(Clone)]
 pub struct Library {
@@ -486,25 +486,19 @@ impl App {
             .clone()
     }
 
-    pub fn record_current_play_context(&mut self) -> anyhow::Result<()> {
-        if let Some(context) = self.current_playback_context.clone() {
-            let json = serde_json::to_string(&context)?;
-            let cache_file_path = self.cache_file_path();
-            std::fs::write(&cache_file_path, json)?
-        }
-
-        Ok(())
-    }
-
     pub fn read_current_play_context(&mut self) {
         let cache_file_path = self.cache_file_path();
         let json_string = std::fs::read_to_string(&cache_file_path);
         if let Ok(json_string) = json_string {
             if json_string.is_empty().not() {
-                if let Ok(context) = serde_json::from_str::<CurrentlyPlaybackContext>(&json_string)
-                {
-                    self.current_playback_context = Some(context);
-                    return;
+                if let Ok(mut tracks) = serde_json::from_str::<Vec<Track>>(&json_string) {
+                    let track = tracks.pop();
+                    if let Some(track) = track {
+                        let item = PlayingItem::Track(track);
+                        let context = CurrentlyPlaybackContext::new(Some(item));
+                        self.current_playback_context = Some(context);
+                        return;
+                    }
                 }
             }
         }
@@ -550,7 +544,7 @@ impl Default for App {
             instant_since_last_current_playback_poll: Instant::now(),
             is_fetching_current_playback: false,
             large_search_limit: 20,
-            volume: 0f32,
+            volume: 1f32,
             title: String::from("歌曲列表"),
             my_play_tracks: Default::default(),
             liked_track_ids_set: HashSet::new(),

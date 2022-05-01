@@ -153,8 +153,6 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
         }
     }
 
-    let mut app = app.lock().await;
-    app.record_current_play_context()?;
     terminal.show_cursor()?;
     close_application()?;
     Ok(())

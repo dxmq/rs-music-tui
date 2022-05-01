@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
+
 use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
 use crate::model::track::Track;
-use serde::{Deserialize, Serialize};
 
 // 当前回放上下文
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -18,11 +19,20 @@ pub struct CurrentlyPlaybackContext {
     pub item: Option<PlayingItem>,
 }
 
+impl CurrentlyPlaybackContext {
+    pub fn new(item: Option<PlayingItem>) -> Self {
+        CurrentlyPlaybackContext {
+            item,
+            ..CurrentlyPlaybackContext::default()
+        }
+    }
+}
+
 impl Default for CurrentlyPlaybackContext {
     fn default() -> Self {
         CurrentlyPlaybackContext {
             is_playing: false,
-            progress_ms: None,
+            progress_ms: Some(0),
             timestamp: 0,
             currently_playing_type: CurrentlyPlayingType::Track,
             repeat_state: RepeatState::Off,

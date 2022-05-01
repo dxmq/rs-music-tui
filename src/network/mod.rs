@@ -66,8 +66,8 @@ impl<'a> Network<'a> {
             IoEvent::TogglePlayBack => {
                 self.toggle_playback().await;
             }
-            IoEvent::GetRecentlyPlayed(usize) => {
-                self.load_recently_played(usize).await;
+            IoEvent::GetRecentlyPlayed => {
+                self.load_recently_played().await;
             }
             IoEvent::GetRecommendTracks => {
                 self.load_recommend_tracks().await;
@@ -92,6 +92,28 @@ impl<'a> Network<'a> {
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn load_recently_played(&mut self) {
+        let mut app = self.app.lock().await;
+        let cache_file_path = app.cache_file_path();
+        let json_string = std::fs::read_to_string(&cache_file_path);
+        let mut table_tracks = vec![];
+        if let Ok(json_string) = json_string {
+            if !json_string.is_empty() {
+                if let Ok(tracks) = serde_json::from_str::<Vec<Track>>(&json_string) {
+                    table_tracks = tracks.into_iter().rev().collect();
+                }
+            }
+        }
+        let table = TrackTable {
+            tracks: table_tracks,
+            selected_index: 0,
+            context: Some(TrackTableContext::RecentlyPlayed),
+        };
+        app.track_table = table;
+        app.title = "最近播放".to_string();
+        app.push_navigation_stack(RouteId::TrackTable, ActiveBlock::TrackTable);
     }
 
     async fn toggle_like_track(&mut self, track_id: usize) {
@@ -164,7 +186,8 @@ impl<'a> Network<'a> {
         }
     }
 
-    async fn load_recently_played(&mut self, limit: u32) {
+    #[allow(unused)]
+    async fn load_recently_played_from_cloud_music(&mut self, limit: u32) {
         match self.cloud_music.recent_song_list(500).await {
             Ok(recent_play_list) => {
                 let mut app = self.app.lock().await;
@@ -252,21 +275,23 @@ impl<'a> Network<'a> {
     }
 
     async fn start_playback(&mut self, mut track: Track) {
+        let mut t = track.clone();
         match self.cloud_music.song_url(vec![track.id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
                     let mut app = self.app.lock().await;
+                    if track_url.fee == 1 {
+                        if let Some(info) = track_url.free_trial_info.clone() {
+                            let duration = (info.end - info.start) * 1000;
+                            track.duration = duration;
+                            t.duration = duration;
+                        }
+                    }
                     match self.player.play_url(track_url.url.as_str()) {
-                        Ok(()) => {
+                        Ok(_) => {
                             match app.current_playback_context.clone() {
                                 Some(mut context) => {
                                     context.is_playing = true;
-                                    if track_url.fee == 1 {
-                                        if let Some(info) = track_url.free_trial_info.clone() {
-                                            let duration = (info.end - info.start) * 1000;
-                                            track.duration = duration;
-                                        }
-                                    }
                                     context.item = Some(PlayingItem::Track(track));
                                     app.current_playback_context = Some(context);
                                 }
@@ -282,9 +307,10 @@ impl<'a> Network<'a> {
                                     app.current_playback_context = Some(context);
                                 }
                             }
-                            app.instant_since_last_current_playback_poll = Instant::now();
 
+                            app.instant_since_last_current_playback_poll = Instant::now();
                             app.volume = self.player.get_volume();
+                            self.cache_play_record(t, &mut *app);
                         }
                         Err(e) => {
                             app.handle_error(e);
@@ -298,6 +324,31 @@ impl<'a> Network<'a> {
         let mut app = self.app.lock().await;
         app.seek_ms.take();
         app.is_fetching_current_playback = false;
+    }
+
+    fn cache_play_record(&mut self, t: Track, app: &mut App) {
+        let cache_file_path = app.cache_file_path();
+        let json_string = std::fs::read_to_string(&cache_file_path);
+        if let Ok(json_string) = json_string {
+            if !json_string.is_empty() {
+                if let Ok(tracks) = serde_json::from_str::<Vec<Track>>(&json_string) {
+                    let mut new_tracks = tracks
+                        .into_iter()
+                        .filter(|item| item.id != t.id)
+                        .collect::<Vec<Track>>();
+                    if new_tracks.len() < 500 {
+                        new_tracks.push(t);
+                    }
+                    let new_json = serde_json::to_string(&new_tracks).unwrap_or(String::from(""));
+                    if std::fs::write(cache_file_path, new_json).is_ok() {};
+                }
+            } else {
+                let tracks = vec![t];
+                if let Ok(json) = serde_json::to_string(&tracks) {
+                    if std::fs::write(cache_file_path, json).is_ok() {}
+                }
+            }
+        }
     }
 
     async fn load_playlist_tracks(&mut self, playlist_idk: usize) {
