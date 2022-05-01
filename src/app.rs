@@ -11,6 +11,7 @@ use tui::style::Color;
 
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
+use crate::handlers::search::SearchResults;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
 use crate::model::playlist::Playlist;
@@ -149,6 +150,7 @@ pub struct App {
     pub lyric_index: usize,
     pub playing_circle: Circle,
     pub circle_flag: bool,
+    pub search_results: SearchResults,
 }
 
 impl App {
@@ -552,6 +554,7 @@ impl Default for App {
             lyric: None,
             playing_circle: Circle::default(),
             circle_flag: true,
+            search_results: SearchResults::default(),
         }
     }
 }

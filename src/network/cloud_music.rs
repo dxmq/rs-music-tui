@@ -6,6 +6,10 @@ use anyhow::{anyhow, Result};
 use tokio::sync::Mutex;
 
 use crate::app::App;
+use crate::handlers::search::{
+    SearchAlbumResp, SearchArtistResp, SearchPlaylistResp, SearchResult, SearchTrackResp,
+    SearchType,
+};
 use crate::http::api::CloudMusicApi;
 use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
 use crate::model::table::RecentlyPlayedResp;
@@ -171,6 +175,52 @@ impl CloudMusic {
         Ok(())
     }
 
+    pub async fn cloud_search(
+        &self,
+        keyword: &str,
+        search_type: SearchType,
+    ) -> Result<SearchResult> {
+        let resp = self.api.cloud_search(keyword, search_type, None).await?;
+        match search_type {
+            SearchType::Track => {
+                let resp = serde_json::from_slice::<SearchTrackResp>(resp.data())?;
+                if resp.code == 200 {
+                    if let Some(res) = resp.result {
+                        return Ok(SearchResult::Tracks(res.songs));
+                    }
+                }
+            }
+            SearchType::Album => {
+                if let Ok(resp) = serde_json::from_slice::<SearchAlbumResp>(resp.data()) {
+                    if resp.code == 200 {
+                        if let Some(res) = resp.result {
+                            return Ok(SearchResult::Albums(res.albums));
+                        }
+                    }
+                }
+            }
+            SearchType::Artist => {
+                if let Ok(resp) = serde_json::from_slice::<SearchArtistResp>(resp.data()) {
+                    if resp.code == 200 {
+                        if let Some(res) = resp.result {
+                            return Ok(SearchResult::Artists(res.artists));
+                        }
+                    }
+                }
+            }
+            SearchType::Playlist => {
+                if let Ok(resp) = serde_json::from_slice::<SearchPlaylistResp>(resp.data()) {
+                    if resp.code == 200 {
+                        if let Some(res) = resp.result {
+                            return Ok(SearchResult::Playlists(res.playlists));
+                        }
+                    }
+                }
+            }
+        }
+        Ok(SearchResult::new(search_type))
+    }
+
     #[allow(unused)]
     fn mk_lyric(value: String, timestamp: regex::Captures, offset: u32) -> Lyric {
         let minute = timestamp[1].parse::<u64>().unwrap_or(0);
@@ -186,9 +236,10 @@ impl CloudMusic {
 
 #[cfg(test)]
 mod tests {
+    use pad::{Alignment, PadStr};
+
     use crate::model::track::Lyric;
     use crate::network::cloud_music::CloudMusic;
-    use pad::{Alignment, PadStr};
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_recommend_song_list() {

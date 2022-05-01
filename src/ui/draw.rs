@@ -11,13 +11,15 @@ use tui::Frame;
 
 use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
 use crate::cli::clap::BANNER;
+use crate::handlers::search::SearchResultBlock;
 use crate::model::enums::{PlayingItem, RepeatState};
 use crate::model::table::{ColumnId, TableHeader, TableHeaderItem, TableId, TableItem};
 use crate::ui::help::get_help_docs;
 use crate::util;
 use crate::util::{
     create_artist_string, display_track_progress, get_color, get_percentage_width,
-    get_track_progress_percentage, millis_to_minutes2, BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
+    get_search_results_highlight_state, get_track_progress_percentage, millis_to_minutes2,
+    BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
 };
 
 pub fn draw_main_layout<B>(f: &mut Frame<B>, app: &App)
@@ -354,9 +356,9 @@ where
 
     let current_route = app.get_current_route();
     match current_route.id {
-        // RouteId::Search => {
-        //     draw_search_results(f, app, chunks[1]);
-        // }
+        RouteId::Search => {
+            draw_search_results(f, app, chunks[1]);
+        }
         RouteId::TrackTable => {
             draw_song_table(f, app, chunks[1]);
         }
@@ -373,10 +375,147 @@ where
         RouteId::Error => {} // This is handled as a "full screen" route in main.rs
         RouteId::BasicView => {} // This is handled as a "full screen" route in main.rs
         RouteId::Dialog => {} // This is handled in the draw_dialog function in mod.rs
-        _ => {}
     }
 }
 
+pub fn draw_search_results<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        .split(layout_chunk);
+
+    // 歌曲和歌手block
+    {
+        let song_artist_block = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .split(chunks[0]);
+
+        let currently_playing_id: usize = app
+            .current_playback_context
+            .clone()
+            .and_then(|context| {
+                context.item.map(|item| match item {
+                    PlayingItem::Track(track) => track.id,
+                })
+            })
+            .unwrap_or(0);
+
+        let songs = match &app.search_results.tracks {
+            Some(tracks) => tracks
+                .iter()
+                .map(|item| {
+                    let mut song_name = "".to_string();
+                    let id = item.clone().id;
+                    if currently_playing_id == id {
+                        song_name += "▶ "
+                    }
+                    if app.liked_track_ids_set.contains(&id) {
+                        song_name += &app.user_config.padded_liked_icon();
+                    }
+
+                    song_name += &item.name;
+                    song_name += &format!(" - {}", &create_artist_string(&item.artists));
+                    song_name
+                })
+                .collect(),
+            None => vec![],
+        };
+
+        draw_selectable_list(
+            f,
+            app,
+            song_artist_block[0],
+            "歌曲",
+            &songs,
+            get_search_results_highlight_state(app, SearchResultBlock::TrackSearch),
+            app.search_results.selected_tracks_index,
+        );
+
+        let artists = match &app.search_results.artists {
+            Some(artists) => artists
+                .iter()
+                .map(|item| {
+                    let mut artist = String::new();
+                    // if app.followed_artist_ids_set.contains(&item.id.to_owned()) {
+                    //     artist.push_str(&app.user_config.padded_liked_icon());
+                    // }
+                    let artist_name = item.name.clone().unwrap();
+                    artist.push_str(&artist_name);
+                    artist
+                })
+                .collect(),
+            None => vec![],
+        };
+
+        draw_selectable_list(
+            f,
+            app,
+            song_artist_block[1],
+            "歌手",
+            &artists,
+            get_search_results_highlight_state(app, SearchResultBlock::ArtistSearch),
+            app.search_results.selected_artists_index,
+        );
+    }
+
+    // 专辑和歌单block
+    {
+        let albums_playlist_block = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+            .split(chunks[1]);
+
+        let albums = match &app.search_results.albums {
+            Some(albums) => albums
+                .iter()
+                .map(|item| {
+                    let mut album_artist = String::new();
+                    // if let Some(album_id) = &item.id {
+                    //     if app.saved_album_ids_set.contains(&album_id.to_owned()) {
+                    //         album_artist.push_str(&app.user_config.padded_liked_icon());
+                    //     }
+                    // }
+                    let artists = vec![item.artist.clone()];
+                    album_artist.push_str(&format!(
+                        "{} - {}",
+                        item.clone().name.unwrap(),
+                        create_artist_string(&artists),
+                    ));
+                    album_artist
+                })
+                .collect(),
+            None => vec![],
+        };
+
+        draw_selectable_list(
+            f,
+            app,
+            albums_playlist_block[0],
+            "专辑",
+            &albums,
+            get_search_results_highlight_state(app, SearchResultBlock::AlbumSearch),
+            app.search_results.selected_album_index,
+        );
+
+        let playlists = match &app.search_results.playlists {
+            Some(playlists) => playlists.iter().map(|item| item.name.to_owned()).collect(),
+            None => vec![],
+        };
+        draw_selectable_list(
+            f,
+            app,
+            albums_playlist_block[1],
+            "歌单",
+            &playlists,
+            get_search_results_highlight_state(app, SearchResultBlock::PlaylistSearch),
+            app.search_results.selected_playlists_index,
+        );
+    }
+}
 pub fn draw_lyric<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
 where
     B: Backend,

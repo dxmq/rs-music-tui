@@ -1,5 +1,6 @@
-use crate::app::App;
+use crate::app::{ActiveBlock, App};
 use crate::config::theme::Theme;
+use crate::handlers::search::SearchResultBlock;
 use crate::model::artist::Artist;
 use tui::style::Style;
 
@@ -55,6 +56,18 @@ pub fn get_percentage_width(width: u16, percentage: f32) -> u16 {
     let padding = 3;
     let width = width - padding;
     (f32::from(width) * percentage) as u16
+}
+
+pub fn get_search_results_highlight_state(
+    app: &App,
+    block_to_match: SearchResultBlock,
+) -> (bool, bool) {
+    let current_route = app.get_current_route();
+    (
+        app.search_results.selected_block == block_to_match,
+        current_route.hovered_block == ActiveBlock::SearchResultBlock
+            && app.search_results.hovered_block == block_to_match,
+    )
 }
 
 pub fn millis_to_minutes2(millis: usize) -> String {

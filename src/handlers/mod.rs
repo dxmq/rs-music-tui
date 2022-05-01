@@ -2,6 +2,7 @@ pub use input::handler as input_handler;
 
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
+use crate::handlers::search::SearchResultBlock;
 use crate::model::enums::{PlayingItem, ToggleState};
 
 pub(crate) mod common_key_events;
@@ -15,6 +16,7 @@ pub(crate) mod lyric;
 pub(crate) mod my_playlist;
 pub(crate) mod playbar;
 pub(crate) mod search;
+mod search_results;
 mod subscribe_playlist;
 pub(crate) mod track_table;
 
@@ -105,15 +107,18 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         ActiveBlock::Lyric => {
             lyric::handler(key, app);
         }
+        ActiveBlock::SearchResultBlock => {
+            search_results::handler(key, app);
+        }
         _ => {}
     }
 }
 
 fn handle_escape(app: &mut App) {
     match app.get_current_route().active_block {
-        // ActiveBlock::SearchResultBlock => {
-        //     app.search_results.selected_block = SearchResultBlock::Empty;
-        // }
+        ActiveBlock::SearchResultBlock => {
+            app.search_results.selected_block = SearchResultBlock::Empty;
+        }
         // ActiveBlock::ArtistBlock => {
         //     if let Some(artist) = &mut app.artist {
         //         artist.artist_selected_block = ArtistBlock::Empty;

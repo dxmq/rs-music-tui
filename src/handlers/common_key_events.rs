@@ -66,21 +66,20 @@ pub fn on_down_or_up_press_handler<T>(
                             return selection_data.len() - 1;
                         }
                         let next_index = selection_index + offset;
-                        if next_index > selection_data.len() - offset {
-                            0
-                        } else {
+                        return if next_index < selection_data.len() {
                             next_index
-                        }
+                        } else {
+                            0
+                        };
                     }
                     KeyAction::Up => {
                         if offset >= selection_data.len() {
                             return 0;
                         }
-                        if selection_index > 0 {
-                            selection_index - offset
-                        } else {
-                            selection_data.len() - offset
+                        if selection_index > 0 && selection_index >= offset {
+                            return selection_index - offset;
                         }
+                        0
                     }
                 };
             }

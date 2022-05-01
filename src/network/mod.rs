@@ -11,9 +11,11 @@ use crossterm::{
     terminal::{disable_raw_mode, LeaveAlternateScreen},
 };
 use tokio::sync::Mutex;
+use tokio::try_join;
 
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::IoEvent;
+use crate::handlers::search::{SearchResult, SearchResults, SearchType};
 use crate::model::context::{CurrentlyPlaybackContext, TrackTableContext};
 use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
 use crate::model::table::TrackTable;
@@ -87,11 +89,47 @@ impl<'a> Network<'a> {
             IoEvent::ToggleLikeTrack(track_id) => {
                 self.toggle_like_track(track_id).await;
             }
-            _ => {}
+            IoEvent::GetSearchResults(keyword) => {
+                self.load_search_results(&keyword).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn load_search_results(&mut self, keyword: &str) {
+        let search_tracks = self.cloud_music.cloud_search(keyword, SearchType::Track);
+        let search_albums = self.cloud_music.cloud_search(keyword, SearchType::Album);
+        let search_artists = self.cloud_music.cloud_search(keyword, SearchType::Artist);
+        let search_playlists = self.cloud_music.cloud_search(keyword, SearchType::Playlist);
+
+        match try_join!(
+            search_tracks,
+            search_albums,
+            search_artists,
+            search_playlists
+        ) {
+            Ok((
+                SearchResult::Tracks(track_results),
+                SearchResult::Albums(album_results),
+                SearchResult::Artists(artist_results),
+                SearchResult::Playlists(playlist_results),
+            )) => {
+                let mut app = self.app.lock().await;
+                app.search_results = SearchResults {
+                    tracks: Some(track_results),
+                    albums: Some(album_results),
+                    artists: Some(artist_results),
+                    playlists: Some(playlist_results),
+                    ..Default::default()
+                }
+            }
+            Err(e) => {
+                self.handle_error(e).await;
+            }
+            _ => {}
+        };
     }
 
     async fn load_recently_played(&mut self) {

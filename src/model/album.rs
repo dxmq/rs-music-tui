@@ -1,3 +1,5 @@
+use crate::model::artist::Artist;
+
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Album {
@@ -6,4 +8,6 @@ pub struct Album {
     #[serde(default)]
     pub pic_url: String,
     pub pic: usize,
+    #[serde(default)]
+    pub artist: Artist,
 }

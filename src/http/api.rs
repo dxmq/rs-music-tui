@@ -4,6 +4,7 @@ use rand::RngCore;
 use serde_json::json;
 use serde_json::Value;
 
+use crate::handlers::search::SearchType;
 use crate::http::client::ApiClient;
 use crate::http::crypto::Crypto::Eapi;
 use crate::http::request::{ApiRequestBuilder, UA};
@@ -260,17 +261,28 @@ impl CloudMusicApi {
     /// 可选参数 : limit : 返回数量 , 默认为 30 offset : 偏移数量，用于分页 , 如 : 如 :( 页数 -1)*30, 其中 30 为 limit 的值 , 默认为 0
     /// type: 搜索类型；默认为 1 即单曲 , 取值意义 : 1: 单曲, 10: 专辑, 100: 歌手, 1000: 歌单, 1002: 用户, 1004: MV, 1006: 歌词, 1009: 电台, 1014: 视频, 1018:综合
     #[allow(unused)]
-    pub async fn cloud_search(&self, key: &str, opt: Option<Value>) -> Result<ApiResponse> {
+    pub async fn cloud_search(
+        &self,
+        key: &str,
+        search_type: SearchType,
+        opt: Option<Value>,
+    ) -> Result<ApiResponse> {
+        let search_type = match search_type {
+            SearchType::Track => 1,
+            SearchType::Album => 10,
+            SearchType::Artist => 100,
+            SearchType::Playlist => 1000,
+        };
         let r = ApiRequestBuilder::post(API_ROUTE["cloudsearch"])
             .set_data(limit_offset(30, 0))
             .merge(json!({
                 "s": key,
-                "type": 1,
+                "type": search_type,
             }))
             .merge(opt.unwrap_or_default())
             .build();
 
-        self.client.request(r).await
+        self.client.cache(false).request(r).await
     }
 }
 
@@ -287,8 +299,9 @@ fn limit_offset(limit: usize, offset: usize) -> Value {
 
 #[cfg(test)]
 mod tests {
+    use crate::handlers::search::{SearchAlbumResp, SearchResultAlbum, SearchType};
     use crate::http::api::CloudMusicApi;
-    use crate::model::playlist::{PlaylistDetailResp, UserPlaylistResp};
+    use crate::model::playlist::PlaylistDetailResp;
     use crate::model::table::RecentlyPlayedResp;
     use crate::model::track::LyricResp;
     use crate::model::user::LikeTrackIdListResp;
@@ -394,7 +407,13 @@ mod tests {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_cloud_search() {
         let api = CloudMusicApi::default();
-        let resp = api.cloud_search("不问天", None).await.unwrap();
-        println!("{:#?}", resp);
+        let resp = api
+            .cloud_search("不如吃茶去", SearchType::Album, None)
+            .await
+            .unwrap();
+        println!("{}", resp);
+        let search_resp = serde_json::from_slice::<SearchAlbumResp>(resp.data()).unwrap();
+
+        println!("{:#?}", search_resp.result.unwrap());
     }
 }
