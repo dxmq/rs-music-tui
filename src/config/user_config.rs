@@ -54,7 +54,7 @@ impl UserConfig {
                 jump_to_context: Key::Char('o'),
                 manage_devices: Key::Char('d'),
                 decrease_volume: Key::Char('-'),
-                increase_volume: Key::Char('+'),
+                increase_volume: Key::Char('='),
                 toggle_playback: Key::Char(' '),
                 seek_backwards: Key::Char('<'),
                 seek_forwards: Key::Char('>'),
