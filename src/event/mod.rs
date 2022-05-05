@@ -26,4 +26,5 @@ pub enum IoEvent {
     GetLyric(usize),
     // 喜欢or不喜欢歌曲
     ToggleLikeTrack(usize),
+    ToggleSubscribePlaylist(usize)
 }

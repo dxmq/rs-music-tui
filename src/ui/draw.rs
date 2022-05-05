@@ -501,10 +501,22 @@ where
             app.search_results.selected_album_index,
         );
 
+        let sub_playlists = &app.sub_playlists.clone().unwrap();
+        let sub_ids = sub_playlists.iter().map(|item| item.id).collect::<Vec<usize>>();
         let playlists = match &app.search_results.playlists {
-            Some(playlists) => playlists.iter().map(|item| item.name.to_owned()).collect(),
+            Some(playlists) => playlists.iter().map(
+                |item| {
+                    let mut playlist_str = "".to_string();
+                    if sub_ids.contains(&item.id) {
+                        playlist_str += &app.user_config.padded_liked_icon();
+                    }
+                    playlist_str += &item.name;
+                    playlist_str
+                }
+            ).collect(),
             None => vec![],
         };
+
         draw_selectable_list(
             f,
             app,

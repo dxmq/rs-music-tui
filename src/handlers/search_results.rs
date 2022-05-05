@@ -78,6 +78,9 @@ pub fn handler(key: Key, app: &mut App) {
             SearchResultBlock::TrackSearch => {
                 handle_toggle_like_event(app);
             }
+            SearchResultBlock::PlaylistSearch => {
+                handle_toggle_subscribe_playlist_event(app);
+            }
             SearchResultBlock::Empty => {}
             _ => {}
         },
@@ -91,6 +94,14 @@ pub fn handler(key: Key, app: &mut App) {
         },
         _ => {}
     }
+}
+
+fn handle_toggle_subscribe_playlist_event(app: &mut App) {
+    let playlists = app.search_results.playlists.clone().unwrap();
+    let selected_index = app.search_results.selected_playlists_index.unwrap();
+    if let Some(playlist) = playlists.get(selected_index) {
+        app.dispatch(IoEvent::ToggleSubscribePlaylist(playlist.id));
+    };
 }
 
 fn handle_toggle_like_event(app: &mut App) {

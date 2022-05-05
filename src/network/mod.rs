@@ -92,17 +92,30 @@ impl<'a> Network<'a> {
             IoEvent::GetSearchResults(keyword) => {
                 self.load_search_results(&keyword).await;
             }
+            IoEvent::ToggleSubscribePlaylist(playlist_id) => {
+                self.playlist_subscribe(playlist_id).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
     }
 
-    #[allow(unused)]
-    async fn playlist_subscribe(&mut self, id: usize, is_subscribe: bool) {
-        let resp = self.cloud_music.playlist_subscribe(id, is_subscribe).await;
+    async fn playlist_subscribe(&mut self, playlist_id: usize) {
+        let mut app = self.app.lock().await;
+        let playlists = app.sub_playlists.clone().unwrap();
+        let mut is_subscribe = true;
+        for x in playlists {
+            if x.id == playlist_id {
+                is_subscribe = false;
+            }
+        }
+        let resp = self.cloud_music.playlist_subscribe(playlist_id, is_subscribe).await;
         match resp {
-            Ok(_) => {}
+            Ok(_) => {
+                // 重新获取用户歌单
+                app.dispatch(IoEvent::GetPlaylists);
+            }
             Err(e) => {
                 self.handle_error(e).await;
             }
