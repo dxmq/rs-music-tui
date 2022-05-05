@@ -69,7 +69,7 @@ where
     B: Backend,
 {
     if let ActiveBlock::Dialog(_) = app.get_current_route().active_block {
-        if let Some(playlist) = app.dialog.as_ref() {
+        if let Some(dialog) = app.dialog.as_ref() {
             let bounds = f.size();
             // maybe do this better
             let width = std::cmp::min(bounds.width - 2, 45);
@@ -94,15 +94,13 @@ where
                 .constraints([Constraint::Min(3), Constraint::Length(3)].as_ref())
                 .split(rect);
 
-            // suggestion: possibly put this as part of
-            // app.dialog, but would have to introduce lifetime
             let text = vec![
-                Spans::from(Span::raw("Are you sure you want to delete the playlist: ")),
+                Spans::from(Span::raw(dialog.tips.clone())),
                 Spans::from(Span::styled(
-                    playlist.as_str(),
+                    &dialog.item_name,
                     Style::default().add_modifier(Modifier::BOLD),
                 )),
-                Spans::from(Span::raw("?")),
+                Spans::from(Span::raw("？")),
             ];
             let text = Paragraph::new(text)
                 .wrap(Wrap { trim: true })
@@ -116,10 +114,10 @@ where
                 .horizontal_margin(3)
                 .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
                 .split(vchunks[1]);
-            let ok_text = Span::raw("Ok");
+            let ok_text = Span::raw("确定");
             let ok = Paragraph::new(ok_text)
-                .style(Style::default().fg(if app.confirm {
-                    app.user_config.theme.hovered
+                .style(Style::default().fg(if dialog.confirm {
+                    app.user_config.theme.active
                 } else {
                     app.user_config.theme.inactive
                 }))
@@ -128,12 +126,12 @@ where
             // Ok radio
             f.render_widget(ok, hchunks[0]);
 
-            let cancel_text = Span::raw("Cancel");
+            let cancel_text = Span::raw("取消");
             let cancel = Paragraph::new(cancel_text)
-                .style(Style::default().fg(if app.confirm {
+                .style(Style::default().fg(if dialog.confirm {
                     app.user_config.theme.inactive
                 } else {
-                    app.user_config.theme.hovered
+                    app.user_config.theme.active
                 }))
                 .alignment(Alignment::Center);
 
@@ -864,7 +862,7 @@ pub fn draw_selectable_list<B, S>(
     selected_index: Option<usize>,
 ) where
     B: Backend,
-    S: std::convert::AsRef<str>,
+    S: AsRef<str>,
 {
     let mut state = ListState::default();
     state.select(selected_index);

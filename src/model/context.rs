@@ -53,7 +53,9 @@ impl Default for CurrentlyPlaybackContext {
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum DialogContext {
     #[allow(unused)]
-    PlaylistWindow,
+    Playlist,
+    #[allow(unused)]
+    SubPlaylist,
     #[allow(unused)]
     PlaylistSearch,
 }

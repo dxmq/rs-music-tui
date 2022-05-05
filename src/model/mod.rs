@@ -10,6 +10,7 @@ pub(crate) mod show;
 pub(crate) mod table;
 pub(crate) mod track;
 pub(crate) mod user;
+pub(crate) mod dialog;
 
 #[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Id {

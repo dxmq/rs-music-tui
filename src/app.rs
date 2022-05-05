@@ -13,6 +13,7 @@ use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::handlers::search::SearchResults;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
+use crate::model::dialog::Dialog;
 use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
 use crate::model::playlist::Playlist;
 use crate::model::table::TrackTable;
@@ -131,9 +132,7 @@ pub struct App {
     pub track_table: TrackTable,
     // 接口错误
     pub api_error: String,
-    pub dialog: Option<String>,
-    // 对话框选项是否为OK
-    pub confirm: bool,
+    pub dialog: Option<Dialog>,
     pub made_for_you_index: usize,
     pub user: Option<UserProfile>,
     pub instant_since_last_current_playback_poll: Instant,
@@ -539,7 +538,6 @@ impl Default for App {
             library: Library { selected_index: 0 },
             api_error: String::new(),
             dialog: None,
-            confirm: false,
             made_for_you_index: 0,
             user: None,
             track_table: Default::default(),

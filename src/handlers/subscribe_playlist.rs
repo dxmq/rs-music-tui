@@ -2,6 +2,7 @@ use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
 use crate::model::context::{DialogContext, TrackTableContext};
+use crate::model::dialog::Dialog;
 
 pub fn handler(key: Key, app: &mut App) {
     match key {
@@ -77,12 +78,14 @@ pub fn handler(key: Key, app: &mut App) {
                 (&app.sub_playlists, app.selected_sub_playlist_index)
             {
                 let selected_playlist = &sub_playlists[selected_index].name;
-                app.dialog = Some(selected_playlist.clone());
-                app.confirm = false;
-
+                app.dialog = Some(Dialog {
+                    tips: "确定要取消收藏歌单：".to_string(),
+                    item_name: selected_playlist.clone(),
+                    confirm: false
+                });
                 app.push_navigation_stack(
                     RouteId::Dialog,
-                    ActiveBlock::Dialog(DialogContext::PlaylistWindow),
+                    ActiveBlock::Dialog(DialogContext::SubPlaylist),
                 );
             }
         }

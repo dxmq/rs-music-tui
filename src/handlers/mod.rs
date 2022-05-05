@@ -19,6 +19,7 @@ pub(crate) mod search;
 mod search_results;
 mod subscribe_playlist;
 pub(crate) mod track_table;
+mod dialog;
 
 pub fn handle_app(key: Key, app: &mut App) {
     match key {
@@ -109,6 +110,9 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::SearchResultBlock => {
             search_results::handler(key, app);
+        }
+        ActiveBlock::Dialog(_) => {
+            dialog::handler(key, app);
         }
         _ => {}
     }
