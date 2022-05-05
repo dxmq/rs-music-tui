@@ -308,6 +308,7 @@ impl<'a> Network<'a> {
                         None => {
                             let track = context.item.as_ref().unwrap();
                             let PlayingItem::Track(track) = track;
+                            let track_id = track.id;
                             match self.cloud_music.song_url(vec![track.id]).await {
                                 Ok(urls) => {
                                     match self.player.play_url(urls.get(0).unwrap().url.as_str()) {
@@ -317,6 +318,8 @@ impl<'a> Network<'a> {
                                             app.instant_since_last_current_playback_poll =
                                                 Instant::now();
                                             app.current_playback_context = Some(context);
+
+                                            app.dispatch(IoEvent::GetLyric(track_id));
                                         }
                                         Err(e) => {
                                             app.handle_error(e);
@@ -338,7 +341,8 @@ impl<'a> Network<'a> {
 
     async fn start_playback(&mut self, mut track: Track) {
         let mut t = track.clone();
-        match self.cloud_music.song_url(vec![track.id]).await {
+        let track_id = t.id;
+        match self.cloud_music.song_url(vec![track_id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
                     let mut app = self.app.lock().await;
@@ -373,6 +377,9 @@ impl<'a> Network<'a> {
                             app.instant_since_last_current_playback_poll = Instant::now();
                             app.volume = self.player.get_volume();
                             self.cache_play_record(t, &mut *app);
+                            app.dispatch(IoEvent::GetLyric(track_id));
+                            app.seek_ms.take();
+                            app.is_fetching_current_playback = false;
                         }
                         Err(e) => {
                             app.handle_error(e);
@@ -382,10 +389,6 @@ impl<'a> Network<'a> {
             }
             Err(e) => self.handle_error(e).await,
         }
-
-        let mut app = self.app.lock().await;
-        app.seek_ms.take();
-        app.is_fetching_current_playback = false;
     }
 
     fn cache_play_record(&mut self, t: Track, app: &mut App) {

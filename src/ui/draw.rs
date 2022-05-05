@@ -294,16 +294,32 @@ where
                 PlayingItem::Track(track) => create_artist_string(&track.artists),
             };
 
+            let content = format!("{} | {}", track_name, play_bar_text);
+
+            let lyric_index = app.lyric_index;
+            let lyrics = &app.lyric;
+            let mut lyric_line = "";
+            if let Some(context) = &app.current_playback_context {
+                if context.is_playing {
+                    if let Some(lyrics) = lyrics {
+                        if let Some(lyric) = lyrics.get(lyric_index) {
+                            lyric_line = &lyric.lyric;
+                        }
+                    }
+                }
+            }
+
             let lines = Text::from(Span::styled(
-                play_bar_text,
+                lyric_line,
                 Style::default().fg(app.user_config.theme.playbar_text),
             ));
 
             let artist = Paragraph::new(lines)
                 .style(Style::default().fg(app.user_config.theme.playbar_text))
+                .alignment(Alignment::Center)
                 .block(
                     Block::default().title(Span::styled(
-                        &track_name,
+                        &content,
                         Style::default()
                             .fg(app.user_config.theme.selected)
                             .add_modifier(Modifier::BOLD),

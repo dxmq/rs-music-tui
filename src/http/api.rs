@@ -182,7 +182,7 @@ impl CloudMusicApi {
         self.client.request(r).await
     }
 
-    // 说明 : 调用此接口 , 传入音乐 id 可获得对应音乐的歌词 ( 不需要登录 )
+    // 说明 : 调用此接口 , 传入音乐 id 可获得对应音乐的歌词
     // 必选参数 : id: 音乐 id
     pub async fn lyric(&self, id: usize) -> Result<ApiResponse> {
         let r = ApiRequestBuilder::post(API_ROUTE["lyric"])
@@ -190,7 +190,7 @@ impl CloudMusicApi {
             .set_data(json!({ "id": id, "lv": -1, "tv": -1, "kv": -1 }))
             .build();
 
-        self.client.request(r).await
+        self.client.cache(true).request(r).await
     }
 
     #[allow(unused)]
