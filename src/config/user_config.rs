@@ -96,6 +96,12 @@ impl UserConfig {
         }
     }
 
+    pub fn get_cache_path(&mut self) -> Result<PathBuf> {
+        let app_config_dir = UserConfig::build_app_config_dir()?;
+        let cache_file_path = app_config_dir.join(CACHE_FILE_NAME);
+        Ok(cache_file_path)
+    }
+
     fn build_paths(&mut self) -> Result<()> {
         let app_config_dir = UserConfig::build_app_config_dir()?;
         let config_file_path = app_config_dir.join(CONFIG_FILE_NAME);

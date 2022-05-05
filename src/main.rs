@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
         let config_file_path = PathBuf::from(config_file_path);
         let config_path = UserConfigPath {
             config_file_path,
-            cache_file_path: PathBuf::new(),
+            cache_file_path: user_config.get_cache_path().unwrap(),
         };
         user_config.path_to_config.replace(config_path);
     }

@@ -284,6 +284,25 @@ impl CloudMusicApi {
 
         self.client.cache(false).request(r).await
     }
+
+    #[allow(unused)]
+    pub async fn playlist_subscribe(&self, id: usize, is_subscribe: bool) -> Result<ApiResponse> {
+        let subscribe = if is_subscribe {
+            "subscribe"
+        } else {
+            "unsubscribe"
+        };
+        let u = replace_all_route_params(API_ROUTE["playlist_subscribe"], subscribe);
+        let r = ApiRequestBuilder::post(&u)
+            .set_data(json!({"id": id}))
+            .build();
+        self.client.request(r).await
+    }
+}
+
+fn replace_all_route_params(u: &str, rep: &str) -> String {
+    let re = regex::Regex::new(r"\$\{.*\}").unwrap();
+    re.replace_all(u, rep).to_string()
 }
 
 fn md5_hex(pt: &[u8]) -> String {
@@ -299,7 +318,7 @@ fn limit_offset(limit: usize, offset: usize) -> Value {
 
 #[cfg(test)]
 mod tests {
-    use crate::handlers::search::{SearchAlbumResp, SearchResultAlbum, SearchType};
+    use crate::handlers::search::{SearchAlbumResp, SearchType};
     use crate::http::api::CloudMusicApi;
     use crate::model::playlist::PlaylistDetailResp;
     use crate::model::table::RecentlyPlayedResp;
@@ -415,5 +434,12 @@ mod tests {
         let search_resp = serde_json::from_slice::<SearchAlbumResp>(resp.data()).unwrap();
 
         println!("{:#?}", search_resp.result.unwrap());
+    }
+
+    #[tokio::test(flavor="multi_thread")]
+    async fn test_playlist_subscribe() {
+        let api = CloudMusicApi::default();
+        let resp = api.playlist_subscribe(12671414, true).await.unwrap();
+        println!("{}", resp);
     }
 }

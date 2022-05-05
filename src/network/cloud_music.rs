@@ -221,6 +221,15 @@ impl CloudMusic {
         Ok(SearchResult::new(search_type))
     }
 
+    pub async fn playlist_subscribe(&self, id: usize, is_subscribe: bool) -> Result<()> {
+        let resp = self.api.playlist_subscribe(id, is_subscribe).await?;
+        let code = resp.deserialize_to_implict().code;
+        if code != 200 {
+            return Err(anyhow!("收藏歌单失败！"));
+        }
+        Ok(())
+    }
+
     #[allow(unused)]
     fn mk_lyric(value: String, timestamp: regex::Captures, offset: u32) -> Lyric {
         let minute = timestamp[1].parse::<u64>().unwrap_or(0);

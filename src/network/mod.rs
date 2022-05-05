@@ -98,6 +98,17 @@ impl<'a> Network<'a> {
         app.is_loading = false;
     }
 
+    #[allow(unused)]
+    async fn playlist_subscribe(&mut self, id: usize, is_subscribe: bool) {
+        let resp = self.cloud_music.playlist_subscribe(id, is_subscribe).await;
+        match resp {
+            Ok(_) => {}
+            Err(e) => {
+                self.handle_error(e).await;
+            }
+        }
+    }
+
     async fn load_search_results(&mut self, keyword: &str) {
         let search_tracks = self.cloud_music.cloud_search(keyword, SearchType::Track);
         let search_albums = self.cloud_music.cloud_search(keyword, SearchType::Album);
@@ -378,14 +389,14 @@ impl<'a> Network<'a> {
                         new_tracks.push(t);
                     }
                     let new_json = serde_json::to_string(&new_tracks).unwrap_or(String::from(""));
-                    if std::fs::write(cache_file_path, new_json).is_ok() {};
-                }
-            } else {
-                let tracks = vec![t];
-                if let Ok(json) = serde_json::to_string(&tracks) {
-                    if std::fs::write(cache_file_path, json).is_ok() {}
+                    if std::fs::write(&cache_file_path, new_json).is_ok() {};
+                    return;
                 }
             }
+        }
+        let tracks = vec![t];
+        if let Ok(json) = serde_json::to_string(&tracks) {
+            if std::fs::write(&cache_file_path, json).is_ok() {}
         }
     }
 
