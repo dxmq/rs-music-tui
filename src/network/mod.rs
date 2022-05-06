@@ -348,7 +348,7 @@ impl<'a> Network<'a> {
                             let track_id = track.id;
                             match self.cloud_music.song_url(vec![track.id]).await {
                                 Ok(urls) => {
-                                    match self.player.play_url(urls.get(0).unwrap().url.as_str()) {
+                                    match self.player.play_url(urls.get(0).cloned().unwrap().url.unwrap().as_str()) {
                                         Ok(()) => {
                                             context.is_playing = true;
                                             app.start_time =
@@ -391,7 +391,7 @@ impl<'a> Network<'a> {
                             t.duration = duration;
                         }
                     }
-                    match self.player.play_url(track_url.url.as_str()) {
+                    match self.player.play_url(track_url.url.clone().unwrap().as_str()) {
                         Ok(_) => {
                             match app.current_playback_context.clone() {
                                 Some(mut context) => {

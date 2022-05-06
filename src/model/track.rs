@@ -25,7 +25,7 @@ pub struct Track {
 #[serde(rename_all = "camelCase")]
 pub struct TrackUrl {
     pub id: usize,
-    pub url: String,
+    pub url: Option<String>,
     pub br: usize,
     // 1vip收费，0免费
     pub fee: usize,

@@ -77,6 +77,19 @@ impl CloudMusic {
     pub async fn song_url(&self, track_id: Vec<usize>) -> Result<Vec<TrackUrl>> {
         let resp = self.api.song_url(&track_id).await?;
         let song_url_resp = serde_json::from_slice::<TrackUrlResp>(resp.data())?;
+        if song_url_resp.code != 200 {
+            return Err(anyhow!("播放失败"));
+        }
+        match song_url_resp.data.get(0) {
+            None => {
+                return Err(anyhow!("播放失败"));
+            }
+            Some(track_url) => {
+                if track_url.url.is_none() {
+                    return Err(anyhow!("播放失败"));
+                }
+            }
+        }
         Ok(song_url_resp.data)
     }
 
