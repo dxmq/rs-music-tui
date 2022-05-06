@@ -2,16 +2,22 @@ extern crate rodio;
 extern crate tempfile;
 extern crate tokio;
 
-mod fetch;
-mod track;
+use std::{fs, thread, time};
+use std::fs::File;
+use std::sync::mpsc::Sender;
+use std::time::Duration;
 
-use crate::player::fetch::fetch_data;
-use crate::player::track::Track;
 use anyhow::Result;
 use futures::channel::oneshot;
 use log::debug;
-use std::sync::mpsc::Sender;
-use std::{fs, thread, time};
+use rodio::{Decoder, Sink, Source};
+use rodio::decoder::DecoderError;
+
+use crate::player::fetch::fetch_data;
+use crate::player::track::Track;
+
+mod fetch;
+mod track;
 
 #[allow(unused)]
 pub enum PlayerCommand {
@@ -70,6 +76,7 @@ impl Nplayer {
         self.player.stop()
     }
 
+    #[allow(unused)]
     pub fn get_position(&self) -> Option<u64> {
         self.player
             .current
@@ -86,27 +93,8 @@ impl Nplayer {
     }
 
     #[allow(unused)]
-    pub fn seek_forwards(&mut self) {
-        // let next_duration = self.get_position().unwrap() + 3000;
-        // self.player.seek(ClockTime::from_mseconds(next_duration))
-    }
-
-    #[allow(unused)]
-    pub fn seek_backwards(&mut self) {
-        // let song_progress_ms = self.get_position().unwrap();
-        // let next_duration = if song_progress_ms < 3000 {
-        // 0
-        // } else {
-        // song_progress_ms - 3000
-        // };
-        // self.player.seek(ClockTime::from_mseconds(next_duration))
-    }
-
-    #[allow(unused)]
-    pub fn seek(&mut self, offset: i32) {
-        let next_duration = self.get_position().unwrap() as i32 + (offset * 1000);
-        // self.player
-        // .seek(ClockTime::from_mseconds(next_duration as u64))
+    pub fn seek(&mut self, next_duration: Duration) {
+        self.player.seek(next_duration)
     }
 
     #[allow(unused)]
@@ -247,7 +235,26 @@ impl Player {
     }
 
     #[allow(unused)]
-    pub fn seek(&self, position_ms: u32) {}
+    pub fn seek(&mut self, position_ms: Duration) {
+        if let Some(track) = &self.current {
+            let path = &track.file;
+            match get_audio_source(path) {
+                Ok(source) => {
+                    self.new_sink().unwrap();
+                    self.sink.append(source.skip_duration(position_ms));
+                    // self.sink.play();
+                }
+                Err(err) => {
+                    println!("{}", err);
+                }
+            };
+        }
+    }
+
+    fn new_sink(&mut self) -> Result<()> {
+        self.sink = Sink::try_new(&self.stream_handle)?;
+        Ok(())
+    }
 
     pub fn status(&self) -> bool {
         self.state.is_playing()
@@ -261,6 +268,11 @@ impl Player {
     pub fn set_volume(&self, volume: f32) {
         self.sink.set_volume(volume)
     }
+}
+
+pub fn get_audio_source(path: &str) -> Result<Decoder<File>, DecoderError> {
+    let file = File::open(path).unwrap();
+    Decoder::new(file)
 }
 
 // drop player

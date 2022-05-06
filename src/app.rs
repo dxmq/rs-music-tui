@@ -105,6 +105,8 @@ pub struct App {
     pub help_menu_offset: u32,
     pub home_scroll: u16,
     pub current_playback_context: Option<CurrentlyPlaybackContext>,
+    // 播放开始时间
+    pub start_time: Instant,
     // 歌曲播放进度毫秒
     pub song_progress_ms: u128,
     // 滑动进度毫秒
@@ -135,7 +137,6 @@ pub struct App {
     pub dialog: Option<Dialog>,
     pub made_for_you_index: usize,
     pub user: Option<UserProfile>,
-    pub instant_since_last_current_playback_poll: Instant,
     pub is_fetching_current_playback: bool,
     pub large_search_limit: u32,
     pub volume: f32,
@@ -240,44 +241,23 @@ impl App {
         self.api_error = e.to_string();
     }
 
-    // fn poll_current_playback(&mut self) {
-    //     // Poll every 5 seconds
-    //     let poll_interval_ms = 5_000;
-    //
-    //     let elapsed = self
-    //         .instant_since_last_current_playback_poll
-    //         .elapsed()
-    //         .as_millis();
-    //
-    //     if !self.is_fetching_current_playback && elapsed >= poll_interval_ms {
-    //         self.is_fetching_current_playback = true;
-    //         // Trigger the seek if the user has set a new position
-    //         // match self.seek_ms {
-    //         //     Some(seek_ms) => self.apply_seek(seek_ms as u32),
-    //         //     None => self.dispatch(IoEvent::GetCurrentPlayback),
-    //         // }
-    //     }
-    // }
-
     pub fn update_on_tick(&mut self) {
         // self.poll_current_playback();
         if let Some(CurrentlyPlaybackContext {
             item: Some(item),
-            progress_ms: Some(progress_ms),
             is_playing,
             ..
         }) = &self.current_playback_context
         {
-            // Update progress even when the song is not playing,
-            // because seeking is possible while paused
-            let elapsed = if *is_playing {
-                self.instant_since_last_current_playback_poll
-                    .elapsed()
-                    .as_millis()
-            } else {
-                0u128
-            } + u128::from(*progress_ms);
-
+            let playings = *is_playing;
+            let elapsed =
+                if playings {
+                    self.start_time
+                        .elapsed()
+                        .as_millis()
+                } else {
+                    self.song_progress_ms
+                };
             let duration_ms = match item {
                 PlayingItem::Track(track) => track.duration as u32,
             };
@@ -295,7 +275,7 @@ impl App {
                     }
                 }
             }
-            if self.get_current_route().active_block == ActiveBlock::Lyric {
+            if playings && self.get_current_route().active_block == ActiveBlock::Lyric {
                 if self.circle_flag {
                     self.playing_circle = Circle {
                         circle: &CIRCLE,
@@ -309,13 +289,15 @@ impl App {
                 }
                 self.circle_flag = !self.circle_flag;
             }
+
             match &self.lyric {
                 Some(lyrics) => {
                     let next_lyric = lyrics.get(self.lyric_index + 1);
-                    // check current ms and lyric timeline
                     match next_lyric {
                         Some(next_lyric) => {
-                            if self.song_progress_ms as u128 >= next_lyric.timeline.as_millis() {
+                            let timeline = next_lyric.timeline.as_millis();
+                            let progress_ms = self.song_progress_ms;
+                            if progress_ms as u128 > timeline {
                                 self.lyric_index += 1;
                             }
                         }
@@ -541,7 +523,7 @@ impl Default for App {
             made_for_you_index: 0,
             user: None,
             track_table: Default::default(),
-            instant_since_last_current_playback_poll: Instant::now(),
+            start_time: Instant::now(),
             is_fetching_current_playback: false,
             large_search_limit: 20,
             volume: 1f32,

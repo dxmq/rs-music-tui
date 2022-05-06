@@ -144,7 +144,7 @@ impl CloudMusicApi {
             rb = rb.add_cookie("_ntes_nuid", &hex::encode(token));
         }
 
-        self.client.cache(true).request(rb.build()).await
+        self.client.cache(false).request(rb.build()).await
     }
 
     /// 说明 : 登录后调用此接口 ,可获取用户账号信息

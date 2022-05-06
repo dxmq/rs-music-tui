@@ -65,6 +65,12 @@ pub fn handle_app(key: Key, app: &mut App) {
                 }
             }
         }
+        _ if key == app.user_config.keys.seek_forwards => {
+            app.dispatch(IoEvent::SeekForwards)
+        }
+        _ if key == app.user_config.keys.seek_backwards => {
+            app.dispatch(IoEvent::SeekBackForwards)
+        }
         _ => handle_block_events(key, app),
     }
 }

@@ -1,6 +1,6 @@
 use std::panic::PanicInfo;
 use std::sync::Arc;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use anyhow::Error;
 use backtrace::Backtrace;
@@ -95,10 +95,50 @@ impl<'a> Network<'a> {
             IoEvent::ToggleSubscribePlaylist(playlist_id) => {
                 self.playlist_subscribe(playlist_id).await;
             }
+            IoEvent::SeekForwards => {
+                self.seek(true).await;
+            }
+            IoEvent::SeekBackForwards => {
+                self.seek(false).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn seek(&mut self, is_forward: bool) {
+        let mut app = self.app.lock().await;
+        if app.current_playback_context.clone().is_some() {
+            let start_time = app.start_time;
+            let mut next_duration;
+            if is_forward {
+                next_duration = start_time.elapsed() + Duration::from_millis(10000);
+                if let Some(track_duration) = self.player.get_duration() {
+                    if next_duration.as_millis() as u64 > track_duration {
+                        next_duration = Duration::from_millis(track_duration)
+                    }
+                }
+                app.start_time = start_time - Duration::from_millis(10000);
+            } else if start_time.elapsed() > Duration::from_millis(10000) {
+                next_duration = start_time.elapsed() - Duration::from_millis(10000);
+                app.start_time = start_time + Duration::from_millis(10000);
+
+                if app.lyric.is_some() {
+                    if app.lyric_index <= 5 {
+                        app.lyric_index = 0;
+                    } else {
+                        app.lyric_index -= 5;
+                    }
+                }
+            } else {
+                app.lyric_index = 0;
+                next_duration = Duration::from_millis(0);
+                app.start_time = Instant::now();
+            }
+            app.song_progress_ms = next_duration.as_millis();
+            self.player.seek(next_duration);
+        }
     }
 
     async fn playlist_subscribe(&mut self, playlist_id: usize) {
@@ -264,7 +304,6 @@ impl<'a> Network<'a> {
                     let track = recent_play_list.get(0).unwrap();
                     let context = CurrentlyPlaybackContext {
                         is_playing: false,
-                        progress_ms: Some(0),
                         timestamp: 0,
                         currently_playing_type: CurrentlyPlayingType::Track,
                         repeat_state: RepeatState::Off,
@@ -292,16 +331,14 @@ impl<'a> Network<'a> {
             Some(mut context) => {
                 if self.player.is_playing() {
                     context.is_playing = false;
-                    context.progress_ms = Some(app.song_progress_ms as u32);
-                    app.instant_since_last_current_playback_poll = Instant::now();
+                    app.start_time = Instant::now();
                     app.current_playback_context = Some(context);
                     self.player.pause();
                 } else {
                     match self.player.get_duration() {
                         Some(_) => {
                             context.is_playing = true;
-                            context.progress_ms = Some(app.song_progress_ms as u32);
-                            app.instant_since_last_current_playback_poll = Instant::now();
+                            app.start_time = Instant::now();
                             app.current_playback_context = Some(context);
                             self.player.play();
                         }
@@ -314,8 +351,7 @@ impl<'a> Network<'a> {
                                     match self.player.play_url(urls.get(0).unwrap().url.as_str()) {
                                         Ok(()) => {
                                             context.is_playing = true;
-                                            context.progress_ms = Some(app.song_progress_ms as u32);
-                                            app.instant_since_last_current_playback_poll =
+                                            app.start_time =
                                                 Instant::now();
                                             app.current_playback_context = Some(context);
 
@@ -330,6 +366,8 @@ impl<'a> Network<'a> {
                             }
                         }
                     }
+                    let duration = Duration::from_millis(app.song_progress_ms as u64);
+                    app.start_time = Instant::now() - duration;
                 }
                 app.volume = self.player.get_volume();
             }
@@ -364,7 +402,6 @@ impl<'a> Network<'a> {
                                 None => {
                                     let context = CurrentlyPlaybackContext {
                                         is_playing: true,
-                                        progress_ms: Some(0),
                                         timestamp: 0,
                                         currently_playing_type: CurrentlyPlayingType::Track,
                                         repeat_state: RepeatState::Off,
@@ -374,7 +411,7 @@ impl<'a> Network<'a> {
                                 }
                             }
 
-                            app.instant_since_last_current_playback_poll = Instant::now();
+                            app.start_time = Instant::now();
                             app.volume = self.player.get_volume();
                             self.cache_play_record(t, &mut *app);
                             app.dispatch(IoEvent::GetLyric(track_id));

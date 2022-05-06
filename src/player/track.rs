@@ -11,6 +11,7 @@ pub enum Status {
 
 impl Status {
     // Time elapsed
+    #[allow(unused)]
     pub fn elapsed(self) -> ::std::time::Duration {
         match self {
             Status::Stopped(d) => d,
@@ -54,6 +55,7 @@ impl Track {
         self.duration
     }
 
+    #[allow(unused)]
     pub fn elapsed(&self) -> Duration {
         self.status.elapsed()
     }

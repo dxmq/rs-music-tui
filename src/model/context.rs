@@ -8,8 +8,6 @@ use crate::model::track::Track;
 pub struct CurrentlyPlaybackContext {
     // 播放状态
     pub is_playing: bool,
-    // 当前进度（毫秒）
-    pub progress_ms: Option<u32>,
     pub timestamp: u64,
     // 当前播放的是什么
     pub currently_playing_type: CurrentlyPlayingType,
@@ -32,7 +30,6 @@ impl Default for CurrentlyPlaybackContext {
     fn default() -> Self {
         CurrentlyPlaybackContext {
             is_playing: false,
-            progress_ms: Some(0),
             timestamp: 0,
             currently_playing_type: CurrentlyPlayingType::Track,
             repeat_state: RepeatState::Off,
