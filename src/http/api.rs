@@ -193,6 +193,7 @@ impl CloudMusicApi {
         self.client.cache(true).request(r).await
     }
 
+    // 记录播放次数
     #[allow(unused)]
     pub async fn weblog(&self, track_id: usize) -> Result<ApiResponse> {
         let data = format!(

@@ -29,4 +29,5 @@ pub enum IoEvent {
     ToggleSubscribePlaylist(usize),
     SeekForwards,
     SeekBackForwards,
+    WebLog(usize),
 }

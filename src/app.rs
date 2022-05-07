@@ -289,6 +289,9 @@ impl App {
     }
 
     pub fn toggle_track(&mut self, track: Track, state: ToggleState) {
+        // 单曲播放次数+1
+        self.dispatch(IoEvent::WebLog(track.id));
+
         if let Some(context) = &self.current_playback_context {
             match context.repeat_state {
                 RepeatState::Track => {

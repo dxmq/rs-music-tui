@@ -621,7 +621,7 @@ where
             width: get_percentage_width(layout_chunk.width, 0.5),
         }],
     };
-    let selected_style = Style::default().fg(Color::LightRed);
+    let selected_style = Style::default().fg(Color::Rgb(18, 150, 136));
     let rows = row_items.iter().enumerate().map(|(i, item)| {
         let mut style = Style::default().fg(Color::White); // default styling
         if i == selected_index - margin {

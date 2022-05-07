@@ -243,6 +243,10 @@ impl CloudMusic {
         Ok(())
     }
 
+    pub async fn weblog(&self, track_id: usize) {
+        if (self.api.weblog(track_id).await).is_ok() {};
+    }
+
     #[allow(unused)]
     fn mk_lyric(value: String, timestamp: regex::Captures, offset: u32) -> Lyric {
         let minute = timestamp[1].parse::<u64>().unwrap_or(0);
@@ -254,6 +258,7 @@ impl CloudMusic {
             timeline: Duration::new(duration_min, nano + offset),
         }
     }
+
 }
 
 #[cfg(test)]

@@ -101,10 +101,17 @@ impl<'a> Network<'a> {
             IoEvent::SeekBackForwards => {
                 self.seek(false).await;
             }
+            IoEvent::WebLog(track_id) => {
+                self.weblog(track_id).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn weblog(&mut self, track_id: usize) {
+        self.cloud_music.weblog(track_id).await;
     }
 
     async fn seek(&mut self, is_forward: bool) {
