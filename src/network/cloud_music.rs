@@ -23,9 +23,16 @@ pub struct CloudMusic {
 
 impl CloudMusic {
     pub async fn current_user(&self) -> Result<Option<UserProfile>> {
-        let resp = self.api.user_account().await?;
-        let resp = serde_json::from_slice::<UserAccountResp>(resp.data())?;
-        Ok(resp.profile)
+        return match self.api.user_account().await {
+            Ok(resp) => {
+                let resp = serde_json::from_slice::<UserAccountResp>(resp.data())?;
+                if resp.code != 200 {
+                    return Err(anyhow!("网络连接错误"));
+                }
+                Ok(resp.profile)
+            }
+            _ => Err(anyhow!("网络连接错误")),
+        };
     }
 
     pub async fn current_user_playlists<L: Into<Option<u32>>, O: Into<Option<u32>>>(
@@ -35,19 +42,10 @@ impl CloudMusic {
         app: &Arc<Mutex<App>>,
     ) -> Result<Vec<Playlist>> {
         let app = app.lock().await;
-        // let cache_file_path = app
-        //     .user_config
-        //     .path_to_config
-        //     .as_ref()
-        //     .unwrap()
-        //     .cache_file_path
-        //     .clone();
-        // let json_string = std::fs::read_to_string(&cache_file_path);
-        // if let Ok(json_string) = json_string {
-        //     if let Ok(playlist) = serde_json::from_str::<Vec<Playlist>>(&json_string) {
-        //         return Ok(playlist);
-        //     }
-        // }
+        let error_msg = "歌单获取失败";
+        if app.user.is_none() {
+            return Err(anyhow!(error_msg));
+        }
         let mut params = serde_json::Map::new();
         let limit = serde_json::Value::String(limit.into().unwrap_or(50).to_string());
         let offset = serde_json::Value::String(offset.into().unwrap_or(0).to_string());
@@ -60,11 +58,9 @@ impl CloudMusic {
             .user_playlist(app.user.as_ref().unwrap().user_id, Some(params))
             .await?;
         let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data())?;
-
-        // let json_res = serde_json::to_string(&resp.playlist);
-        // if let Ok(json) = json_res {
-        //     std::fs::write(&cache_file_path, json).unwrap();
-        // }
+        if resp.code != 200 {
+            return Err(anyhow!(error_msg));
+        }
         Ok(resp.playlist)
     }
 
@@ -75,22 +71,14 @@ impl CloudMusic {
     }
 
     pub async fn song_url(&self, track_id: Vec<usize>) -> Result<Vec<TrackUrl>> {
-        let resp = self.api.song_url(&track_id).await?;
-        let song_url_resp = serde_json::from_slice::<TrackUrlResp>(resp.data())?;
-        if song_url_resp.code != 200 {
-            return Err(anyhow!("播放失败"));
-        }
-        match song_url_resp.data.get(0) {
-            None => {
-                return Err(anyhow!("播放失败"));
-            }
-            Some(track_url) => {
-                if track_url.url.is_none() {
-                    return Err(anyhow!("播放失败"));
-                }
+        if let Ok(resp) = self.api.song_url(&track_id).await {
+            let song_url_resp = serde_json::from_slice::<TrackUrlResp>(resp.data())?;
+            let track_url = song_url_resp.data.get(0);
+            if song_url_resp.code == 200 && track_url.is_some() {
+                return Ok(song_url_resp.data);
             }
         }
-        Ok(song_url_resp.data)
+        return Err(anyhow!("播放失败"));
     }
 
     pub async fn recent_song_list(&self, limit: u32) -> Result<Vec<Track>> {
@@ -117,9 +105,14 @@ impl CloudMusic {
     }
 
     pub async fn like_track_id_list(&self, user_id: usize) -> Result<HashSet<usize>> {
-        let resp = self.api.like_list(user_id).await?;
-        let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data())?;
-        Ok(resp.ids)
+        if let Ok(resp) = self.api.like_list(user_id).await {
+            let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data())?;
+            if resp.code != 200 {
+                return Err(anyhow!("网络连接错误"));
+            }
+            return Ok(resp.ids);
+        }
+        return Err(anyhow!("网络连接错误"));
     }
 
     pub async fn lyric(&self, track_id: usize) -> Result<Vec<Lyric>> {
@@ -246,6 +239,11 @@ impl CloudMusic {
     pub async fn weblog(&self, track_id: usize) {
         if (self.api.weblog(track_id).await).is_ok() {};
     }
+    //
+    // pub async fn user_follows(&self, uid: usize, limit: usize, offset: usize) -> Result<()> {
+    //     let resp = self.api.user_follows(uid, limit, offset).await?;
+    //     Ok(())
+    // }
 
     #[allow(unused)]
     fn mk_lyric(value: String, timestamp: regex::Captures, offset: u32) -> Lyric {
@@ -258,7 +256,6 @@ impl CloudMusic {
             timeline: Duration::new(duration_min, nano + offset),
         }
     }
-
 }
 
 #[cfg(test)]

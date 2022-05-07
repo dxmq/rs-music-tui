@@ -299,8 +299,18 @@ impl CloudMusicApi {
             .build();
         self.client.request(r).await
     }
-}
 
+    // 说明 : 调用此接口,可获取收藏的歌手列表
+    #[allow(unused)]
+    pub async fn artist_sublist(&self, limit: usize, offset: usize) -> Result<ApiResponse> {
+        let r = ApiRequestBuilder::post(API_ROUTE["artist_sublist"])
+            .set_data(limit_offset(limit, offset))
+            .insert("total", Value::Bool(true))
+            .build();
+
+        self.client.request(r).await
+    }
+}
 fn replace_all_route_params(u: &str, rep: &str) -> String {
     let re = regex::Regex::new(r"\$\{.*\}").unwrap();
     re.replace_all(u, rep).to_string()
@@ -442,5 +452,12 @@ mod tests {
         let api = CloudMusicApi::default();
         let resp = api.playlist_subscribe(12671414, true).await.unwrap();
         println!("{}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_sublist() {
+        let api = CloudMusicApi::default();
+        let resp = api.artist_sublist(30, 0).await;
+        println!("{:?}", resp);
     }
 }

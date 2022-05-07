@@ -25,7 +25,7 @@ const DEFAULT_ROUTE: Route = Route {
     hovered_block: ActiveBlock::Library,
 };
 
-pub const LIBRARY_OPTIONS: [&str; 3] = ["我喜欢", "最近播放", "每日推荐"];
+pub const LIBRARY_OPTIONS: [&str; 4] = ["我喜欢", "最近播放", "每日推荐", "我的关注"];
 
 #[derive(Clone)]
 pub struct Library {
