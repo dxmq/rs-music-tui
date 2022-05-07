@@ -737,7 +737,7 @@ where
     );
     let welcome = Block::default()
         .title(Span::styled(
-            "Welcome!",
+            "欢迎!",
             get_color(highlight_state, app.user_config.theme),
         ))
         .borders(Borders::ALL)
@@ -749,8 +749,39 @@ where
 
     let top_text = Paragraph::new(top_text)
         .style(Style::default().fg(app.user_config.theme.text))
+        .alignment(Alignment::Center)
         .block(Block::default());
     f.render_widget(top_text, chunks[0]);
+
+    let mut usage: Vec<Spans> = vec![Spans::from(Span::styled(
+        "",
+        Style::default().fg(Color::Yellow),
+    ))];
+
+    let docs = get_help_docs(&app.user_config.keys);
+    for x in &docs {
+        usage.push(Spans::from(vec![
+            Span::styled(
+                x.get(0)
+                    .unwrap()
+                    .pad_to_width_with_alignment(60, pad::Alignment::Left),
+                Style::default().fg(Color::Magenta),
+            ),
+            Span::styled(
+                x.get(1)
+                    .unwrap()
+                    .pad_to_width_with_alignment(30, pad::Alignment::Left),
+                Style::default().fg(Color::Yellow),
+            ),
+        ]))
+    }
+
+    f.render_widget(
+        Paragraph::new(usage)
+            .alignment(Alignment::Center)
+            .scroll((app.home_scroll, 0)),
+        chunks[1],
+    );
 }
 
 pub fn draw_user_block<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
