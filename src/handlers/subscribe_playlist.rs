@@ -81,7 +81,7 @@ pub fn handler(key: Key, app: &mut App) {
                 app.dialog = Some(Dialog {
                     tips: "确定要取消收藏歌单：".to_string(),
                     item_name: selected_playlist.clone(),
-                    confirm: false
+                    confirm: false,
                 });
                 app.push_navigation_stack(
                     RouteId::Dialog,

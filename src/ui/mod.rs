@@ -1,6 +1,6 @@
 use std::cmp::{max, min};
 use std::io;
-use std::io::stdout;
+use std::io::{stdout, Stdout};
 use std::sync::Arc;
 
 use anyhow::Result;
@@ -25,15 +25,14 @@ use crate::event::Key;
 use crate::handlers;
 use crate::util::SMALL_TERMINAL_HEIGHT;
 
-pub(crate) mod circle;
 pub(crate) mod draw;
 mod help;
 
 pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<()> {
-    // Terminal initialization
+    // 设置终端
+    enable_raw_mode()?;
     let mut stdout = stdout();
     execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    enable_raw_mode()?;
 
     let mut backend = CrosstermBackend::new(stdout);
 
@@ -153,14 +152,14 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
         }
     }
 
-    terminal.show_cursor()?;
-    close_application()?;
+    close_application(terminal)?;
     Ok(())
 }
 
-fn close_application() -> Result<()> {
+fn close_application(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> Result<()> {
     disable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, LeaveAlternateScreen, DisableMouseCapture)?;
+    terminal.show_cursor()?;
     Ok(())
 }

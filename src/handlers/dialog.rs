@@ -1,8 +1,8 @@
-use crate::{App, IoEvent};
 use crate::app::ActiveBlock;
 use crate::event::Key;
 use crate::model::context::DialogContext;
 use crate::model::dialog::Dialog as OtherDialog;
+use crate::{App, IoEvent};
 
 pub fn handler(key: Key, app: &mut App) {
     if let Some(dialog) = app.dialog.clone() {
@@ -12,7 +12,7 @@ pub fn handler(key: Key, app: &mut App) {
                     if dialog.confirm {
                         if let ActiveBlock::Dialog(context) = route.active_block {
                             match context {
-                                DialogContext::Playlist => {},
+                                DialogContext::Playlist => {}
                                 DialogContext::SubPlaylist => handle_sub_playlist_dialog(app),
                                 DialogContext::PlaylistSearch => {}
                             }
@@ -29,7 +29,7 @@ pub fn handler(key: Key, app: &mut App) {
                     ..app.dialog.clone().unwrap()
                 };
                 app.dialog = Some(dg);
-            },
+            }
             _ => {}
         }
     }
@@ -37,7 +37,7 @@ pub fn handler(key: Key, app: &mut App) {
 
 fn handle_sub_playlist_dialog(app: &mut App) {
     if let (Some(playlists), Some(selected_index)) =
-    (&app.sub_playlists, app.selected_sub_playlist_index)
+        (&app.sub_playlists, app.selected_sub_playlist_index)
     {
         let selected_playlist = &playlists[selected_index];
         let selected_id = selected_playlist.id;

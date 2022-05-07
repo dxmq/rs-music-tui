@@ -2,16 +2,16 @@ extern crate rodio;
 extern crate tempfile;
 extern crate tokio;
 
-use std::{fs, thread, time};
 use std::fs::File;
 use std::sync::mpsc::Sender;
 use std::time::Duration;
+use std::{fs, thread, time};
 
 use anyhow::Result;
 use futures::channel::oneshot;
 use log::debug;
-use rodio::{Decoder, Sink, Source};
 use rodio::decoder::DecoderError;
+use rodio::{Decoder, Sink, Source};
 
 use crate::player::fetch::fetch_data;
 use crate::player::track::Track;

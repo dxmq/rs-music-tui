@@ -7,7 +7,6 @@ use std::time::Instant;
 use anyhow::Error;
 use rand::Rng;
 use tui::layout::Rect;
-use tui::style::Color;
 
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
@@ -19,7 +18,6 @@ use crate::model::playlist::Playlist;
 use crate::model::table::TrackTable;
 use crate::model::track::{Lyric, Track};
 use crate::model::user::UserProfile;
-use crate::ui::circle::{Circle, CIRCLE, CIRCLE_TICK};
 
 const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
@@ -148,8 +146,6 @@ pub struct App {
     // 歌词
     pub lyric: Option<Vec<Lyric>>,
     pub lyric_index: usize,
-    pub playing_circle: Circle,
-    pub circle_flag: bool,
     pub search_results: SearchResults,
 }
 
@@ -250,14 +246,11 @@ impl App {
         }) = &self.current_playback_context
         {
             let playings = *is_playing;
-            let elapsed =
-                if playings {
-                    self.start_time
-                        .elapsed()
-                        .as_millis()
-                } else {
-                    self.song_progress_ms
-                };
+            let elapsed = if playings {
+                self.start_time.elapsed().as_millis()
+            } else {
+                self.song_progress_ms
+            };
             let duration_ms = match item {
                 PlayingItem::Track(track) => track.duration as u32,
             };
@@ -274,20 +267,6 @@ impl App {
                         self.toggle_track(track, ToggleState::Next);
                     }
                 }
-            }
-            if playings && self.get_current_route().active_block == ActiveBlock::Lyric {
-                if self.circle_flag {
-                    self.playing_circle = Circle {
-                        circle: &CIRCLE,
-                        color: Color::Reset,
-                    }
-                } else {
-                    self.playing_circle = Circle {
-                        circle: &CIRCLE_TICK,
-                        color: Color::Cyan,
-                    }
-                }
-                self.circle_flag = !self.circle_flag;
             }
 
             match &self.lyric {
@@ -532,8 +511,6 @@ impl Default for App {
             liked_track_ids_set: HashSet::new(),
             lyric_index: 0,
             lyric: None,
-            playing_circle: Circle::default(),
-            circle_flag: true,
             search_results: SearchResults::default(),
         }
     }

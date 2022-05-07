@@ -6,6 +6,7 @@ use crate::handlers::search::SearchResultBlock;
 use crate::model::enums::{PlayingItem, ToggleState};
 
 pub(crate) mod common_key_events;
+mod dialog;
 pub(crate) mod empty;
 pub(crate) mod error_screen;
 pub(crate) mod help_menu;
@@ -19,7 +20,6 @@ pub(crate) mod search;
 mod search_results;
 mod subscribe_playlist;
 pub(crate) mod track_table;
-mod dialog;
 
 pub fn handle_app(key: Key, app: &mut App) {
     match key {
@@ -65,12 +65,8 @@ pub fn handle_app(key: Key, app: &mut App) {
                 }
             }
         }
-        _ if key == app.user_config.keys.seek_forwards => {
-            app.dispatch(IoEvent::SeekForwards)
-        }
-        _ if key == app.user_config.keys.seek_backwards => {
-            app.dispatch(IoEvent::SeekBackForwards)
-        }
+        _ if key == app.user_config.keys.seek_forwards => app.dispatch(IoEvent::SeekForwards),
+        _ if key == app.user_config.keys.seek_backwards => app.dispatch(IoEvent::SeekBackForwards),
         _ => handle_block_events(key, app),
     }
 }

@@ -150,7 +150,10 @@ impl<'a> Network<'a> {
                 is_subscribe = false;
             }
         }
-        let resp = self.cloud_music.playlist_subscribe(playlist_id, is_subscribe).await;
+        let resp = self
+            .cloud_music
+            .playlist_subscribe(playlist_id, is_subscribe)
+            .await;
         match resp {
             Ok(_) => {
                 // 重新获取用户歌单
@@ -348,11 +351,12 @@ impl<'a> Network<'a> {
                             let track_id = track.id;
                             match self.cloud_music.song_url(vec![track.id]).await {
                                 Ok(urls) => {
-                                    match self.player.play_url(urls.get(0).cloned().unwrap().url.unwrap().as_str()) {
+                                    match self.player.play_url(
+                                        urls.get(0).cloned().unwrap().url.unwrap().as_str(),
+                                    ) {
                                         Ok(()) => {
                                             context.is_playing = true;
-                                            app.start_time =
-                                                Instant::now();
+                                            app.start_time = Instant::now();
                                             app.current_playback_context = Some(context);
 
                                             app.dispatch(IoEvent::GetLyric(track_id));
@@ -391,7 +395,10 @@ impl<'a> Network<'a> {
                             t.duration = duration;
                         }
                     }
-                    match self.player.play_url(track_url.url.clone().unwrap().as_str()) {
+                    match self
+                        .player
+                        .play_url(track_url.url.clone().unwrap().as_str())
+                    {
                         Ok(_) => {
                             match app.current_playback_context.clone() {
                                 Some(mut context) => {

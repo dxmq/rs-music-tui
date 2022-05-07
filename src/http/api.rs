@@ -294,7 +294,7 @@ impl CloudMusicApi {
         };
         let u = replace_all_route_params(API_ROUTE["playlist_subscribe"], subscribe);
         let r = ApiRequestBuilder::post(&u)
-            .set_data(json!({"id": id}))
+            .set_data(json!({ "id": id }))
             .build();
         self.client.request(r).await
     }
@@ -436,7 +436,7 @@ mod tests {
         println!("{:#?}", search_resp.result.unwrap());
     }
 
-    #[tokio::test(flavor="multi_thread")]
+    #[tokio::test(flavor = "multi_thread")]
     async fn test_playlist_subscribe() {
         let api = CloudMusicApi::default();
         let resp = api.playlist_subscribe(12671414, true).await.unwrap();

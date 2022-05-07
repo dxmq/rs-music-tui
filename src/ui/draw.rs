@@ -3,7 +3,7 @@ use tui::backend::Backend;
 use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use tui::style::{Color, Modifier, Style};
 use tui::text::{Span, Spans, Text};
-use tui::widgets::canvas::Canvas;
+use tui::widgets::canvas::{Canvas, Map, MapResolution};
 use tui::widgets::{
     Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph, Row, Table, Wrap,
 };
@@ -516,18 +516,22 @@ where
         );
 
         let sub_playlists = &app.sub_playlists.clone().unwrap();
-        let sub_ids = sub_playlists.iter().map(|item| item.id).collect::<Vec<usize>>();
+        let sub_ids = sub_playlists
+            .iter()
+            .map(|item| item.id)
+            .collect::<Vec<usize>>();
         let playlists = match &app.search_results.playlists {
-            Some(playlists) => playlists.iter().map(
-                |item| {
+            Some(playlists) => playlists
+                .iter()
+                .map(|item| {
                     let mut playlist_str = "".to_string();
                     if sub_ids.contains(&item.id) {
                         playlist_str += &app.user_config.padded_liked_icon();
                     }
                     playlist_str += &item.name;
                     playlist_str
-                }
-            ).collect(),
+                })
+                .collect(),
             None => vec![],
         };
 
@@ -554,7 +558,7 @@ where
 
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)].as_ref())
+        .constraints([Constraint::Percentage(65), Constraint::Percentage(35)].as_ref())
         // .margin(2)
         .split(layout_chunk);
 
@@ -562,13 +566,17 @@ where
         .block(
             Block::default()
                 .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM)
-                .title("Playing")
+                .title("")
+                .style(Style::default().fg(Color::White))
                 .border_style(get_color(highlight_state, app.user_config.theme)),
         )
         .paint(|ctx| {
-            ctx.draw(&app.playing_circle);
+            ctx.draw(&Map {
+                color: Color::White,
+                resolution: MapResolution::High,
+            });
         })
-        .x_bounds([-90.0, 90.0])
+        .x_bounds([-180.0, 180.0])
         .y_bounds([-90.0, 90.0]);
     f.render_widget(canvas, chunks[0]);
 
@@ -613,37 +621,14 @@ where
             width: get_percentage_width(layout_chunk.width, 0.5),
         }],
     };
-    // let selected_style = get_color(highlight_state, app.user_config.theme);
     let selected_style = Style::default().fg(Color::LightRed);
     let rows = row_items.iter().enumerate().map(|(i, item)| {
         let mut style = Style::default().fg(Color::White); // default styling
         if i == selected_index - margin {
             style = selected_style;
         }
-        // Return row styled data
         Row::new(item.clone()).style(style)
     });
-    // let items = app
-    //     .track_table
-    //     .tracks
-    //     .iter()
-    //     .map(|item| TableItem {
-    //         id: item.id,
-    //         format: vec![
-    //             "".to_string(),
-    //             item.name.to_owned(),
-    //             create_artist_string(&item.artists),
-    //             item.album.name.to_owned().unwrap(),
-    //             millis_to_minutes2(item.duration),
-    //         ],
-    //     })
-    //     .collect::<Vec<TableItem>>();
-    // let rows = items.iter().skip(offset).enumerate().map(|(i, item)| {
-    //     let mut formatted_row = item.format.clone();
-    //     let mut style = Style::default().fg(app.user_config.theme.text); // default styling
-    //                                                                      // Return row styled data
-    //     Row::new(formatted_row).style(style)
-    // });
 
     let widths = header
         .items
@@ -662,6 +647,7 @@ where
                 .border_style(get_color(highlight_state, app.user_config.theme)),
         )
         .style(Style::default().fg(Color::White))
+        .column_spacing(1)
         .widths(&widths);
     f.render_widget(table, chunks[1]);
 }
