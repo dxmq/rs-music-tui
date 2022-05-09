@@ -20,6 +20,7 @@ pub(crate) mod search;
 mod search_results;
 mod subscribe_playlist;
 pub(crate) mod track_table;
+mod artists;
 
 pub fn handle_app(key: Key, app: &mut App) {
     match key {
@@ -115,6 +116,8 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::Dialog(_) => {
             dialog::handler(key, app);
+        }
+        ActiveBlock::Artists => {
         }
         _ => {}
     }

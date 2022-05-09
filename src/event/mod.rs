@@ -30,4 +30,6 @@ pub enum IoEvent {
     SeekForwards,
     SeekBackForwards,
     WebLog(usize),
+    // 获取我收藏的歌手列表
+    GetArtistSubList,
 }

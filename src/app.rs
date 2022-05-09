@@ -11,6 +11,7 @@ use tui::layout::Rect;
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::handlers::search::SearchResults;
+use crate::model::artist::Artist;
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::dialog::Dialog;
 use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
@@ -58,6 +59,7 @@ pub enum ActiveBlock {
     TrackTable,
     // 歌词
     Lyric,
+    Artists
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -72,6 +74,7 @@ pub enum RouteId {
     TrackTable,
     #[allow(unused)]
     Lyric,
+    Artists
 }
 
 #[derive(Debug)]
@@ -147,6 +150,8 @@ pub struct App {
     pub lyric: Option<Vec<Lyric>>,
     pub lyric_index: usize,
     pub search_results: SearchResults,
+    pub artists: Vec<Artist>,
+    pub artists_list_index: usize,
 }
 
 impl App {
@@ -515,6 +520,8 @@ impl Default for App {
             lyric_index: 0,
             lyric: None,
             search_results: SearchResults::default(),
+            artists: vec![],
+            artists_list_index: 0
         }
     }
 }

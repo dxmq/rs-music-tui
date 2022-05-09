@@ -104,10 +104,25 @@ impl<'a> Network<'a> {
             IoEvent::WebLog(track_id) => {
                 self.weblog(track_id).await;
             }
+            IoEvent::GetArtistSubList => {
+                self.load_artist_sublist().await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn load_artist_sublist(&mut self) {
+        let mut app = self.app.lock().await;
+        match self.cloud_music.artist_sublist().await {
+            Ok(artists) => {
+                app.artists = artists;
+            }
+            Err(e) => {
+                self.handle_error(e).await;
+            }
+        }
     }
 
     async fn weblog(&mut self, track_id: usize) {

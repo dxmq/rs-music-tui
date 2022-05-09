@@ -386,11 +386,47 @@ where
             // draw playing lyric ui
             draw_lyric(f, app, chunks[1]);
         }
+        RouteId::Artists => {
+            draw_artist_table(f, app, chunks[1]);
+        }
         RouteId::Error => {} // This is handled as a "full screen" route in main.rs
         RouteId::BasicView => {} // This is handled as a "full screen" route in main.rs
         RouteId::Dialog => {} // This is handled in the draw_dialog function in mod.rs
     }
 }
+
+pub fn draw_artist_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+    where
+        B: Backend,
+
+{
+    let header = TableHeader {
+        id: TableId::Artist,
+        items: vec![
+            TableHeaderItem {
+                text: "歌手",
+                width: get_percentage_width(layout_chunk.width, 1.0),
+                ..Default::default()
+            }
+        ]
+    };
+
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::Artists,
+        current_route.hovered_block == ActiveBlock::Artists,
+    );
+
+    let items: Vec<TableItem> = app.artists.iter()
+        .map(|item| TableItem {
+            id: item.id,
+            fee: 0,
+            format: vec![item.name.clone().unwrap_or("".to_string())]
+        }).collect();
+
+    draw_table(f, app, layout_chunk, ("", &header), &items, app.artists_list_index, highlight_state);
+}
+
 
 pub fn draw_search_results<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
 where

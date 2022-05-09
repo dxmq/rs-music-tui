@@ -347,9 +347,9 @@ impl CloudMusicApi {
 
     // 说明 : 调用此接口,可获取收藏的歌手列表
     #[allow(unused)]
-    pub async fn artist_sublist(&self, limit: usize, offset: usize) -> Result<ApiResponse> {
+    pub async fn artist_sublist(&self) -> Result<ApiResponse> {
         let r = ApiRequestBuilder::post(API_ROUTE["artist_sublist"])
-            .set_data(limit_offset(limit, offset))
+            .set_data(limit_offset(1000, 0))
             .insert("total", Value::Bool(true))
             .build();
 
@@ -502,7 +502,7 @@ mod tests {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_artist_sublist() {
         let api = CloudMusicApi::default();
-        let resp = api.artist_sublist(30, 0).await;
+        let resp = api.artist_sublist().await;
         println!("{:?}", resp);
     }
 

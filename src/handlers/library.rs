@@ -1,4 +1,4 @@
-use crate::app::{App, LIBRARY_OPTIONS};
+use crate::app::{ActiveBlock, App, LIBRARY_OPTIONS, RouteId};
 use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
 use crate::model::context::TrackTableContext;
@@ -42,6 +42,9 @@ pub fn handles(key: Key, app: &mut App) {
             } else if app.library.selected_index == 2 {
                 app.track_table.context = Some(TrackTableContext::RecommendedTracks);
                 app.dispatch(IoEvent::GetRecommendTracks);
+            } else if app.library.selected_index == 3 {
+                app.dispatch(IoEvent::GetArtistSubList);
+                app.push_navigation_stack(RouteId::Artists, ActiveBlock::Artists);
             }
         }
         _ => {}
