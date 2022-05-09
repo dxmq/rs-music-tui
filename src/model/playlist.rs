@@ -36,3 +36,10 @@ pub struct PlaylistDetailResp {
     pub code: usize,
     pub playlist: Option<PlaylistDetail>,
 }
+
+#[derive(Default, Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct PlaylistTracksResp {
+    pub code: usize,
+    #[serde(rename = "songs")]
+    pub tracks: Vec<Track>,
+}

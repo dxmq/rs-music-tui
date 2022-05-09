@@ -471,7 +471,6 @@ impl<'a> Network<'a> {
         match self.cloud_music.playlist_tracks(playlist_idk).await {
             Ok(playlist_tracks) => {
                 let mut app = self.app.lock().await;
-
                 app.track_table = TrackTable {
                     tracks: playlist_tracks.tracks.clone(),
                     selected_index: 0,

@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use openssl::hash::{hash, MessageDigest};
 use rand::RngCore;
 use serde_json::json;
@@ -10,6 +10,7 @@ use crate::http::crypto::Crypto::Eapi;
 use crate::http::request::{ApiRequestBuilder, UA};
 use crate::http::response::ApiResponse;
 use crate::http::route::API_ROUTE;
+use crate::model::playlist::PlaylistDetailResp;
 
 #[derive(Default)]
 pub struct CloudMusicApi {
@@ -109,6 +110,7 @@ impl CloudMusicApi {
     ///
     /// optional
     /// 可选参数 : s : 歌单最近的 s 个收藏者,默认为8
+    #[allow(unused)]
     pub async fn playlist_detail(&self, id: usize, opt: Option<Value>) -> Result<ApiResponse> {
         let r = ApiRequestBuilder::post(API_ROUTE["playlist_detail"])
             .set_data(json!({"n": 100000, "s": 8, "id": id}))
@@ -116,6 +118,49 @@ impl CloudMusicApi {
             .build();
 
         self.client.request(r).await
+    }
+
+    /// 说明 : 调用此接口 , 传入音乐 id(支持多个 id, 用 , 隔开), 可获得歌曲详情
+    ///
+    /// requried
+    /// 必选参数 : ids: 音乐 id, 如 ids=347230
+    pub async fn song_detail(&self, ids: &[usize]) -> Result<ApiResponse> {
+        let list = ids
+            .iter()
+            .map(|id| json!({ "id": id }).to_string())
+            .collect::<Vec<_>>();
+        let r = ApiRequestBuilder::post(API_ROUTE["song_detail"])
+            .set_data(json!({ "c": list }))
+            .build();
+
+        self.client.request(r).await
+    }
+
+    // 必选参数 : id : 歌单 id
+    //
+    // 可选参数 : limit : 限制获取歌曲的数量，默认值为当前歌单的歌曲数量
+    //
+    // 可选参数 : offset
+    #[allow(unused)]
+    pub async fn playlist_tracks(&self, playlist_id: usize, offset: usize, limit: usize) -> Result<ApiResponse> {
+        let result = self.playlist_detail(playlist_id, None).await;
+        if let Ok(resp) = result {
+            let resp = serde_json::from_slice::<PlaylistDetailResp>(resp.data());
+            if let Ok(resp) = resp {
+                if resp.playlist.is_some() {
+                    let track_ids = resp.playlist.unwrap().track_ids;
+                    let track_ids = track_ids.iter().map(|id|id.id).collect::<Vec<usize>>();
+                    let mut end = offset + limit;
+                    if end > track_ids.len() {
+                        end = track_ids.len();
+                    }
+                    let ids = &track_ids[offset..end];
+                    return self.song_detail(ids).await
+                }
+            }
+        }
+
+        Err(anyhow!("获取歌单歌曲失败"))
     }
 
     /// 说明 : 使用歌单详情接口后 , 能得到的音乐的 id, 但不能得到的音乐 url, 调用此接口, 传入的音乐 id( 可多个 , 用逗号隔开 ),
@@ -460,4 +505,12 @@ mod tests {
         let resp = api.artist_sublist(30, 0).await;
         println!("{:?}", resp);
     }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_playlist_tracks() {
+        let api = CloudMusicApi::default();
+        let resp = api.playlist_tracks(498339500, 0, 10).await;
+        println!("{:?}", resp);
+    }
+
 }

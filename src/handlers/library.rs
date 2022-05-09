@@ -32,11 +32,8 @@ pub fn handles(key: Key, app: &mut App) {
             let next_index = common_key_events::on_low_press_handler(&LIBRARY_OPTIONS);
             app.library.selected_index = next_index
         }
-        // `library` should probably be an array of structs with enums rather than just using indexes
-        // like this
         Key::Enter => {
             if app.library.selected_index == 0 {
-                // app.dispatch(IoEvent::GetRecentlyPlayed(500));
                 let playlist_id = app.my_like_playlist_id;
                 app.dispatch(IoEvent::GetPlaylistTracks(playlist_id));
             } else if app.library.selected_index == 1 {

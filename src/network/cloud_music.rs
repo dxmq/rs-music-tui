@@ -11,7 +11,7 @@ use crate::handlers::search::{
     SearchType,
 };
 use crate::http::api::CloudMusicApi;
-use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, UserPlaylistResp};
+use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, PlaylistTracksResp, UserPlaylistResp};
 use crate::model::table::RecentlyPlayedResp;
 use crate::model::track::{Lyric, LyricResp, RecommendedTracksResp, Track, TrackUrl, TrackUrlResp};
 use crate::model::user::{LikeTrackIdListResp, UserAccountResp, UserProfile};
@@ -64,10 +64,28 @@ impl CloudMusic {
         Ok(resp.playlist)
     }
 
+    #[allow(unused)]
     pub async fn playlist_tracks(&self, playlist_id: usize) -> Result<PlaylistDetail> {
-        let resp = self.api.playlist_detail(playlist_id, None).await?;
-        let result = serde_json::from_slice::<PlaylistDetailResp>(resp.data())?;
-        Ok(result.playlist.unwrap())
+        let resp = self.api.playlist_detail(playlist_id, None).await;
+        if let Ok(resp) = resp {
+            let result = serde_json::from_slice::<PlaylistDetailResp>(resp.data())?;
+            if result.code == 200 {
+                return Ok(result.playlist.unwrap());
+            }
+        }
+        Err(anyhow!("获取歌单歌曲失败"))
+    }
+
+    #[allow(unused)]
+    pub async fn playlist_page_tracks(&self, playlist_id: usize, offset: usize, limit: usize) -> Result<PlaylistTracksResp> {
+        let resp = self.api.playlist_tracks(playlist_id, offset, limit).await;
+        if let Ok(resp) = resp {
+            let result = serde_json::from_slice::<PlaylistTracksResp>(resp.data())?;
+            if result.code == 200 {
+                return Ok(result);
+            }
+        }
+        Err(anyhow!("获取歌单歌曲失败"))
     }
 
     pub async fn song_url(&self, track_id: Vec<usize>) -> Result<Vec<TrackUrl>> {
@@ -305,5 +323,11 @@ mod tests {
     fn padding_char() {
         let s = "I'm over here".pad_to_width_with_alignment(50, Alignment::Middle);
         println!("{}", s);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_playlist_page_tracks() {
+        let tracks = CloudMusic::default().playlist_page_tracks(498339500, 0, 10).await;
+        println!("{:?}", tracks.unwrap().songs);
     }
 }
