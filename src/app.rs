@@ -151,7 +151,7 @@ pub struct App {
     pub lyric_index: usize,
     pub search_results: SearchResults,
     pub artists: Vec<Artist>,
-    pub artists_list_index: usize,
+    pub artists_selected_index: usize,
 }
 
 impl App {
@@ -521,7 +521,7 @@ impl Default for App {
             lyric: None,
             search_results: SearchResults::default(),
             artists: vec![],
-            artists_list_index: 0
+            artists_selected_index: 0
         }
     }
 }

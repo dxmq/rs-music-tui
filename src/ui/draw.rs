@@ -424,7 +424,7 @@ pub fn draw_artist_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
             format: vec![item.name.clone().unwrap_or("".to_string())]
         }).collect();
 
-    draw_table(f, app, layout_chunk, ("", &header), &items, app.artists_list_index, highlight_state);
+    draw_table(f, app, layout_chunk, ("", &header), &items, app.artists_selected_index, highlight_state);
 }
 
 

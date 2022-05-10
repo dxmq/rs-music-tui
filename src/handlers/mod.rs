@@ -118,6 +118,7 @@ pub fn handle_block_events(key: Key, app: &mut App) {
             dialog::handler(key, app);
         }
         ActiveBlock::Artists => {
+            artists::handler(key, app);
         }
         _ => {}
     }
