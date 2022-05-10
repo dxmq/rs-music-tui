@@ -7,5 +7,4 @@ pub struct Album {
     pub name: Option<String>,
     #[serde(default)]
     pub artist: Artist,
-    pub is_sub: bool,
 }
