@@ -142,20 +142,25 @@ impl CloudMusicApi {
     //
     // 可选参数 : offset
     #[allow(unused)]
-    pub async fn playlist_tracks(&self, playlist_id: usize, offset: usize, limit: usize) -> Result<ApiResponse> {
+    pub async fn playlist_tracks(
+        &self,
+        playlist_id: usize,
+        offset: usize,
+        limit: usize,
+    ) -> Result<ApiResponse> {
         let result = self.playlist_detail(playlist_id, None).await;
         if let Ok(resp) = result {
             let resp = serde_json::from_slice::<PlaylistDetailResp>(resp.data());
             if let Ok(resp) = resp {
                 if resp.playlist.is_some() {
                     let track_ids = resp.playlist.unwrap().track_ids;
-                    let track_ids = track_ids.iter().map(|id|id.id).collect::<Vec<usize>>();
+                    let track_ids = track_ids.iter().map(|id| id.id).collect::<Vec<usize>>();
                     let mut end = offset + limit;
                     if end > track_ids.len() {
                         end = track_ids.len();
                     }
                     let ids = &track_ids[offset..end];
-                    return self.song_detail(ids).await
+                    return self.song_detail(ids).await;
                 }
             }
         }
@@ -355,6 +360,29 @@ impl CloudMusicApi {
 
         self.client.request(r).await
     }
+
+    // 获取歌手全部歌曲
+    #[allow(unused)]
+    pub async fn artist_tracks(&self, artist_id: usize) -> Result<ApiResponse> {
+        let data = json!({"id": artist_id, "private_cloud": true, "work_type": 1, "order": "hot", "offset": 0, "limit": 5000});
+        let r = ApiRequestBuilder::post(API_ROUTE["artist_songs"])
+            .set_data(data)
+            .build();
+
+        self.client.request(r).await
+    }
+
+    // 获取歌手专辑
+    #[allow(unused)]
+    pub async fn artist_albums(&self, artist_id: usize) -> Result<ApiResponse> {
+        let u = replace_all_route_params(API_ROUTE["artist_album"], &artist_id.to_string());
+        let r = ApiRequestBuilder::post(&u)
+            .set_data(limit_offset(300, 0))
+            .insert("total", Value::Bool(true))
+            .build();
+
+        self.client.request(r).await
+    }
 }
 fn replace_all_route_params(u: &str, rep: &str) -> String {
     let re = regex::Regex::new(r"\$\{.*\}").unwrap();
@@ -513,4 +541,17 @@ mod tests {
         println!("{:?}", resp);
     }
 
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_tracks() {
+        let api = CloudMusicApi::default();
+        let resp = api.artist_tracks(12279635).await;
+        println!("{:?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_albums() {
+        let api = CloudMusicApi::default();
+        let resp = api.artist_albums(12279635).await;
+        println!("{:?}", resp);
+    }
 }

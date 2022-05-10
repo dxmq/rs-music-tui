@@ -11,8 +11,10 @@ use crate::handlers::search::{
     SearchType,
 };
 use crate::http::api::CloudMusicApi;
-use crate::model::artist::{Artist, ArtistSublistResp};
-use crate::model::playlist::{Playlist, PlaylistDetail, PlaylistDetailResp, PlaylistTracksResp, UserPlaylistResp};
+use crate::model::artist::{Artist, ArtistSublistResp, ArtistTracksResp};
+use crate::model::playlist::{
+    Playlist, PlaylistDetail, PlaylistDetailResp, PlaylistTracksResp, UserPlaylistResp,
+};
 use crate::model::table::RecentlyPlayedResp;
 use crate::model::track::{Lyric, LyricResp, RecommendedTracksResp, Track, TrackUrl, TrackUrlResp};
 use crate::model::user::{LikeTrackIdListResp, UserAccountResp, UserProfile};
@@ -78,7 +80,12 @@ impl CloudMusic {
     }
 
     #[allow(unused)]
-    pub async fn playlist_page_tracks(&self, playlist_id: usize, offset: usize, limit: usize) -> Result<PlaylistTracksResp> {
+    pub async fn playlist_page_tracks(
+        &self,
+        playlist_id: usize,
+        offset: usize,
+        limit: usize,
+    ) -> Result<PlaylistTracksResp> {
         let resp = self.api.playlist_tracks(playlist_id, offset, limit).await;
         if let Ok(resp) = resp {
             let result = serde_json::from_slice::<PlaylistTracksResp>(resp.data())?;
@@ -255,7 +262,7 @@ impl CloudMusic {
         Ok(())
     }
 
-    pub async fn artist_sublist(&self) -> Result<Vec<Artist>>  {
+    pub async fn artist_sublist(&self) -> Result<Vec<Artist>> {
         if let Ok(resp) = self.api.artist_sublist().await {
             let res = serde_json::from_slice::<ArtistSublistResp>(resp.data()).unwrap();
             if res.code == 200 {
@@ -263,6 +270,17 @@ impl CloudMusic {
             }
         }
         Err(anyhow!("获取关注歌手失败"))
+    }
+
+    #[allow(unused)]
+    pub async fn artist_tracks(&self, artist_id: usize) -> Result<Vec<Track>> {
+        if let Ok(resp) = self.api.artist_tracks(artist_id).await {
+            let resp = serde_json::from_slice::<ArtistTracksResp>(resp.data()).unwrap();
+            if resp.code == 200 {
+                return Ok(resp.tracks);
+            }
+        }
+        Err(anyhow!("获取歌曲失败"))
     }
 
     pub async fn weblog(&self, track_id: usize) {
@@ -285,7 +303,6 @@ impl CloudMusic {
             timeline: Duration::new(duration_min, nano + offset),
         }
     }
-
 }
 
 #[cfg(test)]
@@ -339,7 +356,15 @@ mod tests {
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_playlist_page_tracks() {
-        let tracks = CloudMusic::default().playlist_page_tracks(498339500, 0, 10).await;
+        let tracks = CloudMusic::default()
+            .playlist_page_tracks(498339500, 0, 10)
+            .await;
         println!("{:?}", tracks.unwrap().tracks);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_tracks() {
+        let tracks = CloudMusic::default().artist_tracks(12279635).await;
+        println!("{:?}", tracks.unwrap());
     }
 }

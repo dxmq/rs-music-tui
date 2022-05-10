@@ -59,7 +59,8 @@ pub enum ActiveBlock {
     TrackTable,
     // 歌词
     Lyric,
-    Artists
+    Artists,
+    ArtistDetail,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -74,7 +75,8 @@ pub enum RouteId {
     TrackTable,
     #[allow(unused)]
     Lyric,
-    Artists
+    Artists,
+    ArtistDetail,
 }
 
 #[derive(Debug)]
@@ -521,7 +523,7 @@ impl Default for App {
             lyric: None,
             search_results: SearchResults::default(),
             artists: vec![],
-            artists_selected_index: 0
+            artists_selected_index: 0,
         }
     }
 }

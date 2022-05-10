@@ -6,8 +6,6 @@ pub struct Album {
     pub id: usize,
     pub name: Option<String>,
     #[serde(default)]
-    pub pic_url: String,
-    pub pic: usize,
-    #[serde(default)]
     pub artist: Artist,
+    pub is_sub: bool,
 }

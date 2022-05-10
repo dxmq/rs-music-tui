@@ -107,9 +107,7 @@ impl<'a> Network<'a> {
             IoEvent::GetArtistSubList => {
                 self.load_artist_sublist().await;
             }
-            IoEvent::GetArtistDetail(_artist_id) => {
-
-            }
+            IoEvent::GetArtistDetail(_artist_id) => {}
         }
 
         let mut app = self.app.lock().await;

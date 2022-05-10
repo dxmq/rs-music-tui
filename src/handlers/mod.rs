@@ -5,6 +5,7 @@ use crate::event::{IoEvent, Key};
 use crate::handlers::search::SearchResultBlock;
 use crate::model::enums::{PlayingItem, ToggleState};
 
+mod artists;
 pub(crate) mod common_key_events;
 mod dialog;
 pub(crate) mod empty;
@@ -20,7 +21,6 @@ pub(crate) mod search;
 mod search_results;
 mod subscribe_playlist;
 pub(crate) mod track_table;
-mod artists;
 
 pub fn handle_app(key: Key, app: &mut App) {
     match key {
