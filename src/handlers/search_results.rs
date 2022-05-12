@@ -1,4 +1,4 @@
-use crate::app::App;
+use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
 use crate::handlers::search::SearchResultBlock;
@@ -335,16 +335,19 @@ fn handle_enter_event_on_selected_block(app: &mut App) {
                 }
             }
         }
-        // SearchResultBlock::ArtistSearch => {
-        //     if let Some(index) = &app.search_results.selected_artists_index {
-        //         if let Some(result) = app.search_results.artists.clone() {
-        //             if let Some(artist) = result.items.get(index.to_owned()) {
-        //                 app.get_artist(artist.id.clone(), artist.name.clone());
-        //                 app.push_navigation_stack(RouteId::Artist, ActiveBlock::ArtistBlock);
-        //             };
-        //         };
-        //     };
-        // }
+        SearchResultBlock::ArtistSearch => {
+            if let Some(index) = &app.search_results.selected_artists_index {
+                if let Some(result) = app.search_results.artists.clone() {
+                    if let Some(artist) = result.get(index.to_owned()) {
+                        app.dispatch(IoEvent::GetArtistDetail(
+                            artist.id,
+                            artist.name.clone().unwrap(),
+                        ));
+                        app.push_navigation_stack(RouteId::ArtistDetail, ActiveBlock::ArtistDetail);
+                    };
+                };
+            };
+        }
         SearchResultBlock::PlaylistSearch => {
             if let (Some(index), Some(playlists_result)) = (
                 app.search_results.selected_playlists_index,

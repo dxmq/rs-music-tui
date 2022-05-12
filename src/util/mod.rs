@@ -73,9 +73,9 @@ pub fn get_search_results_highlight_state(
 pub fn get_artist_highlight_state(app: &App, block_to_match: ArtistBlock) -> (bool, bool) {
     let current_route = app.get_current_route();
     if let Some(artist) = &app.artist_detail {
-        let is_selected = artist.artist_detail_selected_block == block_to_match;
-        let is_hovered = current_route.hovered_block == ActiveBlock::ArtistDetail
-            && artist.artist_detail_hover_block == block_to_match;
+        let is_hovered = artist.artist_detail_selected_block == block_to_match;
+        let is_selected = current_route.hovered_block == ActiveBlock::ArtistDetail
+            && artist.artist_detail_hovered_block == block_to_match;
         (is_hovered, is_selected)
     } else {
         (false, false)

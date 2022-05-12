@@ -59,5 +59,5 @@ pub struct ArtistDetail {
     pub selected_simi_artist_index: usize,
     pub selected_track_index: usize,
     pub artist_detail_selected_block: ArtistBlock,
-    pub artist_detail_hover_block: ArtistBlock,
+    pub artist_detail_hovered_block: ArtistBlock,
 }

@@ -5,6 +5,7 @@ use crate::event::{IoEvent, Key};
 use crate::handlers::search::SearchResultBlock;
 use crate::model::enums::{PlayingItem, ToggleState};
 
+mod artist_detail;
 mod artists;
 pub(crate) mod common_key_events;
 mod dialog;
@@ -119,6 +120,9 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::Artists => {
             artists::handler(key, app);
+        }
+        ActiveBlock::ArtistDetail => {
+            artist_detail::handler(key, app);
         }
         _ => {}
     }

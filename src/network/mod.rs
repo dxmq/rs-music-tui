@@ -135,7 +135,7 @@ impl<'a> Network<'a> {
                 selected_simi_artist_index: 0,
                 selected_track_index: 0,
                 artist_detail_selected_block: ArtistBlock::Tracks,
-                artist_detail_hover_block: ArtistBlock::Tracks,
+                artist_detail_hovered_block: ArtistBlock::Tracks,
             });
         }
     }
