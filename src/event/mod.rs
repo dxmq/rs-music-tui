@@ -32,5 +32,5 @@ pub enum IoEvent {
     WebLog(usize),
     // 获取我收藏的歌手列表
     GetArtistSubList,
-    GetArtistDetail(usize),
+    GetArtistDetail(usize, String),
 }

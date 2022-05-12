@@ -12,14 +12,15 @@ use tui::Frame;
 use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
 use crate::cli::clap::BANNER;
 use crate::handlers::search::SearchResultBlock;
+use crate::model::artist::ArtistBlock;
 use crate::model::enums::{PlayingItem, RepeatState};
 use crate::model::table::{ColumnId, TableHeader, TableHeaderItem, TableId, TableItem};
 use crate::ui::help::get_help_docs;
 use crate::util;
 use crate::util::{
-    create_artist_string, display_track_progress, get_color, get_percentage_width,
-    get_search_results_highlight_state, get_track_progress_percentage, millis_to_minutes2,
-    BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
+    create_artist_string, display_track_progress, get_artist_highlight_state, get_color,
+    get_percentage_width, get_search_results_highlight_state, get_track_progress_percentage,
+    millis_to_minutes2, BASIC_VIEW_HEIGHT, SMALL_TERMINAL_WIDTH,
 };
 
 pub fn draw_main_layout<B>(f: &mut Frame<B>, app: &App)
@@ -395,26 +396,99 @@ where
     }
 }
 
-pub fn draw_artist_detail_table<B>(f: &mut Frame<B>, _app: &App, layout_chunk: Rect)
+pub fn draw_artist_detail_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
 where
     B: Backend,
 {
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(30)].as_ref())
+        .constraints(
+            [
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
+                Constraint::Percentage(33),
+            ]
+            .as_ref(),
+        )
         .split(layout_chunk);
 
-    // let current_route = app.get_current_route();
-    // let highlight_state = (
-    //     current_route.active_block == ActiveBlock::ArtistDetail,
-    //     current_route.hovered_block == ActiveBlock::ArtistDetail,
-    // );
+    if let Some(artist_detail) = &app.artist_detail {
+        let tracks = artist_detail
+            .tracks
+            .iter()
+            .map(|track| {
+                let mut name = String::new();
+                if let Some(context) = &app.current_playback_context {
+                    let mut track_id = 0;
+                    if let Some(PlayingItem::Track(track)) = &context.item {
+                        track_id = track.id
+                    };
+                    if track_id == track.id {
+                        name.push_str("▶ ");
+                    }
+                };
+                name.push_str(&track.name);
+                name
+            })
+            .collect::<Vec<String>>();
 
-    let para = Paragraph::new("artist songs").block(Block::default().title("热门歌曲"));
-    f.render_widget(para, chunks[0]);
+        draw_selectable_list(
+            f,
+            app,
+            chunks[0],
+            &format!("{} - 歌曲", &artist_detail.artist_name),
+            &tracks,
+            get_artist_highlight_state(app, ArtistBlock::Tracks),
+            Some(artist_detail.selected_track_index),
+        );
 
-    let para = Paragraph::new("artist albums").block(Block::default().title("专辑"));
-    f.render_widget(para, chunks[1]);
+        let albums = &artist_detail
+            .albums
+            .iter()
+            .map(|item| {
+                let mut album_artist = String::new();
+                album_artist.push_str(&format!(
+                    "{} - {}",
+                    item.name.clone().unwrap(),
+                    create_artist_string(&[item.artist.clone()]),
+                ));
+                album_artist
+            })
+            .collect::<Vec<String>>();
+
+        draw_selectable_list(
+            f,
+            app,
+            chunks[1],
+            "专辑",
+            albums,
+            get_artist_highlight_state(app, ArtistBlock::Albums),
+            Some(artist_detail.selected_album_index),
+        );
+
+        let simi_artists = artist_detail
+            .simi_artists
+            .iter()
+            .map(|item| {
+                let mut artist = String::new();
+                // if app.followed_artist_ids_set.contains(&item.id.to_owned()) {
+                //     artist.push_str(&app.user_config.padded_liked_icon());
+                // }
+                artist.push_str(&item.name.clone().unwrap());
+                artist
+            })
+            .collect::<Vec<String>>();
+
+        draw_selectable_list(
+            f,
+            app,
+            chunks[2],
+            "相似歌手",
+            &simi_artists,
+            get_artist_highlight_state(app, ArtistBlock::SimiArtists),
+            Some(artist_detail.selected_simi_artist_index),
+        );
+    }
 }
 
 pub fn draw_artist_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)

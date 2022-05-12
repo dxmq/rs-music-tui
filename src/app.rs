@@ -11,7 +11,7 @@ use tui::layout::Rect;
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::handlers::search::SearchResults;
-use crate::model::artist::Artist;
+use crate::model::artist::{Artist, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::dialog::Dialog;
 use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
@@ -26,7 +26,7 @@ const DEFAULT_ROUTE: Route = Route {
     hovered_block: ActiveBlock::Library,
 };
 
-pub const LIBRARY_OPTIONS: [&str; 4] = ["我喜欢", "最近播放", "每日推荐", "我的关注"];
+pub const LIBRARY_OPTIONS: [&str; 4] = ["我喜欢", "最近播放", "每日推荐", "关注歌手"];
 
 #[derive(Clone)]
 pub struct Library {
@@ -154,6 +154,7 @@ pub struct App {
     pub search_results: SearchResults,
     pub artists: Vec<Artist>,
     pub artists_selected_index: usize,
+    pub artist_detail: Option<ArtistDetail>,
 }
 
 impl App {
@@ -524,6 +525,7 @@ impl Default for App {
             search_results: SearchResults::default(),
             artists: vec![],
             artists_selected_index: 0,
+            artist_detail: None,
         }
     }
 }

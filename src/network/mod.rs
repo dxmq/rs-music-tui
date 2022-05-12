@@ -16,6 +16,7 @@ use tokio::try_join;
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::IoEvent;
 use crate::handlers::search::{SearchResult, SearchResults, SearchType};
+use crate::model::artist::{ArtistBlock, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, TrackTableContext};
 use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
 use crate::model::table::TrackTable;
@@ -107,11 +108,36 @@ impl<'a> Network<'a> {
             IoEvent::GetArtistSubList => {
                 self.load_artist_sublist().await;
             }
-            IoEvent::GetArtistDetail(_artist_id) => {}
+            IoEvent::GetArtistDetail(artist_id, artist_name) => {
+                self.load_artist_detail(artist_id, artist_name).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn load_artist_detail(&mut self, artist_id: usize, artist_name: String) {
+        let artist_tracks = self.cloud_music.artist_tracks(artist_id);
+        let artist_albums = self.cloud_music.artist_albums(artist_id);
+        let simi_artists = self.cloud_music.simi_artists(artist_id);
+
+        if let Ok((artist_tracks, artist_albums, simi_artists)) =
+            try_join!(artist_tracks, artist_albums, simi_artists)
+        {
+            let mut app = self.app.lock().await;
+            app.artist_detail = Some(ArtistDetail {
+                artist_name,
+                tracks: artist_tracks,
+                albums: artist_albums,
+                simi_artists,
+                selected_album_index: 0,
+                selected_simi_artist_index: 0,
+                selected_track_index: 0,
+                artist_detail_selected_block: ArtistBlock::Tracks,
+                artist_detail_hover_block: ArtistBlock::Tracks,
+            });
+        }
     }
 
     async fn load_artist_sublist(&mut self) {

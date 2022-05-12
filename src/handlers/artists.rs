@@ -62,7 +62,8 @@ pub fn handler(key: Key, app: &mut App) {
             let artist = app.artists.get(selected_index);
             if let Some(arist) = artist {
                 let id = arist.id;
-                app.dispatch(IoEvent::GetArtistDetail(id));
+                let artist_name = arist.name.clone().unwrap();
+                app.dispatch(IoEvent::GetArtistDetail(id, artist_name));
                 app.push_navigation_stack(RouteId::ArtistDetail, ActiveBlock::ArtistDetail);
             }
         }

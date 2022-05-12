@@ -11,7 +11,10 @@ use crate::handlers::search::{
     SearchType,
 };
 use crate::http::api::CloudMusicApi;
-use crate::model::artist::{Artist, ArtistSublistResp, ArtistTracksResp};
+use crate::model::album::Album;
+use crate::model::artist::{
+    Artist, ArtistAlbumResp, ArtistSublistResp, ArtistTracksResp, SimiArtistsResp,
+};
 use crate::model::playlist::{
     Playlist, PlaylistDetail, PlaylistDetailResp, PlaylistTracksResp, UserPlaylistResp,
 };
@@ -100,8 +103,12 @@ impl CloudMusic {
         if let Ok(resp) = self.api.song_url(&track_id).await {
             let song_url_resp = serde_json::from_slice::<TrackUrlResp>(resp.data())?;
             let track_url = song_url_resp.data.get(0);
-            if song_url_resp.code == 200 && track_url.is_some() {
-                return Ok(song_url_resp.data);
+            if song_url_resp.code == 200 {
+                if let Some(track_url) = track_url {
+                    if track_url.url.is_some() {
+                        return Ok(song_url_resp.data);
+                    }
+                }
             }
         }
         return Err(anyhow!("播放失败"));
@@ -283,14 +290,29 @@ impl CloudMusic {
         Err(anyhow!("获取歌曲失败"))
     }
 
+    pub async fn artist_albums(&self, artist_id: usize) -> Result<Vec<Album>> {
+        if let Ok(resp) = self.api.artist_albums(artist_id).await {
+            let resp = serde_json::from_slice::<ArtistAlbumResp>(resp.data()).unwrap();
+            if resp.code == 200 {
+                return Ok(resp.hot_albums);
+            }
+        }
+        Err(anyhow!("获取相似歌手失败"))
+    }
+
+    pub async fn simi_artists(&self, artist_id: usize) -> Result<Vec<Artist>> {
+        if let Ok(resp) = self.api.simi_artists(artist_id).await {
+            let resp = serde_json::from_slice::<SimiArtistsResp>(resp.data()).unwrap();
+            if resp.code == 200 {
+                return Ok(resp.artists);
+            }
+        }
+        Err(anyhow!("获取相似歌手失败"))
+    }
+
     pub async fn weblog(&self, track_id: usize) {
         if (self.api.weblog(track_id).await).is_ok() {};
     }
-    //
-    // pub async fn user_follows(&self, uid: usize, limit: usize, offset: usize) -> Result<()> {
-    //     let resp = self.api.user_follows(uid, limit, offset).await?;
-    //     Ok(())
-    // }
 
     #[allow(unused)]
     fn mk_lyric(value: String, timestamp: regex::Captures, offset: u32) -> Lyric {
@@ -366,5 +388,17 @@ mod tests {
     async fn test_artist_tracks() {
         let tracks = CloudMusic::default().artist_tracks(12279635).await;
         println!("{:?}", tracks.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_albums() {
+        let albums = CloudMusic::default().artist_albums(12279635).await;
+        println!("{:?}", albums.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_simi_artists() {
+        let artists = CloudMusic::default().simi_artists(12279635).await;
+        println!("{:?}", artists.unwrap());
     }
 }
