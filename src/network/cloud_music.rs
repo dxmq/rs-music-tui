@@ -11,7 +11,7 @@ use crate::handlers::search::{
     SearchType,
 };
 use crate::http::api::CloudMusicApi;
-use crate::model::album::Album;
+use crate::model::album::{Album, AlbumResp};
 use crate::model::artist::{
     Artist, ArtistAlbumResp, ArtistSublistResp, ArtistTracksResp, SimiArtistsResp,
 };
@@ -310,6 +310,16 @@ impl CloudMusic {
         Err(anyhow!("获取相似歌手失败"))
     }
 
+    pub async fn album(&self, album_id: usize) -> Result<Vec<Track>> {
+        if let Ok(resp) = self.api.album(album_id).await {
+            let resp = serde_json::from_slice::<AlbumResp>(resp.data()).unwrap();
+            if resp.code == 200 {
+                return Ok(resp.songs);
+            }
+        }
+        Err(anyhow!("获取相似歌手失败"))
+    }
+
     pub async fn weblog(&self, track_id: usize) {
         if (self.api.weblog(track_id).await).is_ok() {};
     }
@@ -400,5 +410,11 @@ mod tests {
     async fn test_simi_artists() {
         let artists = CloudMusic::default().simi_artists(12279635).await;
         println!("{:?}", artists.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_album() {
+        let album_tracks = CloudMusic::default().album(32311).await;
+        println!("{:?}", album_tracks.unwrap());
     }
 }

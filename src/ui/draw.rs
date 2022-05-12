@@ -12,6 +12,7 @@ use tui::Frame;
 use crate::app::{ActiveBlock, App, RouteId, LIBRARY_OPTIONS};
 use crate::cli::clap::BANNER;
 use crate::handlers::search::SearchResultBlock;
+use crate::model::album::AlbumUi;
 use crate::model::artist::ArtistBlock;
 use crate::model::enums::{PlayingItem, RepeatState};
 use crate::model::table::{ColumnId, TableHeader, TableHeaderItem, TableId, TableItem};
@@ -374,12 +375,89 @@ where
         RouteId::ArtistDetail => {
             draw_artist_detail_table(f, app, chunks[1]);
         }
+        RouteId::AlbumTracks => {
+            draw_album_detail_table(f, app, chunks[1]);
+        }
         RouteId::Error => {}
         RouteId::BasicView => {}
         RouteId::Dialog => {}
     }
 }
 
+pub fn draw_album_detail_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
+    let header = TableHeader {
+        id: TableId::Album,
+        items: vec![
+            TableHeaderItem {
+                id: ColumnId::Liked,
+                text: "",
+                width: 2,
+            },
+            TableHeaderItem {
+                id: ColumnId::Title,
+                text: "歌曲",
+                width: get_percentage_width(layout_chunk.width, 2.0 / 5.0) - 5,
+            },
+            TableHeaderItem {
+                text: "歌手",
+                width: get_percentage_width(layout_chunk.width, 2.0 / 5.0),
+                ..Default::default()
+            },
+            TableHeaderItem {
+                text: "时长",
+                width: get_percentage_width(layout_chunk.width, 1.0 / 5.0),
+                ..Default::default()
+            },
+        ],
+    };
+
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::AlbumTracks,
+        current_route.hovered_block == ActiveBlock::AlbumTracks,
+    );
+    let album_ui = app.album_detail.as_ref().map(|selected_album| AlbumUi {
+        items: selected_album
+            .tracks
+            .iter()
+            .map(|item| TableItem {
+                id: item.id,
+                fee: 0,
+                format: vec![
+                    "".to_string(),
+                    item.name.to_owned(),
+                    create_artist_string(&item.artists),
+                    millis_to_minutes2(item.duration),
+                ],
+            })
+            .collect::<Vec<TableItem>>(),
+        title: format!(
+            "{} | {}",
+            create_artist_string(&[selected_album.album.artist.clone()]),
+            selected_album
+                .album
+                .name
+                .clone()
+                .unwrap_or_else(|| "".to_string()),
+        ),
+        selected_index: selected_album.selected_track_index,
+    });
+
+    if let Some(album_ui) = album_ui {
+        draw_table(
+            f,
+            app,
+            layout_chunk,
+            (&album_ui.title, &header),
+            &album_ui.items,
+            album_ui.selected_index,
+            highlight_state,
+        );
+    };
+}
 pub fn draw_artist_detail_table<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
 where
     B: Backend,
@@ -792,7 +870,7 @@ where
             },
             TableHeaderItem {
                 id: ColumnId::Title,
-                text: "标题",
+                text: "歌曲",
                 width: get_percentage_width(layout_chunk.width, 0.3),
             },
             TableHeaderItem {
@@ -806,7 +884,7 @@ where
                 ..Default::default()
             },
             TableHeaderItem {
-                text: "时间",
+                text: "时长",
                 width: get_percentage_width(layout_chunk.width, 0.1),
                 ..Default::default()
             },

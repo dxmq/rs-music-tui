@@ -315,17 +315,17 @@ fn handle_low_press_on_selected_block(app: &mut App) {
 
 fn handle_enter_event_on_selected_block(app: &mut App) {
     match &app.search_results.selected_block {
-        // SearchResultBlock::AlbumSearch => {
-        //     if let (Some(index), Some(albums_result)) = (
-        //         &app.search_results.selected_album_index,
-        //         &app.search_results.albums,
-        //     ) {
-        //         if let Some(album) = albums_result.items.get(index.to_owned()).cloned() {
-        //             app.track_table.context = Some(TrackTableContext::AlbumSearch);
-        //             app.dispatch(IoEvent::GetAlbumTracks(Box::new(album)));
-        //         };
-        //     }
-        // }
+        SearchResultBlock::AlbumSearch => {
+            if let (Some(index), Some(albums_result)) = (
+                &app.search_results.selected_album_index,
+                &app.search_results.albums,
+            ) {
+                if let Some(album) = albums_result.get(index.to_owned()).cloned() {
+                    app.track_table.context = Some(TrackTableContext::AlbumSearch);
+                    app.dispatch(IoEvent::GetAlbumTracks(Box::new(album)));
+                };
+            }
+        }
         SearchResultBlock::TrackSearch => {
             let index = app.search_results.selected_tracks_index;
             let tracks = app.search_results.tracks.clone();
@@ -354,7 +354,6 @@ fn handle_enter_event_on_selected_block(app: &mut App) {
                 &app.search_results.playlists,
             ) {
                 if let Some(playlist) = playlists_result.get(index) {
-                    // Go to playlist tracks table
                     app.track_table.context = Some(TrackTableContext::PlaylistSearch);
                     let playlist_id = playlist.id.to_owned();
                     app.dispatch(IoEvent::GetPlaylistTracks(playlist_id));
@@ -362,7 +361,6 @@ fn handle_enter_event_on_selected_block(app: &mut App) {
             }
         }
         SearchResultBlock::Empty => {}
-        _ => {}
     };
 }
 

@@ -16,6 +16,7 @@ use tokio::try_join;
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::IoEvent;
 use crate::handlers::search::{SearchResult, SearchResults, SearchType};
+use crate::model::album::{Album, AlbumDetail};
 use crate::model::artist::{ArtistBlock, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, TrackTableContext};
 use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
@@ -111,10 +112,28 @@ impl<'a> Network<'a> {
             IoEvent::GetArtistDetail(artist_id, artist_name) => {
                 self.load_artist_detail(artist_id, artist_name).await;
             }
+            IoEvent::GetAlbumTracks(album) => {
+                self.load_album_tracks(album).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn load_album_tracks(&mut self, album: Box<Album>) {
+        match self.cloud_music.album(album.id).await {
+            Ok(tracks) => {
+                let mut app = self.app.lock().await;
+                app.album_detail = Some(AlbumDetail {
+                    album: *album,
+                    tracks,
+                    selected_track_index: 0,
+                });
+                app.push_navigation_stack(RouteId::AlbumTracks, ActiveBlock::AlbumTracks);
+            }
+            Err(e) => self.handle_error(e).await,
+        }
     }
 
     async fn load_artist_detail(&mut self, artist_id: usize, artist_name: String) {

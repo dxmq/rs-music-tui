@@ -11,6 +11,7 @@ use tui::layout::Rect;
 use crate::config::user_config::UserConfig;
 use crate::event::IoEvent;
 use crate::handlers::search::SearchResults;
+use crate::model::album::AlbumDetail;
 use crate::model::artist::{Artist, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::dialog::Dialog;
@@ -61,6 +62,7 @@ pub enum ActiveBlock {
     Lyric,
     Artists,
     ArtistDetail,
+    AlbumTracks,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -77,6 +79,7 @@ pub enum RouteId {
     Lyric,
     Artists,
     ArtistDetail,
+    AlbumTracks,
 }
 
 #[derive(Debug)]
@@ -155,6 +158,7 @@ pub struct App {
     pub artists: Vec<Artist>,
     pub artists_selected_index: usize,
     pub artist_detail: Option<ArtistDetail>,
+    pub album_detail: Option<AlbumDetail>,
 }
 
 impl App {
@@ -526,6 +530,7 @@ impl Default for App {
             artists: vec![],
             artists_selected_index: 0,
             artist_detail: None,
+            album_detail: None,
         }
     }
 }

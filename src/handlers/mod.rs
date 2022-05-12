@@ -6,6 +6,7 @@ use crate::handlers::search::SearchResultBlock;
 use crate::model::artist::ArtistBlock;
 use crate::model::enums::{PlayingItem, ToggleState};
 
+mod album_tracks;
 mod artist_detail;
 mod artists;
 pub(crate) mod common_key_events;
@@ -124,6 +125,9 @@ pub fn handle_block_events(key: Key, app: &mut App) {
         }
         ActiveBlock::ArtistDetail => {
             artist_detail::handler(key, app);
+        }
+        ActiveBlock::AlbumTracks => {
+            album_tracks::handler(key, app);
         }
         _ => {}
     }

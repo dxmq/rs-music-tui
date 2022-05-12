@@ -392,6 +392,14 @@ impl CloudMusicApi {
 
         self.client.request(r).await
     }
+
+    // 获取专辑内容
+    pub async fn album(&self, album_id: usize) -> Result<ApiResponse> {
+        let u = replace_all_route_params(API_ROUTE["album"], album_id.to_string().as_str());
+        let r = ApiRequestBuilder::post(&u).build();
+
+        self.client.request(r).await
+    }
 }
 fn replace_all_route_params(u: &str, rep: &str) -> String {
     let re = regex::Regex::new(r"\$\{.*\}").unwrap();
@@ -568,6 +576,13 @@ mod tests {
     async fn test_simi_artists() {
         let api = CloudMusicApi::default();
         let resp = api.simi_artists(12279635).await;
+        println!("{:?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_album() {
+        let api = CloudMusicApi::default();
+        let resp = api.album(32311).await;
         println!("{:?}", resp);
     }
 }

@@ -154,6 +154,10 @@ pub fn handle_right_event(app: &mut App) {
                     Some(ActiveBlock::ArtistDetail),
                     Some(ActiveBlock::ArtistDetail),
                 ),
+                RouteId::AlbumTracks => app.set_current_route_state(
+                    Some(ActiveBlock::AlbumTracks),
+                    Some(ActiveBlock::AlbumTracks),
+                ),
                 RouteId::Lyric => {
                     app.set_current_route_state(Some(ActiveBlock::Lyric), Some(ActiveBlock::Lyric));
                 }

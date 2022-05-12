@@ -1,6 +1,7 @@
 use super::common_key_events;
 use crate::event::Key;
 use crate::model::artist::ArtistBlock;
+use crate::model::context::TrackTableContext;
 use crate::{App, IoEvent};
 
 pub fn handler(key: Key, app: &mut App) {
@@ -250,10 +251,16 @@ fn handle_enter_event_on_selected_block(app: &mut App) {
                     app.dispatch(IoEvent::StartPlayback(track.clone()));
                 }
             }
-            ArtistBlock::Albums => {}
+            ArtistBlock::Albums => {
+                let selected_index = artist.selected_album_index;
+                if let Some(album) = artist.albums.get(selected_index).to_owned().cloned() {
+                    app.track_table.context = Some(TrackTableContext::AlbumSearch);
+                    app.dispatch(IoEvent::GetAlbumTracks(Box::new(album)));
+                }
+            }
             ArtistBlock::SimiArtists => {
                 let selected_index = artist.selected_simi_artist_index;
-                let artist_id = artist.simi_artists[selected_index].id.clone();
+                let artist_id = artist.simi_artists[selected_index].id;
                 let artist_name = artist.simi_artists[selected_index].name.clone();
                 app.dispatch(IoEvent::GetArtistDetail(artist_id, artist_name.unwrap()));
             }
