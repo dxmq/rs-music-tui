@@ -62,9 +62,31 @@ pub fn handler(key: Key, app: &mut App) {
                     handle_enter_event_on_hovered_block(app);
                 }
             }
+            Key::Char('s') => {
+                if app
+                    .artist_detail
+                    .as_ref()
+                    .unwrap()
+                    .artist_detail_selected_block
+                    == ArtistBlock::Tracks
+                {
+                    handle_toggle_like_event(app);
+                }
+            }
             _ => {}
         };
     }
+}
+
+fn handle_toggle_like_event(app: &mut App) {
+    let (selected_index, tracks) = (
+        app.artist_detail.as_ref().unwrap().selected_track_index,
+        &app.artist_detail.as_ref().unwrap().tracks,
+    );
+    if let Some(track) = tracks.get(selected_index) {
+        let id = track.id;
+        app.dispatch(IoEvent::ToggleLikeTrack(id));
+    };
 }
 
 fn handle_down_press_on_selected_block(app: &mut App) {

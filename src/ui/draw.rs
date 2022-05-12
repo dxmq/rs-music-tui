@@ -401,18 +401,21 @@ where
             .tracks
             .iter()
             .map(|track| {
-                let mut name = String::new();
+                let mut song_name = "".to_string();
                 if let Some(context) = &app.current_playback_context {
                     let mut track_id = 0;
                     if let Some(PlayingItem::Track(track)) = &context.item {
                         track_id = track.id
                     };
                     if track_id == track.id {
-                        name.push_str("▶ ");
+                        song_name.push_str("▶ ");
                     }
                 };
-                name.push_str(&track.name);
-                name
+                if app.liked_track_ids_set.contains(&track.id) {
+                    song_name += &app.user_config.padded_liked_icon();
+                }
+                song_name.push_str(&track.name);
+                song_name
             })
             .collect::<Vec<String>>();
 
