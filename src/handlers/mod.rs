@@ -3,6 +3,7 @@ pub use input::handler as input_handler;
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
 use crate::handlers::search::SearchResultBlock;
+use crate::model::artist::ArtistBlock;
 use crate::model::enums::{PlayingItem, ToggleState};
 
 mod artist_detail;
@@ -133,11 +134,11 @@ fn handle_escape(app: &mut App) {
         ActiveBlock::SearchResultBlock => {
             app.search_results.selected_block = SearchResultBlock::Empty;
         }
-        // ActiveBlock::ArtistBlock => {
-        //     if let Some(artist) = &mut app.artist {
-        //         artist.artist_selected_block = ArtistBlock::Empty;
-        //     }
-        // }
+        ActiveBlock::ArtistDetail => {
+            if let Some(artist) = &mut app.artist_detail {
+                artist.artist_detail_selected_block = ArtistBlock::Empty;
+            }
+        }
         ActiveBlock::Error => {
             app.pop_navigation_stack();
         }

@@ -154,12 +154,12 @@ pub fn handle_right_event(app: &mut App) {
                     Some(ActiveBlock::ArtistDetail),
                     Some(ActiveBlock::ArtistDetail),
                 ),
-                RouteId::Error => {}
-                RouteId::BasicView => {}
-                RouteId::Dialog => {}
                 RouteId::Lyric => {
                     app.set_current_route_state(Some(ActiveBlock::Lyric), Some(ActiveBlock::Lyric));
                 }
+                RouteId::Error => {}
+                RouteId::BasicView => {}
+                RouteId::Dialog => {}
             }
         }
         _ => {}
