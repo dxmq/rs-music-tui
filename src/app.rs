@@ -276,34 +276,35 @@ impl App {
                 PlayingItem::Track(track) => {
                     if track.duration as u128 - self.song_progress_ms < 1000 {
                         let track = track.clone();
+                        // 单曲播放次数+1
+                        self.dispatch(IoEvent::WebLog(track.id));
                         self.toggle_track(track, ToggleState::Next);
                     }
                 }
             }
 
-            match &self.lyric {
-                Some(lyrics) => {
-                    let next_lyric = lyrics.get(self.lyric_index + 1);
-                    match next_lyric {
-                        Some(next_lyric) => {
-                            let timeline = next_lyric.timeline.as_millis();
-                            let progress_ms = self.song_progress_ms;
-                            if progress_ms as u128 > timeline {
-                                self.lyric_index += 1;
+            if playings {
+                match &self.lyric {
+                    Some(lyrics) => {
+                        let next_lyric = lyrics.get(self.lyric_index + 1);
+                        match next_lyric {
+                            Some(next_lyric) => {
+                                let timeline = next_lyric.timeline.as_millis();
+                                let progress_ms = self.song_progress_ms;
+                                if progress_ms as u128 > timeline {
+                                    self.lyric_index += 1;
+                                }
                             }
+                            None => {}
                         }
-                        None => {}
                     }
+                    None => {}
                 }
-                None => {}
             }
         }
     }
 
     pub fn toggle_track(&mut self, track: Track, state: ToggleState) {
-        // 单曲播放次数+1
-        self.dispatch(IoEvent::WebLog(track.id));
-
         if let Some(context) = &self.current_playback_context {
             match context.repeat_state {
                 RepeatState::Track => {
@@ -334,12 +335,13 @@ impl App {
                         if next_index != list.tracks.len() {
                             list.selected_index = next_index;
                             self.dispatch(IoEvent::StartPlayback(track));
-                        } else if (self.song_progress_ms - track.duration as u128) < 1000 {
-                            let mut context = context.clone();
-                            context.is_playing = false;
-                            self.current_playback_context = Some(context);
                         }
                         self.re_render_lyric(id);
+                    } else {
+                        let mut context = context.clone();
+                        self.song_progress_ms = 0;
+                        context.is_playing = false;
+                        self.current_playback_context = Some(context);
                     }
                 }
             }
