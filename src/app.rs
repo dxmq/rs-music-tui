@@ -319,7 +319,7 @@ impl App {
                 }
                 RepeatState::Off => {
                     let mut list = self.my_play_tracks.clone();
-                    if list.tracks.is_empty().not() {
+                    if list.tracks.len() > 1 {
                         let mut current_play_track_index = 0;
                         for (i, x) in list.tracks.iter().enumerate() {
                             if x.id == track.id {
@@ -348,29 +348,27 @@ impl App {
 
     pub fn next_or_prev_track(&mut self, state: ToggleState) {
         let mut list = self.my_play_tracks.clone();
-        if list.tracks.len() > 1 {
-            let mut current_play_track_index = 0;
-            if let Some(context) = self.current_playback_context.clone() {
-                if let Some(item) = context.item {
-                    match item {
-                        PlayingItem::Track(track) => {
-                            for (i, x) in list.tracks.iter().enumerate() {
-                                if x.id == track.id {
-                                    current_play_track_index = i;
-                                }
+        let mut current_play_track_index = 0;
+        if let Some(context) = self.current_playback_context.clone() {
+            if let Some(item) = context.item {
+                match item {
+                    PlayingItem::Track(track) => {
+                        for (i, x) in list.tracks.iter().enumerate() {
+                            if x.id == track.id {
+                                current_play_track_index = i;
                             }
                         }
                     }
                 }
             }
-            let next_index = App::next_index(&list.tracks, Some(current_play_track_index), state);
-            list.selected_index = next_index;
-
-            let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
-            let id = track.id;
-            self.dispatch(IoEvent::StartPlayback(track));
-            self.re_render_lyric(id);
         }
+        let next_index = App::next_index(&list.tracks, Some(current_play_track_index), state);
+        list.selected_index = next_index;
+
+        let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
+        let id = track.id;
+        self.dispatch(IoEvent::StartPlayback(track));
+        self.re_render_lyric(id);
     }
 
     #[allow(unused)]
