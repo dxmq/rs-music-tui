@@ -750,7 +750,8 @@ where
         );
     }
 }
-pub fn draw_lyric<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+
+pub fn draw_map<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
 where
     B: Backend,
 {
@@ -759,13 +760,6 @@ where
         current_route.active_block == ActiveBlock::Lyric,
         current_route.hovered_block == ActiveBlock::Lyric,
     );
-
-    let chunks = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(65), Constraint::Percentage(35)].as_ref())
-        // .margin(2)
-        .split(layout_chunk);
-
     let canvas = Canvas::default()
         .block(
             Block::default()
@@ -782,8 +776,13 @@ where
         })
         .x_bounds([-180.0, 180.0])
         .y_bounds([-90.0, 90.0]);
-    f.render_widget(canvas, chunks[0]);
+    f.render_widget(canvas, layout_chunk);
+}
 
+pub fn draw_lyric<B>(f: &mut Frame<B>, app: &App, layout_chunk: Rect)
+where
+    B: Backend,
+{
     let lyric_items = match &app.lyric {
         Some(l) => l
             .iter()
@@ -796,6 +795,21 @@ where
             .collect(),
         None => vec![],
     };
+    if lyric_items.is_empty() {
+        draw_map(f, app, layout_chunk);
+        return;
+    }
+    let chunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([Constraint::Percentage(65), Constraint::Percentage(35)].as_ref())
+        .split(layout_chunk);
+    draw_map(f, app, chunks[0]);
+
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::Lyric,
+        current_route.hovered_block == ActiveBlock::Lyric,
+    );
     let selected_index = app.lyric_index;
 
     let interval = (layout_chunk.height / 2) as usize;
