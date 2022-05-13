@@ -320,6 +320,21 @@ impl CloudMusic {
         Err(anyhow!("获取相似歌手失败"))
     }
 
+    pub async fn artist_sub(&self, artist_id: usize) -> Result<()> {
+        if let Ok(artist_sublist) = self.artist_sublist().await {
+            let mut is_sub: bool = true;
+            for x in &artist_sublist {
+                if x.id == artist_id {
+                    is_sub = false;
+                }
+            }
+            if (self.api.artist_sub(artist_id, is_sub).await).is_ok() {
+                return Ok(());
+            }
+        }
+        Err(anyhow!("收藏或取消收藏歌手失败"))
+    }
+
     pub async fn weblog(&self, track_id: usize) {
         if (self.api.weblog(track_id).await).is_ok() {};
     }
@@ -416,5 +431,11 @@ mod tests {
     async fn test_album() {
         let album_tracks = CloudMusic::default().album(32311).await;
         println!("{:?}", album_tracks.unwrap());
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_sub() {
+        let res = CloudMusic::default().artist_sub(12279635).await;
+        assert!(res.is_ok());
     }
 }

@@ -57,6 +57,14 @@ pub fn handler(key: Key, app: &mut App) {
         k if k == app.user_config.keys.jump_to_start => {
             app.artists_selected_index = app.artists.len() - 1;
         }
+        k if k == Key::Char('s') => {
+            let selected_index = app.artists_selected_index;
+            let artist = app.artists.get(selected_index);
+            if let Some(artist) = artist {
+                let id = artist.id;
+                app.dispatch(IoEvent::ToggleSubscribeArtist(id));
+            }
+        }
         Key::Enter => {
             let selected_index = app.artists_selected_index;
             let artist = app.artists.get(selected_index);

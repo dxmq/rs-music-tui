@@ -82,6 +82,9 @@ pub fn handler(key: Key, app: &mut App) {
             SearchResultBlock::PlaylistSearch => {
                 handle_toggle_subscribe_playlist_event(app);
             }
+            SearchResultBlock::ArtistSearch => {
+                handle_toggle_subscribe_artist_event(app);
+            }
             SearchResultBlock::Empty => {}
             _ => {}
         },
@@ -95,6 +98,14 @@ pub fn handler(key: Key, app: &mut App) {
         },
         _ => {}
     }
+}
+
+fn handle_toggle_subscribe_artist_event(app: &mut App) {
+    let selected_index = app.search_results.selected_artists_index.unwrap();
+    let artists = app.search_results.artists.clone().unwrap();
+    if let Some(artist) = artists.get(selected_index) {
+        app.dispatch(IoEvent::ToggleSubscribeArtist(artist.id));
+    };
 }
 
 fn handle_toggle_subscribe_playlist_event(app: &mut App) {

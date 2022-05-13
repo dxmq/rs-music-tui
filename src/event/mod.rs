@@ -35,4 +35,6 @@ pub enum IoEvent {
     GetArtistSubList,
     GetArtistDetail(usize, String),
     GetAlbumTracks(Box<Album>),
+    // 收藏or取消收藏歌手
+    ToggleSubscribeArtist(usize),
 }

@@ -400,6 +400,16 @@ impl CloudMusicApi {
 
         self.client.request(r).await
     }
+
+    // 收藏or取消收藏歌手
+    pub async fn artist_sub(&self, artist_id: usize, is_sub: bool) -> Result<ApiResponse> {
+        let t = if is_sub { "sub" } else { "unsub" };
+        let u = replace_all_route_params(API_ROUTE["artist_sub"], t);
+        let r = ApiRequestBuilder::post(&u)
+            .set_data(json!({ "artistId": artist_id, "artistIds": vec![artist_id] }))
+            .build();
+        self.client.request(r).await
+    }
 }
 fn replace_all_route_params(u: &str, rep: &str) -> String {
     let re = regex::Regex::new(r"\$\{.*\}").unwrap();
@@ -583,6 +593,13 @@ mod tests {
     async fn test_album() {
         let api = CloudMusicApi::default();
         let resp = api.album(32311).await;
+        println!("{:?}", resp);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_sub() {
+        let api = CloudMusicApi::default();
+        let resp = api.artist_sub(12279635, true).await;
         println!("{:?}", resp);
     }
 }

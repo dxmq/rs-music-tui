@@ -143,10 +143,11 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             // 加载歌单列表
             app.dispatch(IoEvent::GetPlaylists);
             // 获取最后播放的那条记录
-            // app.dispatch(IoEvent::GetRecentlyPlayed(1));
             app.read_current_play_context();
             // 获取喜欢的音乐
             app.dispatch(IoEvent::GetLikeList);
+            // 获取收藏的歌手
+            app.dispatch(IoEvent::GetArtistSubList);
             app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
             is_first_render = false;
         }

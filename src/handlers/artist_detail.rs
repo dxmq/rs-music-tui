@@ -65,18 +65,42 @@ pub fn handler(key: Key, app: &mut App) {
                 }
             }
             Key::Char('s') => {
+                match app
+                    .artist_detail
+                    .as_ref()
+                    .unwrap()
+                    .artist_detail_selected_block
+                {
+                    ArtistBlock::Tracks => {
+                        handle_toggle_like_event(app);
+                    }
+                    ArtistBlock::Albums => {}
+                    ArtistBlock::SimiArtists => {
+                        handle_toggle_subscribe_artist_event(app);
+                    }
+                    ArtistBlock::Empty => {}
+                }
                 if app
                     .artist_detail
                     .as_ref()
                     .unwrap()
                     .artist_detail_selected_block
                     == ArtistBlock::Tracks
-                {
-                    handle_toggle_like_event(app);
-                }
+                {}
             }
             _ => {}
         };
+    }
+}
+
+fn handle_toggle_subscribe_artist_event(app: &mut App) {
+    if let Some(artist) = &mut app.artist_detail {
+        let selected_index = artist.selected_simi_artist_index;
+        let artists = &artist.simi_artists;
+        if let Some(artist) = artists.get(selected_index) {
+            let id = artist.id;
+            app.dispatch(IoEvent::ToggleSubscribeArtist(id));
+        }
     }
 }
 

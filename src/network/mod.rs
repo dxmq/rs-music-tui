@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::panic::PanicInfo;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -115,10 +116,22 @@ impl<'a> Network<'a> {
             IoEvent::GetAlbumTracks(album) => {
                 self.load_album_tracks(album).await;
             }
+            IoEvent::ToggleSubscribeArtist(artist_id) => {
+                self.toggle_sub_artist(artist_id).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn toggle_sub_artist(&mut self, artist_id: usize) {
+        match self.cloud_music.artist_sub(artist_id).await {
+            Ok(_) => {
+                self.load_artist_sublist().await;
+            }
+            Err(e) => self.handle_error(e).await,
+        }
     }
 
     async fn load_album_tracks(&mut self, album: Box<Album>) {
@@ -163,6 +176,7 @@ impl<'a> Network<'a> {
         let mut app = self.app.lock().await;
         match self.cloud_music.artist_sublist().await {
             Ok(artists) => {
+                app.artist_sub_ids_set = artists.iter().map(|it| it.id).collect::<HashSet<usize>>();
                 app.artists = artists;
             }
             Err(e) => {

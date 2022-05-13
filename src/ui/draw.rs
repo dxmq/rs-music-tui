@@ -536,9 +536,9 @@ where
             .iter()
             .map(|item| {
                 let mut artist = String::new();
-                // if app.followed_artist_ids_set.contains(&item.id.to_owned()) {
-                //     artist.push_str(&app.user_config.padded_liked_icon());
-                // }
+                if app.artist_sub_ids_set.contains(&item.id) {
+                    artist.push_str(&app.user_config.padded_liked_icon());
+                }
                 artist.push_str(&item.name.clone().unwrap());
                 artist
             })
@@ -658,9 +658,9 @@ where
                 .iter()
                 .map(|item| {
                     let mut artist = String::new();
-                    // if app.followed_artist_ids_set.contains(&item.id.to_owned()) {
-                    //     artist.push_str(&app.user_config.padded_liked_icon());
-                    // }
+                    if app.artist_sub_ids_set.contains(&item.id) {
+                        artist.push_str(&app.user_config.padded_liked_icon());
+                    }
                     let artist_name = item.name.clone().unwrap();
                     artist.push_str(&artist_name);
                     artist
