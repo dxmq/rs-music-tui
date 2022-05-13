@@ -3,6 +3,7 @@ use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
 use crate::handlers::search::SearchResultBlock;
 use crate::model::context::TrackTableContext;
+use crate::model::table::TrackTable;
 
 pub fn handler(key: Key, app: &mut App) {
     match key {
@@ -332,6 +333,11 @@ fn handle_enter_event_on_selected_block(app: &mut App) {
             if let Some(tracks) = tracks {
                 if let Some(track) = tracks.get(index.unwrap()) {
                     app.dispatch(IoEvent::StartPlayback(track.clone()));
+                    app.my_play_tracks = TrackTable {
+                        tracks,
+                        selected_index: index.unwrap(),
+                        context: Some(TrackTableContext::SearchResult),
+                    };
                 }
             }
         }

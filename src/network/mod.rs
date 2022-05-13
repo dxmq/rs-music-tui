@@ -85,8 +85,8 @@ impl<'a> Network<'a> {
             IoEvent::GetLikeList => {
                 self.load_like_track_id_list().await;
             }
-            IoEvent::GetLyric(track_id) => {
-                self.load_track_lyric(track_id).await;
+            IoEvent::GetLyric(track_id, is_active_block) => {
+                self.load_track_lyric(track_id, is_active_block).await;
             }
             IoEvent::ToggleLikeTrack(track_id) => {
                 self.toggle_like_track(track_id).await;
@@ -303,7 +303,7 @@ impl<'a> Network<'a> {
         }
     }
 
-    async fn load_track_lyric(&mut self, track_id: usize) {
+    async fn load_track_lyric(&mut self, track_id: usize, is_active_block: bool) {
         let mut app = self.app.lock().await;
         let lyric = self.cloud_music.lyric(track_id).await;
         match lyric {
@@ -316,7 +316,9 @@ impl<'a> Network<'a> {
                 app.lyric = None;
             }
         }
-        app.push_navigation_stack(RouteId::Lyric, ActiveBlock::Lyric);
+        if is_active_block {
+            app.push_navigation_stack(RouteId::Lyric, ActiveBlock::Lyric);
+        }
     }
 
     async fn load_like_track_id_list(&mut self) {
@@ -381,11 +383,6 @@ impl<'a> Network<'a> {
                         item: Some(PlayingItem::Track(track.clone())),
                     };
                     app.current_playback_context = Some(context);
-                    app.my_play_tracks = TrackTable {
-                        tracks: play_list,
-                        selected_index: 0,
-                        context: Some(TrackTableContext::RecentlyPlayed),
-                    };
                 }
                 app.volume = self.player.get_volume();
             }
@@ -427,7 +424,7 @@ impl<'a> Network<'a> {
                                             app.start_time = Instant::now();
                                             app.current_playback_context = Some(context);
 
-                                            app.dispatch(IoEvent::GetLyric(track_id));
+                                            app.dispatch(IoEvent::GetLyric(track_id, false));
                                         }
                                         Err(e) => {
                                             app.handle_error(e);
@@ -489,7 +486,7 @@ impl<'a> Network<'a> {
                             app.start_time = Instant::now();
                             app.volume = self.player.get_volume();
                             self.cache_play_record(t, &mut *app);
-                            app.dispatch(IoEvent::GetLyric(track_id));
+                            app.dispatch(IoEvent::GetLyric(track_id, false));
                             app.seek_ms.take();
                             app.is_fetching_current_playback = false;
                         }

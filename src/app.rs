@@ -348,7 +348,7 @@ impl App {
 
     pub fn next_or_prev_track(&mut self, state: ToggleState) {
         let mut list = self.my_play_tracks.clone();
-        if list.tracks.is_empty().not() {
+        if list.tracks.len() > 1 {
             let mut current_play_track_index = 0;
             if let Some(context) = self.current_playback_context.clone() {
                 if let Some(item) = context.item {
@@ -373,12 +373,13 @@ impl App {
         }
     }
 
+    #[allow(unused)]
     fn re_render_lyric(&mut self, track_id: usize) {
         let current_route = self.get_current_route();
         if current_route.id == RouteId::Lyric && current_route.active_block == ActiveBlock::Lyric
             || (current_route.hovered_block == ActiveBlock::Lyric)
         {
-            self.dispatch(IoEvent::GetLyric(track_id));
+            self.dispatch(IoEvent::GetLyric(track_id, false));
         };
     }
 

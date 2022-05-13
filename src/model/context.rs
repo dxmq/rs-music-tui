@@ -57,7 +57,6 @@ pub enum DialogContext {
     PlaylistSearch,
 }
 
-// Is it possible to compose enums?
 #[derive(PartialEq, Debug, Clone)]
 pub enum TrackTableContext {
     MyPlaylists,
@@ -73,4 +72,7 @@ pub enum TrackTableContext {
     RecentlyPlayed,
     #[allow(unused)]
     MadeForYou,
+    SearchResult,
+    ArtistDetail,
+    AlbumDetail,
 }

@@ -63,7 +63,7 @@ pub fn handle_app(key: Key, app: &mut App) {
                 if let Some(item) = &context.item {
                     match item {
                         PlayingItem::Track(track) => {
-                            app.dispatch(IoEvent::GetLyric(track.id));
+                            app.dispatch(IoEvent::GetLyric(track.id, true));
                         }
                     }
                 }

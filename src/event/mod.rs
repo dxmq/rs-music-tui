@@ -1,6 +1,6 @@
-use crate::model::album::Album;
 pub use self::events::{Event, Events};
 pub use self::key::Key;
+use crate::model::album::Album;
 use crate::model::track::Track;
 
 mod events;
@@ -24,7 +24,7 @@ pub enum IoEvent {
     DecreaseVolume,
     IncreaseVolume,
     GetLikeList,
-    GetLyric(usize),
+    GetLyric(usize, bool),
     // 喜欢or不喜欢歌曲
     ToggleLikeTrack(usize),
     ToggleSubscribePlaylist(usize),
@@ -34,5 +34,5 @@ pub enum IoEvent {
     // 获取我收藏的歌手列表
     GetArtistSubList,
     GetArtistDetail(usize, String),
-    GetAlbumTracks(Box<Album>)
+    GetAlbumTracks(Box<Album>),
 }

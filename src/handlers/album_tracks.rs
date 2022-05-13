@@ -1,4 +1,6 @@
 use super::common_key_events;
+use crate::model::context::TrackTableContext;
+use crate::model::table::TrackTable;
 use crate::{app::App, event::Key, IoEvent};
 
 pub fn handler(key: Key, app: &mut App) {
@@ -29,6 +31,11 @@ pub fn handler(key: Key, app: &mut App) {
             if let Some(album_detail) = &app.album_detail.clone() {
                 if let Some(track) = album_detail.tracks.get(album_detail.selected_track_index) {
                     app.dispatch(IoEvent::StartPlayback(track.clone()));
+                    app.my_play_tracks = TrackTable {
+                        tracks: album_detail.tracks.clone(),
+                        selected_index: album_detail.selected_track_index,
+                        context: Some(TrackTableContext::AlbumDetail),
+                    };
                 }
             }
         }
