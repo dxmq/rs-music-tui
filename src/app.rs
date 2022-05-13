@@ -335,8 +335,8 @@ impl App {
                         if next_index != list.tracks.len() {
                             list.selected_index = next_index;
                             self.dispatch(IoEvent::StartPlayback(track));
+                            self.re_render_lyric(id);
                         }
-                        self.re_render_lyric(id);
                     } else {
                         let mut context = context.clone();
                         self.song_progress_ms = 0;
