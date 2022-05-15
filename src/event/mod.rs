@@ -1,6 +1,7 @@
 pub use self::events::{Event, Events};
 pub use self::key::Key;
 use crate::model::album::Album;
+use crate::model::login::LoginForm;
 use crate::model::track::Track;
 
 mod events;
@@ -37,4 +38,5 @@ pub enum IoEvent {
     GetAlbumTracks(Box<Album>),
     // 收藏or取消收藏歌手
     ToggleSubscribeArtist(usize),
+    Login(LoginForm),
 }

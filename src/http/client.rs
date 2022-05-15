@@ -52,6 +52,12 @@ impl ApiClient {
         client
     }
 
+    pub fn login(&self, login: bool) -> ApiClient {
+        let mut client = ApiClient::default();
+        client.config.login = login;
+        client
+    }
+
     pub async fn request(&self, req: ApiRequest) -> Result<ApiResponse> {
         let id = req.id();
 
@@ -68,7 +74,27 @@ impl ApiClient {
         if self.config.log_response {
             println!("{:?}", resp);
         }
-        self.on_response(id, resp).await
+        return if !self.config.login {
+            self.on_response(id, resp).await
+        } else {
+            self.on_login_response(resp).await
+        };
+    }
+
+    async fn on_login_response(&self, resp: Response) -> Result<ApiResponse> {
+        let headers = resp.headers().clone();
+        let url = resp.url().clone();
+        let mut cs = headers.get_all(SET_COOKIE).iter().peekable();
+        let body = resp.bytes().await?;
+        let res = ApiResponse::new(body.to_vec());
+        if cs.peek().is_some() && res.deserialize_to_implict().code == 200 {
+            // sync cookie to jar
+            self.jar.set_cookies(&mut cs, &url);
+            // sync cookie to local
+            let hv = self.jar.cookies(&self.config.base_url).unwrap();
+            write_cookies(&self.config.cookie_path, hv.to_str().unwrap()).unwrap_or_default();
+        }
+        Ok(res)
     }
 
     async fn on_response(&self, id: String, resp: Response) -> Result<ApiResponse> {
@@ -363,6 +389,7 @@ impl ApiClientBuilder {
                 cookie_path: String::from(cookie_path),
                 log_request: false,
                 log_response: false,
+                login: false,
             },
         }
     }
@@ -450,6 +477,8 @@ pub(crate) struct Config {
 
     log_request: bool,
     log_response: bool,
+
+    login: bool,
 }
 
 fn write_cookies(path: &str, cs: &str) -> Result<()> {

@@ -20,9 +20,10 @@ use tui::{
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::config::user_config::UserConfig;
 use crate::event;
-use crate::event::IoEvent;
-use crate::event::Key;
+use crate::event::{Event, IoEvent};
+use crate::event::{Events, Key};
 use crate::handlers;
+use crate::http::get_or_build_cookie_paths;
 use crate::util::SMALL_TERMINAL_HEIGHT;
 
 pub(crate) mod draw;
@@ -44,7 +45,62 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
     terminal.hide_cursor()?;
 
     let events = event::Events::new(user_config.behavior.tick_rate_milliseconds);
+    let cookie_path = get_or_build_cookie_paths()?;
 
+    let mut is_close = false;
+    if !cookie_path.exists() {
+        let mut app = app.lock().await;
+        app.set_current_route_state(Some(ActiveBlock::PhoneBlock), Some(ActiveBlock::PhoneBlock));
+    }
+    loop {
+        let mut app = app.lock().await;
+        if !cookie_path.exists() && !app.login_info.is_login_success {
+            let current_route = app.get_current_route();
+            terminal.draw(|f| {
+                if current_route.active_block == ActiveBlock::Error {
+                    draw::draw_error_screen(f, &app);
+                } else {
+                    draw::draw_login_page(f, &app);
+                }
+            })?;
+            if let Event::Input(key) = events.next()? {
+                if key == Key::Ctrl('c') {
+                    is_close = true;
+                    break;
+                }
+                let current_active_block = app.get_current_route().active_block;
+                if current_active_block == ActiveBlock::PhoneBlock {
+                    handlers::username_input_handler(key, &mut app);
+                } else if current_active_block == ActiveBlock::PasswordBlock {
+                    handlers::password_input_handler(key, &mut app);
+                } else if current_active_block == ActiveBlock::LoginButton {
+                    handlers::login_button_handler(key, &mut app);
+                } else {
+                    handlers::handle_app_login(key, &mut app);
+                }
+            }
+            if app.login_info.cancel_login {
+                is_close = true;
+                break;
+            }
+        } else {
+            break;
+        }
+    }
+
+    if !is_close {
+        render_app_layout(app, terminal, events).await?;
+    } else {
+        close_application(terminal)?;
+    }
+    Ok(())
+}
+
+async fn render_app_layout(
+    app: &Arc<Mutex<App>>,
+    mut terminal: Terminal<CrosstermBackend<Stdout>>,
+    events: Events,
+) -> Result<()> {
     let mut is_first_render = true;
     loop {
         let mut app = app.lock().await;
@@ -152,11 +208,10 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             is_first_render = false;
         }
     }
-
     close_application(terminal)?;
+
     Ok(())
 }
-
 fn close_application(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> Result<()> {
     disable_raw_mode()?;
     let mut stdout = io::stdout();

@@ -32,7 +32,7 @@ impl CloudMusic {
         return match self.api.user_account().await {
             Ok(resp) => {
                 let resp = serde_json::from_slice::<UserAccountResp>(resp.data())?;
-                if resp.code != 200 {
+                if resp.code != 200 && resp.profile.is_none() {
                     return Err(anyhow!("网络连接错误"));
                 }
                 Ok(resp.profile)
@@ -333,6 +333,16 @@ impl CloudMusic {
             }
         }
         Err(anyhow!("收藏或取消收藏歌手失败"))
+    }
+
+    pub async fn login(&self, phone: &str, password: &str) -> Result<()> {
+        if let Ok(resp) = self.api.login_phone(phone, password).await {
+            let resp = resp.deserialize_to_implict();
+            if resp.code == 200 {
+                return Ok(());
+            }
+        }
+        return Err(anyhow!("登录失败……"));
     }
 
     pub async fn weblog(&self, track_id: usize) {

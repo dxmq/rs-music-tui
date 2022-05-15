@@ -21,6 +21,7 @@ use crate::model::album::{Album, AlbumDetail};
 use crate::model::artist::{ArtistBlock, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, TrackTableContext};
 use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
+use crate::model::login::LoginForm;
 use crate::model::table::TrackTable;
 use crate::model::track::Track;
 use crate::network::cloud_music::CloudMusic;
@@ -119,10 +120,27 @@ impl<'a> Network<'a> {
             IoEvent::ToggleSubscribeArtist(artist_id) => {
                 self.toggle_sub_artist(artist_id).await;
             }
+            IoEvent::Login(login_form) => {
+                self.login_app(login_form).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    async fn login_app(&mut self, login_form: LoginForm) {
+        match self
+            .cloud_music
+            .login(login_form.phone.as_ref(), login_form.password.as_ref())
+            .await
+        {
+            Ok(_) => {
+                let mut app = self.app.lock().await;
+                app.login_info.is_login_success = true;
+            }
+            Err(e) => self.handle_error(e).await,
+        }
     }
 
     async fn toggle_sub_artist(&mut self, artist_id: usize) {

@@ -1,10 +1,14 @@
 pub use input::handler as input_handler;
+pub use login::login_button_handler;
+pub use login::password_input_handler;
+pub use login::username_input_handler;
 
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
 use crate::handlers::search::SearchResultBlock;
 use crate::model::artist::ArtistBlock;
 use crate::model::enums::{PlayingItem, ToggleState};
+use crate::model::login::LoginState;
 
 mod album_tracks;
 mod artist_detail;
@@ -17,6 +21,7 @@ pub(crate) mod help_menu;
 pub(crate) mod home;
 pub(crate) mod input;
 pub(crate) mod library;
+mod login;
 pub(crate) mod lyric;
 pub(crate) mod my_playlist;
 pub(crate) mod playbar;
@@ -149,10 +154,58 @@ fn handle_escape(app: &mut App) {
         ActiveBlock::Dialog(_) => {
             app.pop_navigation_stack();
         }
-        // These are global views that have no active/inactive distinction so do nothing
-        // ActiveBlock::SelectDevice | ActiveBlock::Analysis => {}
         _ => {
             app.set_current_route_state(Some(ActiveBlock::Empty), None);
+        }
+    }
+}
+
+pub fn handle_app_login_escape(app: &mut App) {
+    match app.get_current_route().active_block {
+        ActiveBlock::Error => {
+            app.pop_navigation_stack();
+        }
+        _ => {
+            app.set_current_route_state(Some(ActiveBlock::Empty), None);
+        }
+    }
+}
+pub fn handle_app_login(key: Key, app: &mut App) {
+    match key {
+        Key::Esc => {
+            handle_app_login_escape(app);
+        }
+        _ => {
+            let current_route = app.get_current_route();
+            if current_route.active_block == ActiveBlock::Empty {
+                match key {
+                    Key::Enter => {
+                        let current_hovered = app.get_current_route().hovered_block;
+                        app.set_current_route_state(Some(current_hovered), None);
+                    }
+                    k if common_key_events::down_event2(k) => {
+                        match app.get_current_route().hovered_block {
+                            ActiveBlock::PhoneBlock => {
+                                app.set_current_route_state(None, Some(ActiveBlock::PasswordBlock));
+                            }
+                            ActiveBlock::PasswordBlock => {
+                                app.set_current_route_state(
+                                    Some(ActiveBlock::LoginButton),
+                                    Some(ActiveBlock::LoginButton),
+                                );
+                                app.login_info.login_state = LoginState::Confirm;
+                            }
+                            _ => {}
+                        }
+                    }
+                    k if common_key_events::up_event(k) => {
+                        if app.get_current_route().hovered_block == ActiveBlock::PasswordBlock {
+                            app.set_current_route_state(None, Some(ActiveBlock::PhoneBlock));
+                        }
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 }

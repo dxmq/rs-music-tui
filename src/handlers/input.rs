@@ -1,9 +1,8 @@
 use crate::app::{ActiveBlock, App, RouteId};
-use crate::event::IoEvent;
 use crate::event::Key;
+use crate::IoEvent;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-/// 处理当搜索框激活时候的事件
 pub fn handler(key: Key, app: &mut App) {
     match key {
         Key::Ctrl('k') => {

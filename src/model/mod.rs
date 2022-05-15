@@ -5,6 +5,7 @@ pub(crate) mod device;
 pub(crate) mod dialog;
 pub(crate) mod enums;
 pub(crate) mod image;
+pub(crate) mod login;
 pub(crate) mod page;
 pub(crate) mod playlist;
 pub(crate) mod show;

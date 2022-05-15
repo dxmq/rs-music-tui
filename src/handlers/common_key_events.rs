@@ -5,6 +5,10 @@ pub fn down_event(key: Key) -> bool {
     matches!(key, Key::Down | Key::Char('j') | Key::Ctrl('n'))
 }
 
+pub fn down_event2(key: Key) -> bool {
+    matches!(key, Key::Down | Key::Char('j') | Key::Ctrl('n') | Key::Tab)
+}
+
 pub fn up_event(key: Key) -> bool {
     matches!(key, Key::Up | Key::Char('k') | Key::Ctrl('p'))
 }
@@ -161,6 +165,9 @@ pub fn handle_right_event(app: &mut App) {
                 RouteId::Lyric => {
                     app.set_current_route_state(Some(ActiveBlock::Lyric), Some(ActiveBlock::Lyric));
                 }
+                RouteId::PhoneBlock => {}
+                RouteId::PasswordBlock => {}
+                RouteId::LoginButton => {}
                 RouteId::Error => {}
                 RouteId::BasicView => {}
                 RouteId::Dialog => {}

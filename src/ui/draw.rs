@@ -15,6 +15,7 @@ use crate::handlers::search::SearchResultBlock;
 use crate::model::album::AlbumUi;
 use crate::model::artist::ArtistBlock;
 use crate::model::enums::{PlayingItem, RepeatState};
+use crate::model::login::LoginState;
 use crate::model::table::{ColumnId, TableHeader, TableHeaderItem, TableId, TableItem};
 use crate::ui::help::get_help_docs;
 use crate::util;
@@ -61,6 +62,101 @@ where
 
     // Possibly draw confirm dialog
     draw_dialog(f, app);
+}
+
+pub fn draw_login_page<B>(f: &mut Frame<B>, app: &App)
+where
+    B: Backend,
+{
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::PhoneBlock,
+        current_route.hovered_block == ActiveBlock::PhoneBlock,
+    );
+    let chunks = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints(
+            [
+                Constraint::Percentage(20),
+                Constraint::Percentage(30),
+                Constraint::Percentage(30),
+                Constraint::Percentage(20),
+            ]
+            .as_ref(),
+        )
+        .margin(10)
+        .split(f.size());
+    let text = vec![Spans::from(Span::styled(
+        "登录",
+        Style::default().add_modifier(Modifier::BOLD),
+    ))];
+    let text = Paragraph::new(text)
+        .wrap(Wrap { trim: true })
+        .alignment(Alignment::Center);
+
+    f.render_widget(text, chunks[0]);
+
+    let input_string: String = app.login_info.phone_input.iter().collect();
+
+    let line = Text::from((&input_string).as_str());
+    let phone_input = Paragraph::new(line).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled(
+                "手机号",
+                get_color(highlight_state, app.user_config.theme),
+            ))
+            .border_style(get_color(highlight_state, app.user_config.theme)),
+    );
+    f.render_widget(phone_input, chunks[1]);
+
+    let password_input_string: String = app.login_info.password_input.iter().collect();
+    let password_line = Text::from((&password_input_string).as_str());
+    let current_route = app.get_current_route();
+    let highlight_state = (
+        current_route.active_block == ActiveBlock::PasswordBlock,
+        current_route.hovered_block == ActiveBlock::PasswordBlock,
+    );
+    let password_input = Paragraph::new(password_line).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(Span::styled(
+                "密码",
+                get_color(highlight_state, app.user_config.theme),
+            ))
+            .border_style(get_color(highlight_state, app.user_config.theme)),
+    );
+    f.render_widget(password_input, chunks[2]);
+
+    let hchunks = Layout::default()
+        .direction(Direction::Horizontal)
+        .horizontal_margin(3)
+        .constraints([Constraint::Ratio(1, 2), Constraint::Ratio(1, 2)].as_ref())
+        .split(chunks[3]);
+
+    let ok_text = Span::raw("确认");
+
+    let ok = Paragraph::new(ok_text)
+        .style(match &app.login_info.login_state {
+            LoginState::NoActive | LoginState::Cancel => {
+                Style::default().fg(app.user_config.theme.inactive)
+            }
+            LoginState::Confirm => Style::default().fg(app.user_config.theme.active),
+        })
+        .alignment(Alignment::Center);
+
+    f.render_widget(ok, hchunks[0]);
+
+    let cancel_text = Span::raw("取消");
+    let cancel = Paragraph::new(cancel_text)
+        .style(match &app.login_info.login_state {
+            LoginState::NoActive => Style::default().fg(app.user_config.theme.inactive),
+            LoginState::Confirm => Style::default().fg(app.user_config.theme.inactive),
+            LoginState::Cancel => Style::default().fg(app.user_config.theme.active),
+        })
+        .alignment(Alignment::Center);
+
+    f.render_widget(cancel, hchunks[1]);
 }
 
 pub fn draw_dialog<B>(f: &mut Frame<B>, app: &App)
@@ -378,6 +474,9 @@ where
         RouteId::AlbumTracks => {
             draw_album_detail_table(f, app, chunks[1]);
         }
+        RouteId::PhoneBlock => {}
+        RouteId::PasswordBlock => {}
+        RouteId::LoginButton => {}
         RouteId::Error => {}
         RouteId::BasicView => {}
         RouteId::Dialog => {}

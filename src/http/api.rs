@@ -55,7 +55,7 @@ impl CloudMusicApi {
                 "password": password,
             }))
             .build();
-        self.client.request(r).await
+        self.client.login(true).request(r).await
     }
 
     /// 说明 : 调用此接口 , 可刷新登录状态
@@ -439,12 +439,23 @@ mod tests {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_login_phone() {
         let api = CloudMusicApi::default();
-        let resp = api.login_phone("xxx", "xxxxx").await;
+        let resp = api.login_phone("13529565773", "zc201617470124").await;
         println!("{:?}", resp);
         assert!(resp.is_ok());
 
         let res = resp.unwrap().deserialize_to_implict();
         assert_eq!(res.code, 200);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_current_user() {
+        let api = CloudMusicApi::default();
+        let resp = api.user_account().await;
+        println!("{:?}", resp);
+        // assert!(resp.is_ok());
+        //
+        // let res = resp.unwrap().deserialize_to_implict();
+        // assert_eq!(res.code, 200);
     }
 
     #[tokio::test(flavor = "multi_thread")]

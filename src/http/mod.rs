@@ -19,6 +19,7 @@ const CONFIG_DIR: &str = ".config";
 const APP_CONFIG_DIR: &str = "netease-cloud-music-tui";
 const COOKIE_FILE_NAME: &str = "cookie";
 
+#[allow(unused)]
 pub async fn login_phone() -> Result<()> {
     let cookie_path = get_or_build_cookie_paths()?;
     if !cookie_path.exists() {
@@ -51,6 +52,7 @@ pub async fn login_phone() -> Result<()> {
     Ok(())
 }
 
+#[allow(unused)]
 fn receive_key_from_input(type_label: &'static str) -> Result<String> {
     let mut input = String::new();
     println!("\nEnter your {}: ", type_label);
@@ -61,7 +63,7 @@ fn receive_key_from_input(type_label: &'static str) -> Result<String> {
     Ok(input)
 }
 
-fn get_or_build_cookie_paths() -> Result<PathBuf> {
+pub fn get_or_build_cookie_paths() -> Result<PathBuf> {
     match dirs::home_dir() {
         Some(home) => {
             let path = Path::new(&home);

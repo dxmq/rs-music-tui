@@ -16,6 +16,7 @@ use crate::model::artist::{Artist, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::dialog::Dialog;
 use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
+use crate::model::login::LoginInfo;
 use crate::model::playlist::Playlist;
 use crate::model::table::TrackTable;
 use crate::model::track::{Lyric, Track};
@@ -63,6 +64,9 @@ pub enum ActiveBlock {
     Artists,
     ArtistDetail,
     AlbumTracks,
+    PhoneBlock,
+    PasswordBlock,
+    LoginButton,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -80,6 +84,12 @@ pub enum RouteId {
     Artists,
     ArtistDetail,
     AlbumTracks,
+    #[allow(unused)]
+    PhoneBlock,
+    #[allow(unused)]
+    PasswordBlock,
+    #[allow(unused)]
+    LoginButton,
 }
 
 #[derive(Debug)]
@@ -160,6 +170,7 @@ pub struct App {
     pub artists_selected_index: usize,
     pub artist_detail: Option<ArtistDetail>,
     pub album_detail: Option<AlbumDetail>,
+    pub login_info: LoginInfo,
 }
 
 impl App {
@@ -534,6 +545,7 @@ impl Default for App {
             artists_selected_index: 0,
             artist_detail: None,
             album_detail: None,
+            login_info: Default::default(),
         }
     }
 }

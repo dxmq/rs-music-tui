@@ -9,7 +9,6 @@ use crate::app::App;
 use crate::cli::clap::ClapApplication;
 use crate::config::user_config::{UserConfig, UserConfigPath};
 use crate::event::IoEvent;
-use crate::http::login_phone;
 use crate::network::{panic_hook, start_tokio, Network};
 
 // mod api;
@@ -46,7 +45,7 @@ async fn main() -> Result<()> {
         user_config.path_to_config.replace(config_path);
     }
     user_config.load_config()?;
-    login_phone().await?;
+    // login_phone().await?;
 
     let (sync_io_tx, sync_io_rx) = mpsc::channel::<IoEvent>();
     let app: Arc<Mutex<App>> = Arc::new(Mutex::new(App::new(sync_io_tx, user_config.clone())));
