@@ -864,12 +864,12 @@ where
             Block::default()
                 .borders(Borders::LEFT | Borders::TOP | Borders::BOTTOM)
                 .title("")
-                .style(Style::default().fg(Color::White))
+                .style(Style::default().fg(Color::LightYellow))
                 .border_style(get_color(highlight_state, app.user_config.theme)),
         )
         .paint(|ctx| {
             ctx.draw(&Map {
-                color: Color::White,
+                color: Color::LightYellow,
                 resolution: MapResolution::High,
             });
         })
@@ -940,7 +940,7 @@ where
     };
     let selected_style = Style::default().fg(Color::Rgb(18, 150, 136));
     let rows = row_items.iter().enumerate().map(|(i, item)| {
-        let mut style = Style::default().fg(Color::White); // default styling
+        let mut style = Style::default().fg(Color::Blue); // default styling
         if i == selected_index - margin {
             style = selected_style;
         }
@@ -960,10 +960,10 @@ where
         .block(
             Block::default()
                 .borders(Borders::RIGHT | Borders::TOP | Borders::BOTTOM)
-                .style(Style::default().fg(Color::White))
+                .style(Style::default().fg(Color::Blue))
                 .border_style(get_color(highlight_state, app.user_config.theme)),
         )
-        .style(Style::default().fg(Color::White))
+        .style(Style::default().fg(Color::Blue))
         .column_spacing(1)
         .widths(&widths);
     f.render_widget(table, chunks[1]);
