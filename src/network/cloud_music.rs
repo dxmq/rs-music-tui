@@ -15,6 +15,7 @@ use crate::model::album::{Album, AlbumResp};
 use crate::model::artist::{
     Artist, ArtistAlbumResp, ArtistSublistResp, ArtistTracksResp, SimiArtistsResp,
 };
+use crate::model::login::LoginResp;
 use crate::model::playlist::{
     Playlist, PlaylistDetail, PlaylistDetailResp, PlaylistTracksResp, UserPlaylistResp,
 };
@@ -335,11 +336,11 @@ impl CloudMusic {
         Err(anyhow!("收藏或取消收藏歌手失败"))
     }
 
-    pub async fn login(&self, phone: &str, password: &str) -> Result<()> {
+    pub async fn login(&self, phone: &str, password: &str) -> Result<UserProfile> {
         if let Ok(resp) = self.api.login_phone(phone, password).await {
-            let resp = resp.deserialize_to_implict();
-            if resp.code == 200 {
-                return Ok(());
+            let resp = serde_json::from_slice::<LoginResp>(resp.data()).unwrap();
+            if resp.code == 200 && resp.profile.is_some() {
+                return Ok(resp.profile.unwrap());
             }
         }
         return Err(anyhow!("登录失败……"));
@@ -368,6 +369,12 @@ mod tests {
 
     use crate::model::track::Lyric;
     use crate::network::cloud_music::CloudMusic;
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_login() {
+        let result = CloudMusic::default().login("xxx", "xxx").await;
+        println!("{:#?}", result.unwrap());
+    }
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_recommend_song_list() {
@@ -417,6 +424,12 @@ mod tests {
             .playlist_page_tracks(498339500, 0, 10)
             .await;
         println!("{:?}", tracks.unwrap().tracks);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_artist_sublist() {
+        let tracks = CloudMusic::default().artist_sublist().await;
+        println!("{:?}", tracks.unwrap());
     }
 
     #[tokio::test(flavor = "multi_thread")]

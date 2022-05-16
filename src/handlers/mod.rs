@@ -1,7 +1,7 @@
 pub use input::handler as input_handler;
 pub use login::login_button_handler;
 pub use login::password_input_handler;
-pub use login::username_input_handler;
+pub use login::phone_input_handler;
 
 use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};

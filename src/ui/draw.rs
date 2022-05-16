@@ -96,7 +96,7 @@ where
 
     f.render_widget(text, chunks[0]);
 
-    let input_string: String = app.login_info.phone_input.iter().collect();
+    let input_string: String = app.login_info.phone.clone();
 
     let line = Text::from((&input_string).as_str());
     let phone_input = Paragraph::new(line).block(
@@ -110,7 +110,7 @@ where
     );
     f.render_widget(phone_input, chunks[1]);
 
-    let password_input_string: String = app.login_info.password_input.iter().collect();
+    let password_input_string: String = app.login_info.password.clone();
     let password_line = Text::from((&password_input_string).as_str());
     let current_route = app.get_current_route();
     let highlight_state = (

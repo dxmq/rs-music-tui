@@ -439,7 +439,7 @@ mod tests {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_login_phone() {
         let api = CloudMusicApi::default();
-        let resp = api.login_phone("13529565773", "zc201617470124").await;
+        let resp = api.login_phone("xxx", "xxx").await;
         println!("{:?}", resp);
         assert!(resp.is_ok());
 
@@ -482,7 +482,7 @@ mod tests {
     #[tokio::test(flavor = "multi_thread")]
     async fn test_like_list() {
         let api = CloudMusicApi::default();
-        let resp = api.like_list(354192143).await.unwrap();
+        let resp = api.like_list(786011886).await.unwrap();
         let resp = serde_json::from_slice::<LikeTrackIdListResp>(resp.data()).unwrap();
 
         println!("{:?}", resp);

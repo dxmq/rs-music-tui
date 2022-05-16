@@ -17,7 +17,7 @@ use tui::{
     Terminal,
 };
 
-use crate::app::{ActiveBlock, App, RouteId};
+use crate::app::{ActiveBlock, App, RouteId, DEFAULT_ROUTE};
 use crate::config::user_config::UserConfig;
 use crate::event;
 use crate::event::{Event, IoEvent};
@@ -70,7 +70,7 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
                 }
                 let current_active_block = app.get_current_route().active_block;
                 if current_active_block == ActiveBlock::PhoneBlock {
-                    handlers::username_input_handler(key, &mut app);
+                    handlers::phone_input_handler(key, &mut app);
                 } else if current_active_block == ActiveBlock::PasswordBlock {
                     handlers::password_input_handler(key, &mut app);
                 } else if current_active_block == ActiveBlock::LoginButton {
@@ -84,7 +84,11 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
                 break;
             }
         } else {
-            break;
+            let cookie = std::fs::read_to_string(&cookie_path).unwrap();
+            if cookie.contains("MUSIC_U") {
+                app.navigation_stack = vec![DEFAULT_ROUTE];
+                break;
+            }
         }
     }
 
@@ -195,16 +199,19 @@ async fn render_app_layout(
 
         // 如果刚启动（第一次渲染）
         if is_first_render {
-            app.dispatch(IoEvent::GetUser);
-            // 加载歌单列表
-            app.dispatch(IoEvent::GetPlaylists);
+            if app.user.is_none() {
+                app.dispatch(IoEvent::GetUser);
+            }
             // 获取最后播放的那条记录
             app.read_current_play_context();
+            app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
+
             // 获取喜欢的音乐
             app.dispatch(IoEvent::GetLikeList);
+            // 加载歌单列表
+            app.dispatch(IoEvent::GetPlaylists);
             // 获取收藏的歌手
             app.dispatch(IoEvent::GetArtistSubList);
-            app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
             is_first_render = false;
         }
     }

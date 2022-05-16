@@ -22,7 +22,7 @@ use crate::model::table::TrackTable;
 use crate::model::track::{Lyric, Track};
 use crate::model::user::UserProfile;
 
-const DEFAULT_ROUTE: Route = Route {
+pub const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
     active_block: ActiveBlock::Library,
     hovered_block: ActiveBlock::Library,

@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::ops::Not;
 use std::panic::PanicInfo;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -129,17 +130,21 @@ impl<'a> Network<'a> {
         app.is_loading = false;
     }
 
-    async fn login_app(&mut self, login_form: LoginForm) {
+    pub async fn login_app(&mut self, login_form: LoginForm) {
+        // println!("{:?}", login_form);
         match self
             .cloud_music
-            .login(login_form.phone.as_ref(), login_form.password.as_ref())
+            .login(login_form.phone.as_str(), login_form.password.as_str())
             .await
         {
-            Ok(_) => {
+            Ok(profile) => {
                 let mut app = self.app.lock().await;
                 app.login_info.is_login_success = true;
+                app.user = Some(profile);
             }
-            Err(e) => self.handle_error(e).await,
+            Err(e) => {
+                self.handle_error(e).await;
+            }
         }
     }
 
@@ -194,7 +199,10 @@ impl<'a> Network<'a> {
         let mut app = self.app.lock().await;
         match self.cloud_music.artist_sublist().await {
             Ok(artists) => {
-                app.artist_sub_ids_set = artists.iter().map(|it| it.id).collect::<HashSet<usize>>();
+                if artists.is_empty().not() {
+                    app.artist_sub_ids_set =
+                        artists.iter().map(|it| it.id).collect::<HashSet<usize>>();
+                }
                 app.artists = artists;
             }
             Err(e) => {
@@ -657,5 +665,26 @@ pub fn panic_hook(info: &PanicInfo<'_>) {
             DisableMouseCapture
         )
         .unwrap();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::model::login::LoginForm;
+    use crate::{App, IoEvent, Network, UserConfig};
+    use std::sync::{mpsc, Arc};
+    use tokio::sync::Mutex;
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn test_login() {
+        let (sync_io_tx, _sync_io_rx) = mpsc::channel::<IoEvent>();
+        let app: Arc<Mutex<App>> = Arc::new(Mutex::new(App::new(sync_io_tx, UserConfig::new())));
+        let mut network = Network::new(&app);
+        network
+            .login_app(LoginForm {
+                phone: "xxx".to_string(),
+                password: "xxx".to_string(),
+            })
+            .await;
     }
 }
