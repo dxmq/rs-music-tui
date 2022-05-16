@@ -140,6 +140,7 @@ impl<'a> Network<'a> {
             Ok(profile) => {
                 let mut app = self.app.lock().await;
                 app.login_info.is_login_success = true;
+                println!("{:?}", profile);
                 app.user = Some(profile);
             }
             Err(e) => {
@@ -454,6 +455,9 @@ impl<'a> Network<'a> {
                             let track = context.item.as_ref().unwrap();
                             let PlayingItem::Track(track) = track;
                             let track_id = track.id;
+                            if track_id == 0 {
+                                return;
+                            }
                             match self.cloud_music.song_url(vec![track.id]).await {
                                 Ok(urls) => {
                                     match self.player.play_url(
@@ -489,6 +493,9 @@ impl<'a> Network<'a> {
     async fn start_playback(&mut self, mut track: Track) {
         let mut t = track.clone();
         let track_id = t.id;
+        if track_id == 0 {
+            return;
+        }
         match self.cloud_music.song_url(vec![track_id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
@@ -618,12 +625,23 @@ impl<'a> Network<'a> {
     }
 
     async fn load_user(&mut self) {
+        let mut app = self.app.lock().await;
+        if app.user.is_none() {}
         match self.cloud_music.current_user().await {
             Ok(user) => {
-                let mut app = self.app.lock().await;
-                app.user = user
+                app.user = user;
             }
             Err(e) => self.handle_error(e).await,
+        }
+        if app.user.is_some() {
+            // 获取最后播放的那条记录
+            app.read_current_play_context();
+            // 获取喜欢的音乐
+            app.dispatch(IoEvent::GetLikeList);
+            // 加载歌单列表
+            app.dispatch(IoEvent::GetPlaylists);
+            // 获取收藏的歌手
+            app.dispatch(IoEvent::GetArtistSubList);
         }
     }
 

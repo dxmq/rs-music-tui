@@ -14,7 +14,6 @@ use crate::event::Key;
 const CONFIG_DIR: &str = ".config";
 const APP_CONFIG_DIR: &str = "netease-cloud-music-tui";
 const CONFIG_FILE_NAME: &str = "config.yml";
-const CACHE_FILE_NAME: &str = "cache.json";
 
 #[derive(Clone)]
 pub struct UserConfig {
@@ -34,7 +33,6 @@ pub struct UserConfigString {
 #[derive(Clone)]
 pub struct UserConfigPath {
     pub config_file_path: PathBuf,
-    pub cache_file_path: PathBuf,
 }
 
 impl UserConfig {
@@ -96,19 +94,16 @@ impl UserConfig {
         }
     }
 
-    pub fn get_cache_path(&mut self) -> Result<PathBuf> {
+    pub fn get_app_dir(&mut self) -> Result<PathBuf> {
         let app_config_dir = UserConfig::build_app_config_dir()?;
-        let cache_file_path = app_config_dir.join(CACHE_FILE_NAME);
-        Ok(cache_file_path)
+        Ok(app_config_dir)
     }
 
     fn build_paths(&mut self) -> Result<()> {
         let app_config_dir = UserConfig::build_app_config_dir()?;
         let config_file_path = app_config_dir.join(CONFIG_FILE_NAME);
-        let cache_file_path = app_config_dir.join(CACHE_FILE_NAME);
         let paths = UserConfigPath {
             config_file_path,
-            cache_file_path,
         };
         self.path_to_config = Some(paths);
         Ok(())

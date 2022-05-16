@@ -262,13 +262,19 @@ impl App {
     }
 
     pub fn update_on_tick(&mut self) {
-        // self.poll_current_playback();
         if let Some(CurrentlyPlaybackContext {
             item: Some(item),
             is_playing,
             ..
         }) = &self.current_playback_context
         {
+            match item {
+                PlayingItem::Track(t) => {
+                    if t.id == 0 {
+                        return;
+                    }
+                }
+            }
             let playings = *is_playing;
             let elapsed = if playings {
                 self.start_time.elapsed().as_millis()
@@ -362,6 +368,9 @@ impl App {
 
     pub fn next_or_prev_track(&mut self, state: ToggleState) {
         let mut list = self.my_play_tracks.clone();
+        if list.tracks.is_empty() {
+            return;
+        }
         let mut current_play_track_index = 0;
         if let Some(context) = self.current_playback_context.clone() {
             if let Some(item) = context.item {
@@ -468,12 +477,10 @@ impl App {
     }
 
     pub fn cache_file_path(&mut self) -> PathBuf {
-        self.user_config
-            .path_to_config
-            .as_ref()
-            .unwrap()
-            .cache_file_path
-            .clone()
+        let app_dir = self.user_config.get_app_dir();
+        let user_id = self.user.clone().unwrap().user_id;
+        let cache_file_name = format!("recently_{}.json", user_id);
+        app_dir.unwrap().join(cache_file_name)
     }
 
     pub fn read_current_play_context(&mut self) {

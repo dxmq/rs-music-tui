@@ -63,12 +63,14 @@ impl CloudMusic {
         let resp = self
             .api
             .user_playlist(app.user.as_ref().unwrap().user_id, Some(params))
-            .await?;
-        let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data())?;
-        if resp.code != 200 {
-            return Err(anyhow!(error_msg));
+            .await;
+        if let Ok(resp) = resp {
+            let resp = serde_json::from_slice::<UserPlaylistResp>(resp.data())?;
+            if resp.code == 200 {
+                return Ok(resp.playlist);
+            }
         }
-        Ok(resp.playlist)
+        Err(anyhow!(error_msg))
     }
 
     #[allow(unused)]
@@ -365,6 +367,7 @@ impl CloudMusic {
 
 #[cfg(test)]
 mod tests {
+    use crate::model::playlist::Playlist;
     use pad::{Alignment, PadStr};
 
     use crate::model::track::Lyric;

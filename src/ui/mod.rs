@@ -88,6 +88,7 @@ pub async fn start_ui(user_config: UserConfig, app: &Arc<Mutex<App>>) -> Result<
             if cookie.contains("MUSIC_U") {
                 app.navigation_stack = vec![DEFAULT_ROUTE];
                 break;
+            } else if std::fs::remove_file(&cookie_path).is_ok() {
             }
         }
     }
@@ -199,19 +200,8 @@ async fn render_app_layout(
 
         // 如果刚启动（第一次渲染）
         if is_first_render {
-            if app.user.is_none() {
-                app.dispatch(IoEvent::GetUser);
-            }
-            // 获取最后播放的那条记录
-            app.read_current_play_context();
+            app.dispatch(IoEvent::GetUser);
             app.help_docs_size = help::get_help_docs(&app.user_config.keys).len() as u32;
-
-            // 获取喜欢的音乐
-            app.dispatch(IoEvent::GetLikeList);
-            // 加载歌单列表
-            app.dispatch(IoEvent::GetPlaylists);
-            // 获取收藏的歌手
-            app.dispatch(IoEvent::GetArtistSubList);
             is_first_render = false;
         }
     }
