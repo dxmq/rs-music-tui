@@ -1,4 +1,4 @@
-use crate::app::App;
+use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
 use crate::handlers::common_key_events;
 use crate::handlers::common_key_events::KeyAction;
@@ -57,6 +57,19 @@ pub fn handler(key: Key, app: &mut App) {
         }
         k if k == app.user_config.keys.jump_to_start => {
             app.track_table.selected_index = app.track_table.tracks.len() - 1;
+        }
+        k if k == app.user_config.keys.jump_to_artist_detail => {
+            let (selected_index, tracks) =
+                (&app.track_table.selected_index, &app.track_table.tracks);
+            if let Some(track) = tracks.get(*selected_index) {
+                if track.artists.len() == 1 {
+                    let artist = track.artists.get(0).unwrap();
+                    let artist_name = artist.name.clone().unwrap_or_else(|| "".to_string());
+                    let id = artist.id;
+                    app.dispatch(IoEvent::GetArtistDetail(id, artist_name));
+                    app.push_navigation_stack(RouteId::ArtistDetail, ActiveBlock::ArtistDetail);
+                }
+            };
         }
         k if k == Key::Char('s') => handle_toggle_like_event(app),
         Key::Enter => {

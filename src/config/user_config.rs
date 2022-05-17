@@ -48,8 +48,9 @@ impl UserConfig {
                 jump_to_start: Key::Ctrl('a'),
                 jump_to_end: Key::Ctrl('e'),
                 jump_to_album: Key::Char('a'),
-                jump_to_artist_album: Key::Char('A'),
+                jump_to_artist_album: Key::Char('a'),
                 jump_to_context: Key::Char('o'),
+                jump_to_artist_detail: Key::Char('I'),
                 manage_devices: Key::Char('d'),
                 decrease_volume: Key::Char('-'),
                 increase_volume: Key::Char('='),
@@ -102,9 +103,7 @@ impl UserConfig {
     fn build_paths(&mut self) -> Result<()> {
         let app_config_dir = UserConfig::build_app_config_dir()?;
         let config_file_path = app_config_dir.join(CONFIG_FILE_NAME);
-        let paths = UserConfigPath {
-            config_file_path,
-        };
+        let paths = UserConfigPath { config_file_path };
         self.path_to_config = Some(paths);
         Ok(())
     }
