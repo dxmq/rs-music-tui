@@ -178,7 +178,7 @@ impl Player {
             loop {
                 if let Ok(p) = prx.try_recv() {
                     if p.is_some() {
-                        let track = Track::load(p.unwrap().clone())?;
+                        let track = Track::load(p.unwrap())?;
                         let mut track = track;
                         self.load_track(track.clone(), start_playing)?;
                         track.resume();
@@ -187,7 +187,7 @@ impl Player {
                         break;
                     }
                 }
-                let t = time::Duration::from_millis(500);
+                let t = Duration::from_millis(1000);
                 thread::sleep(t);
             }
         }
@@ -196,7 +196,7 @@ impl Player {
 
     pub fn load_track(&mut self, track: Track, playing: bool) -> Result<()> {
         if playing {
-            let f = std::fs::File::open(&track.file)?;
+            let f = File::open(&track.file)?;
             let source = rodio::Decoder::new(std::io::BufReader::new(f))?;
 
             self.sink.play();
