@@ -58,6 +58,7 @@ pub fn handler(key: Key, app: &mut App) {
         k if k == app.user_config.keys.jump_to_start => {
             app.track_table.selected_index = app.track_table.tracks.len() - 1;
         }
+        // 跳转到歌手详情页
         k if k == app.user_config.keys.jump_to_artist_detail => {
             let (selected_index, tracks) =
                 (&app.track_table.selected_index, &app.track_table.tracks);
@@ -69,6 +70,16 @@ pub fn handler(key: Key, app: &mut App) {
                     app.dispatch(IoEvent::GetArtistDetail(id, artist_name));
                     app.push_navigation_stack(RouteId::ArtistDetail, ActiveBlock::ArtistDetail);
                 }
+            };
+        }
+        // 跳转到歌手专辑页
+        k if k == app.user_config.keys.jump_to_artist_album => {
+            let (selected_index, tracks) =
+                (&app.track_table.selected_index, &app.track_table.tracks);
+            if let Some(track) = tracks.get(*selected_index) {
+                let album = track.album.clone();
+                app.track_table.context = Some(TrackTableContext::AlbumDetail);
+                app.dispatch(IoEvent::GetAlbumTracks(Box::new(album)));
             };
         }
         k if k == Key::Char('s') => handle_toggle_like_event(app),

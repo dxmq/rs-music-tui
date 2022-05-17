@@ -16,6 +16,7 @@ pub struct Album {
 pub struct AlbumResp {
     pub code: usize,
     pub songs: Vec<Track>,
+    pub album: Album,
 }
 
 #[derive(Clone)]

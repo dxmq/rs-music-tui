@@ -160,11 +160,11 @@ impl<'a> Network<'a> {
 
     async fn load_album_tracks(&mut self, album: Box<Album>) {
         match self.cloud_music.album(album.id).await {
-            Ok(tracks) => {
+            Ok(res) => {
                 let mut app = self.app.lock().await;
                 app.album_detail = Some(AlbumDetail {
-                    album: *album,
-                    tracks,
+                    album: res.1,
+                    tracks: res.0,
                     selected_track_index: 0,
                 });
                 app.push_navigation_stack(RouteId::AlbumTracks, ActiveBlock::AlbumTracks);

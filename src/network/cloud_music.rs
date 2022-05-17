@@ -313,11 +313,11 @@ impl CloudMusic {
         Err(anyhow!("获取相似歌手失败"))
     }
 
-    pub async fn album(&self, album_id: usize) -> Result<Vec<Track>> {
+    pub async fn album(&self, album_id: usize) -> Result<(Vec<Track>, Album)> {
         if let Ok(resp) = self.api.album(album_id).await {
             let resp = serde_json::from_slice::<AlbumResp>(resp.data()).unwrap();
             if resp.code == 200 {
-                return Ok(resp.songs);
+                return Ok((resp.songs, resp.album));
             }
         }
         Err(anyhow!("获取相似歌手失败"))
@@ -367,7 +367,6 @@ impl CloudMusic {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::playlist::Playlist;
     use pad::{Alignment, PadStr};
 
     use crate::model::track::Lyric;

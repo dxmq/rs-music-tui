@@ -23,11 +23,6 @@ pub fn get_help_docs(key_bindings: &KeyBindings) -> Vec<Vec<String>> {
             String::from("Pagination"),
         ],
         vec![
-            String::from("Jump to currently playing album"),
-            key_bindings.jump_to_album.to_string(),
-            String::from("General"),
-        ],
-        vec![
             String::from("Jump to currently playing artist's album list"),
             key_bindings.jump_to_artist_album.to_string(),
             String::from("General"),

@@ -5,7 +5,7 @@ extern crate tokio;
 use std::fs::File;
 use std::sync::mpsc::Sender;
 use std::time::Duration;
-use std::{fs, thread, time};
+use std::{fs, thread};
 
 use anyhow::Result;
 use futures::channel::oneshot;

@@ -47,11 +47,9 @@ impl UserConfig {
                 previous_page: Key::Ctrl('u'),
                 jump_to_start: Key::Ctrl('a'),
                 jump_to_end: Key::Ctrl('e'),
-                jump_to_album: Key::Char('a'),
-                jump_to_artist_album: Key::Char('a'),
+                jump_to_artist_album: Key::Char('A'),
                 jump_to_context: Key::Char('o'),
                 jump_to_artist_detail: Key::Char('I'),
-                manage_devices: Key::Char('d'),
                 decrease_volume: Key::Char('-'),
                 increase_volume: Key::Char('='),
                 toggle_playback: Key::Char(' '),
@@ -156,10 +154,8 @@ impl UserConfig {
         to_keys!(previous_page);
         to_keys!(jump_to_start);
         to_keys!(jump_to_end);
-        to_keys!(jump_to_album);
         to_keys!(jump_to_artist_album);
         to_keys!(jump_to_context);
-        to_keys!(manage_devices);
         to_keys!(decrease_volume);
         to_keys!(increase_volume);
         to_keys!(toggle_playback);
