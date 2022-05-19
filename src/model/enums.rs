@@ -89,6 +89,7 @@ pub enum DeviceType {
 // 播放项
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(untagged)]
+#[allow(unused)]
 pub enum PlayingItem {
     // 完整的曲子
     Track(Track),

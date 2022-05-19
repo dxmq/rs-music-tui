@@ -21,7 +21,7 @@ use crate::handlers::search::{SearchResult, SearchResults, SearchType};
 use crate::model::album::{Album, AlbumDetail};
 use crate::model::artist::{ArtistBlock, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, TrackTableContext};
-use crate::model::enums::{CurrentlyPlayingType, PlayingItem, RepeatState};
+use crate::model::enums::{CurrentlyPlayingType, RepeatState};
 use crate::model::login::LoginForm;
 use crate::model::table::TrackTable;
 use crate::model::track::Track;
@@ -421,7 +421,7 @@ impl<'a> Network<'a> {
                         timestamp: 0,
                         currently_playing_type: CurrentlyPlayingType::Track,
                         repeat_state: RepeatState::Off,
-                        item: Some(PlayingItem::Track(track.clone())),
+                        item: Some(track.clone()),
                     };
                     app.current_playback_context = Some(context);
                 }
@@ -453,7 +453,6 @@ impl<'a> Network<'a> {
                         }
                         None => {
                             let track = context.item.as_ref().unwrap();
-                            let PlayingItem::Track(track) = track;
                             let track_id = track.id;
                             if track_id == 0 {
                                 return;
@@ -515,7 +514,7 @@ impl<'a> Network<'a> {
                             match app.current_playback_context.clone() {
                                 Some(mut context) => {
                                     context.is_playing = true;
-                                    context.item = Some(PlayingItem::Track(track));
+                                    context.item = Some(track);
                                     app.current_playback_context = Some(context);
                                 }
                                 None => {
@@ -524,7 +523,7 @@ impl<'a> Network<'a> {
                                         timestamp: 0,
                                         currently_playing_type: CurrentlyPlayingType::Track,
                                         repeat_state: RepeatState::Off,
-                                        item: Some(PlayingItem::Track(track)),
+                                        item: Some(track),
                                     };
                                     app.current_playback_context = Some(context);
                                 }

@@ -15,7 +15,7 @@ use crate::model::album::AlbumDetail;
 use crate::model::artist::{Artist, ArtistDetail};
 use crate::model::context::{CurrentlyPlaybackContext, DialogContext};
 use crate::model::dialog::Dialog;
-use crate::model::enums::{PlayingItem, RepeatState, ToggleState};
+use crate::model::enums::{RepeatState, ToggleState};
 use crate::model::login::LoginInfo;
 use crate::model::playlist::Playlist;
 use crate::model::table::TrackTable;
@@ -171,6 +171,8 @@ pub struct App {
     pub artist_detail: Option<ArtistDetail>,
     pub album_detail: Option<AlbumDetail>,
     pub login_info: LoginInfo,
+    // 下一曲播放列表
+    pub next_play_tracks: Vec<Track>,
 }
 
 impl App {
@@ -268,12 +270,8 @@ impl App {
             ..
         }) = &self.current_playback_context
         {
-            match item {
-                PlayingItem::Track(t) => {
-                    if t.id == 0 {
-                        return;
-                    }
-                }
+            if item.id == 0 {
+                return;
             }
             let playings = *is_playing;
             let elapsed = if playings {
@@ -281,24 +279,18 @@ impl App {
             } else {
                 self.song_progress_ms
             };
-            let duration_ms = match item {
-                PlayingItem::Track(track) => track.duration as u32,
-            };
+            let duration_ms = item.duration as u32;
 
             if elapsed < u128::from(duration_ms) {
                 self.song_progress_ms = elapsed;
             } else {
                 self.song_progress_ms = duration_ms.into();
             }
-            match item {
-                PlayingItem::Track(track) => {
-                    if track.duration as u128 - self.song_progress_ms < 1000 {
-                        let track = track.clone();
-                        // 单曲播放次数+1
-                        self.dispatch(IoEvent::WebLog(track.id));
-                        self.toggle_track(track, ToggleState::Next);
-                    }
-                }
+            if item.duration as u128 - self.song_progress_ms < 1000 {
+                let track = item.clone();
+                // 单曲播放次数+1
+                self.dispatch(IoEvent::WebLog(track.id));
+                self.toggle_track(track, ToggleState::Next);
             }
 
             if playings {
@@ -367,6 +359,18 @@ impl App {
     }
 
     pub fn next_or_prev_track(&mut self, state: ToggleState) {
+        // let next_tracks = self.next_play_tracks.clone();
+        // if !next_tracks.is_empty() {
+        //     match state {
+        //         ToggleState::Next => {
+        //
+        //         }
+        //         ToggleState::Prev => {
+        //
+        //         }
+        //     }
+        // }
+
         let mut list = self.my_play_tracks.clone();
         if list.tracks.is_empty() {
             return;
@@ -374,13 +378,9 @@ impl App {
         let mut current_play_track_index = 0;
         if let Some(context) = self.current_playback_context.clone() {
             if let Some(item) = context.item {
-                match item {
-                    PlayingItem::Track(track) => {
-                        for (i, x) in list.tracks.iter().enumerate() {
-                            if x.id == track.id {
-                                current_play_track_index = i;
-                            }
-                        }
+                for (i, x) in list.tracks.iter().enumerate() {
+                    if x.id == item.id {
+                        current_play_track_index = i;
                     }
                 }
             }
@@ -491,8 +491,7 @@ impl App {
                 if let Ok(mut tracks) = serde_json::from_str::<Vec<Track>>(&json_string) {
                     let track = tracks.pop();
                     if let Some(track) = track {
-                        let item = PlayingItem::Track(track);
-                        let context = CurrentlyPlaybackContext::new(Some(item));
+                        let context = CurrentlyPlaybackContext::new(Some(track));
                         self.current_playback_context = Some(context);
                         return;
                     }
@@ -553,6 +552,7 @@ impl Default for App {
             artist_detail: None,
             album_detail: None,
             login_info: Default::default(),
+            next_play_tracks: vec![],
         }
     }
 }

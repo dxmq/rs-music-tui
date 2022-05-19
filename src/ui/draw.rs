@@ -14,7 +14,7 @@ use crate::cli::clap::BANNER;
 use crate::handlers::search::SearchResultBlock;
 use crate::model::album::AlbumUi;
 use crate::model::artist::ArtistBlock;
-use crate::model::enums::{PlayingItem, RepeatState};
+use crate::model::enums::RepeatState;
 use crate::model::login::LoginState;
 use crate::model::table::{ColumnId, TableHeader, TableHeaderItem, TableId, TableItem};
 use crate::ui::help::get_help_docs;
@@ -356,22 +356,18 @@ where
 
             f.render_widget(title_block, layout_chunk);
 
-            let (item_id, name, duration_ms) = match track_item {
-                PlayingItem::Track(track) => {
-                    let duration = track.duration as u32;
-                    (track.id, track.name.to_owned(), duration)
-                }
-            };
-
+            let (item_id, duration_ms, name) = (
+                track_item.id,
+                track_item.duration as u32,
+                track_item.name.clone(),
+            );
             let track_name = if app.liked_track_ids_set.contains(&item_id) {
                 format!("{}{}", &app.user_config.padded_liked_icon(), name)
             } else {
                 name
             };
 
-            let play_bar_text = match track_item {
-                PlayingItem::Track(track) => create_artist_string(&track.artists),
-            };
+            let play_bar_text = create_artist_string(&track_item.artists);
 
             let content = format!("{} | {}", track_name, play_bar_text);
 
@@ -581,7 +577,7 @@ where
                 let mut song_name = "".to_string();
                 if let Some(context) = &app.current_playback_context {
                     let mut track_id = 0;
-                    if let Some(PlayingItem::Track(track)) = &context.item {
+                    if let Some(track) = &context.item {
                         track_id = track.id
                     };
                     if track_id == track.id {
@@ -714,11 +710,7 @@ where
         let currently_playing_id: usize = app
             .current_playback_context
             .clone()
-            .and_then(|context| {
-                context.item.map(|item| match item {
-                    PlayingItem::Track(track) => track.id,
-                })
-            })
+            .and_then(|context| context.item.map(|item| item.id))
             .unwrap_or(0);
 
         let songs = match &app.search_results.tracks {
@@ -951,7 +943,7 @@ where
         .items
         .iter()
         .map(|h| Constraint::Length(h.width))
-        .collect::<Vec<tui::layout::Constraint>>();
+        .collect::<Vec<Constraint>>();
 
     let header = Row::new(header.items.iter().map(|h| h.text))
         .style(Style::default().fg(app.user_config.theme.header));
@@ -1355,14 +1347,8 @@ fn draw_table<B>(
         get_color(highlight_state, app.user_config.theme).add_modifier(Modifier::BOLD);
 
     let track_playing_index = app.current_playback_context.to_owned().and_then(|ctx| {
-        ctx.item.and_then(|item| match item {
-            PlayingItem::Track(track) => items.iter().position(|item| {
-                track.id == item.id
-                // track.id.to_string().to_owned()
-                // .map(|id| id == item.id)
-                // .unwrap_or(false)
-            }),
-        })
+        ctx.item
+            .and_then(|track_item| items.iter().position(|item| item.id == track_item.id))
     });
 
     let (title, header) = table_layout;
@@ -1439,7 +1425,7 @@ fn draw_table<B>(
         .items
         .iter()
         .map(|h| Constraint::Length(h.width))
-        .collect::<Vec<tui::layout::Constraint>>();
+        .collect::<Vec<Constraint>>();
 
     let table = Table::new(rows)
         .header(

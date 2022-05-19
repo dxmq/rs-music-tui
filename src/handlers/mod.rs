@@ -7,7 +7,7 @@ use crate::app::{ActiveBlock, App, RouteId};
 use crate::event::{IoEvent, Key};
 use crate::handlers::search::SearchResultBlock;
 use crate::model::artist::ArtistBlock;
-use crate::model::enums::{PlayingItem, ToggleState};
+use crate::model::enums::ToggleState;
 use crate::model::login::LoginState;
 
 mod album_tracks;
@@ -66,11 +66,7 @@ pub fn handle_app(key: Key, app: &mut App) {
         _ if key == app.user_config.keys.show_lyric => {
             if let Some(context) = app.current_playback_context.clone() {
                 if let Some(item) = &context.item {
-                    match item {
-                        PlayingItem::Track(track) => {
-                            app.dispatch(IoEvent::GetLyric(track.id, true));
-                        }
-                    }
+                    app.dispatch(IoEvent::GetLyric(item.id, true));
                 }
             }
         }

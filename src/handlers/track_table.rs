@@ -83,6 +83,14 @@ pub fn handler(key: Key, app: &mut App) {
             };
         }
         k if k == Key::Char('s') => handle_toggle_like_event(app),
+        // 加入下一曲播放队列
+        k if k == app.user_config.keys.add_item_to_queue => {
+            let (selected_index, tracks) =
+                (&app.track_table.selected_index, &app.track_table.tracks);
+            if let Some(track) = tracks.get(*selected_index) {
+                app.next_play_tracks.push(track.clone())
+            };
+        }
         Key::Enter => {
             on_enter(app);
         }
