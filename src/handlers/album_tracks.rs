@@ -31,11 +31,13 @@ pub fn handler(key: Key, app: &mut App) {
             if let Some(album_detail) = &app.album_detail.clone() {
                 if let Some(track) = album_detail.tracks.get(album_detail.selected_track_index) {
                     app.dispatch(IoEvent::StartPlayback(track.clone()));
-                    app.my_play_tracks = TrackTable {
+                    app.current_play_tracks = TrackTable {
                         tracks: album_detail.tracks.clone(),
                         selected_index: album_detail.selected_track_index,
                         context: Some(TrackTableContext::AlbumDetail),
                     };
+                    // 将下一曲播放队列置为空
+                    app.next_play_tracks = vec![];
                 }
             }
         }

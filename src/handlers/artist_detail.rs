@@ -274,11 +274,13 @@ fn handle_enter_event_on_selected_block(app: &mut App) {
                 let selected_index = artist.selected_track_index;
                 if let Some(track) = artist.tracks.get(selected_index) {
                     app.dispatch(IoEvent::StartPlayback(track.clone()));
-                    app.my_play_tracks = TrackTable {
+                    app.current_play_tracks = TrackTable {
                         tracks: artist.tracks.clone(),
                         selected_index,
                         context: Some(TrackTableContext::ArtistDetail),
                     };
+                    // 将下一曲播放队列置为空
+                    app.next_play_tracks = vec![];
                 }
             }
             ArtistBlock::Albums => {

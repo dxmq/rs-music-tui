@@ -4,6 +4,7 @@ use crate::handlers::common_key_events;
 use crate::handlers::common_key_events::KeyAction;
 use crate::model::context::TrackTableContext;
 use crate::model::table::TrackTable;
+use crate::model::track::Track;
 
 pub fn handler(key: Key, app: &mut App) {
     match key {
@@ -117,32 +118,38 @@ fn on_enter(app: &mut App) {
         Some(context) => match context {
             TrackTableContext::MyPlaylists => {
                 if track.is_some() {
-                    let tracks = tracks.clone();
-                    app.my_play_tracks = TrackTable {
-                        tracks,
+                    set_track_table(
+                        tracks.clone(),
                         selected_index,
-                        context: Some(TrackTableContext::MyPlaylists),
-                    };
+                        app,
+                        TrackTableContext::MyPlaylists,
+                    );
+                    // 将下一曲播放队列置为空
+                    app.next_play_tracks = vec![];
                 }
             }
             TrackTableContext::RecommendedTracks => {
                 if track.is_some() {
-                    let tracks = tracks.clone();
-                    app.my_play_tracks = TrackTable {
-                        tracks,
+                    set_track_table(
+                        tracks.clone(),
                         selected_index,
-                        context: Some(TrackTableContext::RecommendedTracks),
-                    };
+                        app,
+                        TrackTableContext::RecommendedTracks,
+                    );
+                    // 将下一曲播放队列置为空
+                    app.next_play_tracks = vec![];
                 }
             }
             TrackTableContext::RecentlyPlayed => {
                 if track.is_some() {
-                    let tracks = tracks.clone();
-                    app.my_play_tracks = TrackTable {
-                        tracks,
+                    set_track_table(
+                        tracks.clone(),
                         selected_index,
-                        context: Some(TrackTableContext::RecentlyPlayed),
-                    };
+                        app,
+                        TrackTableContext::RecentlyPlayed,
+                    );
+                    // 将下一曲播放队列置为空
+                    app.next_play_tracks = vec![];
                 }
             }
             _ => {}
@@ -152,4 +159,18 @@ fn on_enter(app: &mut App) {
     if let Some(track) = track {
         app.dispatch(IoEvent::StartPlayback(track.clone()));
     }
+}
+
+fn set_track_table(
+    tracks: Vec<Track>,
+    selected_index: usize,
+    app: &mut App,
+    context: TrackTableContext,
+) {
+    let tracks = tracks;
+    app.current_play_tracks = TrackTable {
+        tracks,
+        selected_index,
+        context: Some(context),
+    };
 }

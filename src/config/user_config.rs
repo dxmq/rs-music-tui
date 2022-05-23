@@ -64,9 +64,9 @@ impl UserConfig {
                 submit: Key::Enter,
                 copy_song_url: Key::Char('c'),
                 copy_album_url: Key::Char('C'),
-                audio_analysis: Key::Char('v'),
+                audio_analysis: Key::Char('z'),
                 basic_view: Key::Char('B'),
-                add_item_to_queue: Key::Char('z'),
+                add_item_to_queue: Key::Char('v'),
                 show_lyric: Key::Ctrl('l'),
             },
         }

@@ -344,11 +344,13 @@ fn handle_enter_event_on_selected_block(app: &mut App) {
             if let Some(tracks) = tracks {
                 if let Some(track) = tracks.get(index.unwrap()) {
                     app.dispatch(IoEvent::StartPlayback(track.clone()));
-                    app.my_play_tracks = TrackTable {
+                    app.current_play_tracks = TrackTable {
                         tracks,
                         selected_index: index.unwrap(),
                         context: Some(TrackTableContext::SearchResult),
                     };
+                    // 将下一曲播放队列置为空
+                    app.next_play_tracks = vec![];
                 }
             }
         }

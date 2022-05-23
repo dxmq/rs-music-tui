@@ -157,8 +157,8 @@ pub struct App {
     pub large_search_limit: u32,
     pub volume: f32,
     pub title: String,
-    // 正在播放的歌曲列表
-    pub my_play_tracks: TrackTable,
+    // 当前播放歌曲所属的歌曲列表
+    pub current_play_tracks: TrackTable,
     // 喜欢的歌曲hashset
     pub liked_track_ids_set: HashSet<usize>,
     // 歌词
@@ -173,6 +173,9 @@ pub struct App {
     pub login_info: LoginInfo,
     // 下一曲播放列表
     pub next_play_tracks: Vec<Track>,
+    // true代表next_play_index是原来的播放列表播放音乐的下一个，不是当前正在播放的音乐的一曲
+    pub is_next_play: bool,
+    pub next_play_index: usize,
 }
 
 impl App {
@@ -329,7 +332,7 @@ impl App {
                     self.shuffle();
                 }
                 RepeatState::Off => {
-                    let mut list = self.my_play_tracks.clone();
+                    let mut list = self.current_play_tracks.clone();
                     if list.tracks.len() > 1 {
                         let mut current_play_track_index = 0;
                         for (i, x) in list.tracks.iter().enumerate() {
@@ -359,33 +362,65 @@ impl App {
     }
 
     pub fn next_or_prev_track(&mut self, state: ToggleState) {
-        // let next_tracks = self.next_play_tracks.clone();
-        // if !next_tracks.is_empty() {
-        //     match state {
-        //         ToggleState::Next => {
-        //
-        //         }
-        //         ToggleState::Prev => {
-        //
-        //         }
-        //     }
-        // }
-
-        let mut list = self.my_play_tracks.clone();
-        if list.tracks.is_empty() {
-            return;
-        }
-        let mut current_play_track_index = 0;
-        if let Some(context) = self.current_playback_context.clone() {
-            if let Some(item) = context.item {
-                for (i, x) in list.tracks.iter().enumerate() {
-                    if x.id == item.id {
-                        current_play_track_index = i;
+        let next_tracks = self.next_play_tracks.clone();
+        if !next_tracks.is_empty() {
+            match state {
+                ToggleState::Next => {
+                    if self.next_play_index < next_tracks.len() {
+                        if let Some(next_track) = next_tracks
+                            .get(next_tracks.len() - 1 - self.next_play_index)
+                            .cloned()
+                        {
+                            self.next_play_index += 1;
+                            let id = next_track.id;
+                            self.dispatch(IoEvent::StartPlayback(next_track));
+                            self.re_render_lyric(id);
+                            return;
+                        }
+                    } else {
+                        self.next_play_tracks = vec![];
+                    }
+                }
+                ToggleState::Prev => {
+                    if self.next_play_index > 1 {
+                        if let Some(next_track) = next_tracks
+                            .get(next_tracks.len() + 1 - self.next_play_index)
+                            .cloned()
+                        {
+                            self.next_play_index -= 1;
+                            let id = next_track.id;
+                            self.dispatch(IoEvent::StartPlayback(next_track));
+                            self.re_render_lyric(id);
+                            return;
+                        }
+                    } else {
+                        self.next_play_tracks = vec![];
                     }
                 }
             }
+            self.is_next_play = true;
         }
-        let next_index = App::next_index(&list.tracks, Some(current_play_track_index), state);
+
+        let mut list = self.current_play_tracks.clone();
+        if list.tracks.is_empty() {
+            return;
+        }
+        let next_index;
+        if !self.is_next_play {
+            let mut current_play_track_index = 0;
+            if let Some(context) = self.current_playback_context.clone() {
+                if let Some(item) = context.item {
+                    for (i, x) in list.tracks.iter().enumerate() {
+                        if x.id == item.id {
+                            current_play_track_index = i;
+                        }
+                    }
+                }
+            }
+            next_index = App::next_index(&list.tracks, Some(current_play_track_index), state);
+        } else {
+            next_index = App::next_index(&list.tracks, Some(list.selected_index), state);
+        }
         list.selected_index = next_index;
 
         let track = list.tracks.get(next_index.to_owned()).unwrap().to_owned();
@@ -405,7 +440,7 @@ impl App {
     }
 
     pub fn shuffle(&mut self) {
-        let mut list = self.my_play_tracks.clone();
+        let mut list = self.current_play_tracks.clone();
         if list.tracks.is_empty().not() {
             let mut rng = rand::thread_rng();
             let next_index = rng.gen_range(0..list.tracks.len());
@@ -541,7 +576,7 @@ impl Default for App {
             large_search_limit: 20,
             volume: 1f32,
             title: String::from("歌曲列表"),
-            my_play_tracks: Default::default(),
+            current_play_tracks: Default::default(),
             liked_track_ids_set: HashSet::new(),
             lyric_index: 0,
             lyric: None,
@@ -553,6 +588,8 @@ impl Default for App {
             album_detail: None,
             login_info: Default::default(),
             next_play_tracks: vec![],
+            is_next_play: false,
+            next_play_index: 0,
         }
     }
 }

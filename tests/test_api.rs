@@ -10,3 +10,14 @@ fn test() {
     let a = &vec1[offset..(add)];
     println!("{:?}", a);
 }
+
+#[test]
+fn test2() {
+    let mut vec1 = vec![];
+    vec1.push(1);
+    vec1.push(2);
+    // vec1.reverse();
+    // println!("{:?}", vec1);
+
+    println!("{}", vec1.last().unwrap());
+}
