@@ -47,15 +47,9 @@ pub enum TableId {
     #[allow(unused)]
     Artist,
     #[allow(unused)]
-    Podcast,
-    #[allow(unused)]
     Song,
     #[allow(unused)]
     RecentlyPlayed,
-    #[allow(unused)]
-    MadeForYou,
-    #[allow(unused)]
-    PodcastEpisodes,
     #[allow(unused)]
     Lyric,
 }

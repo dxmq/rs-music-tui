@@ -129,12 +129,6 @@ pub fn handle_right_event(app: &mut App) {
     match app.get_current_route().hovered_block {
         ActiveBlock::MyPlaylists | ActiveBlock::SubscribedPlaylists | ActiveBlock::Library => {
             match app.get_current_route().id {
-                RouteId::MadeForYou => {
-                    app.set_current_route_state(
-                        Some(ActiveBlock::MadeForYou),
-                        Some(ActiveBlock::MadeForYou),
-                    );
-                }
                 RouteId::Home => {
                     app.set_current_route_state(Some(ActiveBlock::Home), Some(ActiveBlock::Home));
                 }

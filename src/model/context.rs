@@ -70,8 +70,6 @@ pub enum TrackTableContext {
     RecommendedTracks,
     #[allow(unused)]
     RecentlyPlayed,
-    #[allow(unused)]
-    MadeForYou,
     SearchResult,
     ArtistDetail,
     AlbumDetail,

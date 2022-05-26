@@ -19,7 +19,6 @@ pub fn handler(key: Key, app: &mut App) {
             | ActiveBlock::Artists
             | ActiveBlock::ArtistDetail
             | ActiveBlock::Home
-            | ActiveBlock::MadeForYou
             | ActiveBlock::SubscribedPlaylists
             | ActiveBlock::TrackTable => {
                 app.set_current_route_state(None, Some(ActiveBlock::PlayBar));
@@ -42,7 +41,6 @@ pub fn handler(key: Key, app: &mut App) {
             ActiveBlock::Artists
             | ActiveBlock::ArtistDetail
             | ActiveBlock::Home
-            | ActiveBlock::MadeForYou
             | ActiveBlock::TrackTable
             | ActiveBlock::Lyric => {
                 app.set_current_route_state(None, Some(ActiveBlock::Library));

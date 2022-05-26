@@ -454,9 +454,6 @@ where
         RouteId::Home => {
             draw_home(f, app, chunks[1]);
         }
-        RouteId::MadeForYou => {
-            // draw_made_for_you(f, app, chunks[1]);
-        }
         RouteId::Lyric => {
             // draw playing lyric ui
             draw_lyric(f, app, chunks[1]);
@@ -1392,20 +1389,6 @@ fn draw_table<B>(
                 if let Some(liked_idx) = header.get_index(ColumnId::Liked) {
                     if app.liked_track_ids_set.contains(&item.id) {
                         formatted_row[liked_idx] = app.user_config.padded_liked_icon();
-                    }
-                }
-            }
-            TableId::PodcastEpisodes => {
-                if let Some(name_idx) = header.get_index(ColumnId::Title) {
-                    if let Some(track_playing_offset_index) =
-                        track_playing_index.and_then(|idx| idx.checked_sub(offset))
-                    {
-                        if i == track_playing_offset_index {
-                            formatted_row[name_idx] = format!("▶ {}", &formatted_row[name_idx]);
-                            style = Style::default()
-                                .fg(app.user_config.theme.active)
-                                .add_modifier(Modifier::BOLD);
-                        }
                     }
                 }
             }

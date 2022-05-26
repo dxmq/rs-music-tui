@@ -56,7 +56,6 @@ pub enum ActiveBlock {
     BasicView,
     // 对话框
     Dialog(DialogContext),
-    MadeForYou,
     // 歌曲表格
     TrackTable,
     // 歌词
@@ -73,8 +72,6 @@ pub enum ActiveBlock {
 pub enum RouteId {
     Home,
     Search,
-    #[allow(unused)]
-    MadeForYou,
     Error,
     BasicView,
     Dialog,
@@ -151,7 +148,6 @@ pub struct App {
     // 接口错误
     pub api_error: String,
     pub dialog: Option<Dialog>,
-    pub made_for_you_index: usize,
     pub user: Option<UserProfile>,
     pub is_fetching_current_playback: bool,
     pub large_search_limit: u32,
@@ -568,7 +564,6 @@ impl Default for App {
             library: Library { selected_index: 0 },
             api_error: String::new(),
             dialog: None,
-            made_for_you_index: 0,
             user: None,
             track_table: Default::default(),
             start_time: Instant::now(),
