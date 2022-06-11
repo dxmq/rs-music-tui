@@ -124,10 +124,18 @@ impl<'a> Network<'a> {
             IoEvent::Login(login_form) => {
                 self.login_app(login_form).await;
             }
+            IoEvent::AddToQueue(track) => {
+                self.add_to_queue(track).await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    pub async fn add_to_queue(&mut self, track: Track) {
+        let mut app = self.app.lock().await;
+        app.next_play_tracks.push(track);
     }
 
     pub async fn login_app(&mut self, login_form: LoginForm) {

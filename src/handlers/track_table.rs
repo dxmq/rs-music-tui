@@ -89,7 +89,8 @@ pub fn handler(key: Key, app: &mut App) {
             let (selected_index, tracks) =
                 (&app.track_table.selected_index, &app.track_table.tracks);
             if let Some(track) = tracks.get(*selected_index) {
-                app.next_play_tracks.push(track.clone())
+                let track = track.clone();
+                app.dispatch(IoEvent::AddToQueue(track));
             };
         }
         Key::Enter => {

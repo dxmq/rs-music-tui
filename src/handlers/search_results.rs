@@ -88,6 +88,9 @@ pub fn handler(key: Key, app: &mut App) {
             SearchResultBlock::Empty => {}
             _ => {}
         },
+        k if k == app.user_config.keys.add_item_to_queue => {
+            add_to_queue(app);
+        }
         Key::Enter => match app.search_results.selected_block {
             SearchResultBlock::Empty => handle_enter_event_on_hovered_block(app),
             SearchResultBlock::PlaylistSearch => {
@@ -97,6 +100,17 @@ pub fn handler(key: Key, app: &mut App) {
             _ => handle_enter_event_on_selected_block(app),
         },
         _ => {}
+    }
+}
+
+fn add_to_queue(app: &mut App) {
+    let index = app.search_results.selected_tracks_index;
+    let tracks = app.search_results.tracks.clone();
+    if let Some(tracks) = tracks {
+        if let Some(track) = tracks.get(index.unwrap()) {
+            let track = track.clone();
+            app.dispatch(IoEvent::AddToQueue(track));
+        }
     }
 }
 

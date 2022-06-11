@@ -88,9 +88,23 @@ pub fn handler(key: Key, app: &mut App) {
                     == ArtistBlock::Tracks
                 {}
             }
+            k if k == app.user_config.keys.add_item_to_queue => {
+                add_to_queue(app);
+            }
             _ => {}
         };
     }
+}
+
+fn add_to_queue(app: &mut App) {
+    let (selected_index, tracks) = (
+        app.artist_detail.as_ref().unwrap().selected_track_index,
+        &app.artist_detail.as_ref().unwrap().tracks,
+    );
+    if let Some(track) = tracks.get(selected_index) {
+        let track = track.clone();
+        app.dispatch(IoEvent::AddToQueue(track));
+    };
 }
 
 fn handle_toggle_subscribe_artist_event(app: &mut App) {

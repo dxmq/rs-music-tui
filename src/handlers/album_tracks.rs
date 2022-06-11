@@ -51,6 +51,17 @@ pub fn handler(key: Key, app: &mut App) {
                 app.dispatch(IoEvent::ToggleLikeTrack(id));
             };
         }
+        // 加入下一曲播放队列
+        k if k == app.user_config.keys.add_item_to_queue => {
+            let (selected_index, tracks) = (
+                app.album_detail.as_ref().unwrap().selected_track_index,
+                &app.album_detail.as_ref().unwrap().tracks,
+            );
+            if let Some(track) = tracks.get(selected_index) {
+                let track = track.clone();
+                app.dispatch(IoEvent::AddToQueue(track));
+            };
+        }
         _ => {}
     }
 }

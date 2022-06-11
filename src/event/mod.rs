@@ -39,4 +39,5 @@ pub enum IoEvent {
     // 收藏or取消收藏歌手
     ToggleSubscribeArtist(usize),
     Login(LoginForm),
+    AddToQueue(Track),
 }
