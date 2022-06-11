@@ -1070,7 +1070,7 @@ where
             Span::styled(
                 x.get(0)
                     .unwrap()
-                    .pad_to_width_with_alignment(60, pad::Alignment::Left),
+                    .pad_to_width_with_alignment(58, pad::Alignment::Left),
                 Style::default().fg(Color::Magenta),
             ),
             Span::styled(
@@ -1084,6 +1084,7 @@ where
 
     f.render_widget(
         Paragraph::new(usage)
+            .style(Style::default().add_modifier(Modifier::BOLD))
             .alignment(Alignment::Center)
             .scroll((app.home_scroll, 0)),
         chunks[1],

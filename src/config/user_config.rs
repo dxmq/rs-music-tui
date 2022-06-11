@@ -48,7 +48,6 @@ impl UserConfig {
                 jump_to_start: Key::Ctrl('a'),
                 jump_to_end: Key::Ctrl('e'),
                 jump_to_artist_album: Key::Char('A'),
-                jump_to_context: Key::Char('o'),
                 jump_to_artist_detail: Key::Char('I'),
                 decrease_volume: Key::Char('-'),
                 increase_volume: Key::Char('='),
@@ -58,15 +57,11 @@ impl UserConfig {
                 next_track: Key::Char('n'),
                 previous_track: Key::Char('p'),
                 help: Key::Char('?'),
-                shuffle: Key::Ctrl('s'),
                 repeat: Key::Ctrl('r'),
                 search: Key::Char('/'),
                 submit: Key::Enter,
-                copy_song_url: Key::Char('c'),
-                copy_album_url: Key::Char('C'),
-                audio_analysis: Key::Char('z'),
                 basic_view: Key::Char('B'),
-                add_item_to_queue: Key::Char('v'),
+                add_item_to_queue: Key::Char('V'),
                 show_lyric: Key::Ctrl('l'),
             },
         }
@@ -155,7 +150,6 @@ impl UserConfig {
         to_keys!(jump_to_start);
         to_keys!(jump_to_end);
         to_keys!(jump_to_artist_album);
-        to_keys!(jump_to_context);
         to_keys!(decrease_volume);
         to_keys!(increase_volume);
         to_keys!(toggle_playback);
@@ -164,13 +158,9 @@ impl UserConfig {
         to_keys!(next_track);
         to_keys!(previous_track);
         to_keys!(help);
-        to_keys!(shuffle);
         to_keys!(repeat);
         to_keys!(search);
         to_keys!(submit);
-        to_keys!(copy_song_url);
-        to_keys!(copy_album_url);
-        to_keys!(audio_analysis);
         to_keys!(basic_view);
         to_keys!(add_item_to_queue);
 

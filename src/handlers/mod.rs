@@ -44,7 +44,6 @@ pub fn handle_app(key: Key, app: &mut App) {
         _ if key == app.user_config.keys.basic_view => {
             app.push_navigation_stack(RouteId::BasicView, ActiveBlock::BasicView);
         }
-        _ if key == app.user_config.keys.jump_to_context => {}
         _ if key == app.user_config.keys.toggle_playback => {
             app.toggle_playback();
         }
