@@ -2,6 +2,8 @@ use crate::app::{ActiveBlock, App};
 use crate::config::theme::Theme;
 use crate::handlers::search::SearchResultBlock;
 use crate::model::artist::{Artist, ArtistBlock};
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 use tui::style::Style;
 
 pub const BASIC_VIEW_HEIGHT: u16 = 6;
@@ -32,6 +34,36 @@ pub fn create_artist_string(artists: &[Artist]) -> String {
         .map(|artist| artist.name.clone().unwrap())
         .collect::<Vec<String>>()
         .join(", ")
+}
+
+// 获取歌手string，以/分隔
+pub fn create_artist_string2(artists: &[Artist]) -> String {
+    artists
+        .iter()
+        .map(|artist| artist.name.clone().unwrap())
+        .collect::<Vec<String>>()
+        .join("/")
+}
+
+pub fn get_extension_from_filename(filename: &str) -> Option<&str> {
+    Path::new(filename).extension().and_then(OsStr::to_str)
+}
+
+pub fn get_music_path(
+    url: Option<&str>,
+    cache_dir: &anyhow::Result<PathBuf>,
+    music_name_prefix: &str,
+) -> Option<PathBuf> {
+    let mut suffix = "mp3";
+    if let Some(url) = url {
+        suffix = get_extension_from_filename(url).unwrap();
+    }
+    let file_name = format!("{}.{}", music_name_prefix, suffix);
+    if let Ok(cache_dir) = cache_dir {
+        let p = cache_dir.join(file_name);
+        return Some(p);
+    }
+    None
 }
 
 // 获取播放的进度，确保进度在0-100之间

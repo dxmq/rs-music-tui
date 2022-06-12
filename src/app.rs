@@ -514,6 +514,17 @@ impl App {
         app_dir.unwrap().join(cache_file_name)
     }
 
+    pub fn music_cache_dir(&mut self) -> anyhow::Result<PathBuf> {
+        let app_dir = self.user_config.get_app_dir();
+        let user_id = self.user.clone().unwrap().user_id;
+        let cache_dir = format!("{}_{}", "music", user_id);
+        let cache_dir = app_dir.unwrap().join(cache_dir);
+        if !cache_dir.exists() {
+            std::fs::create_dir(&cache_dir)?;
+        }
+        Ok(cache_dir)
+    }
+
     pub fn read_current_play_context(&mut self) {
         let cache_file_path = self.cache_file_path();
         let json_string = std::fs::read_to_string(&cache_file_path);

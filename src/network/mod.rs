@@ -27,6 +27,7 @@ use crate::model::table::TrackTable;
 use crate::model::track::Track;
 use crate::network::cloud_music::CloudMusic;
 use crate::player::Nplayer;
+use crate::util::{create_artist_string2, get_music_path};
 
 pub(crate) mod cloud_music;
 
@@ -465,10 +466,35 @@ impl<'a> Network<'a> {
                             if track_id == 0 {
                                 return;
                             }
+                            let mut app = self.app.lock().await;
+                            let cache_dir = app.music_cache_dir();
+                            let music_name_prefix =
+                                format!("{}-{}", track.name, create_artist_string2(&track.artists));
+                            if let Some(path) = get_music_path(None, &cache_dir, &music_name_prefix)
+                            {
+                                if path.exists() {
+                                    let file_path = path.to_string_lossy().to_string();
+                                    match self.player.play_file(file_path) {
+                                        Ok(()) => {
+                                            context.is_playing = true;
+                                            app.start_time = Instant::now();
+                                            app.current_playback_context = Some(context);
+
+                                            app.dispatch(IoEvent::GetLyric(track_id, false));
+                                        }
+                                        Err(e) => {
+                                            app.handle_error(e);
+                                        }
+                                    }
+                                    return;
+                                }
+                            }
                             match self.cloud_music.song_url(vec![track.id]).await {
                                 Ok(urls) => {
                                     match self.player.play_url(
-                                        urls.get(0).cloned().unwrap().url.unwrap().as_str(),
+                                        urls.get(0).cloned().unwrap().url.unwrap(),
+                                        cache_dir,
+                                        music_name_prefix,
                                     ) {
                                         Ok(()) => {
                                             context.is_playing = true;
@@ -503,10 +529,50 @@ impl<'a> Network<'a> {
         if track_id == 0 {
             return;
         }
+        let mut app = self.app.lock().await;
+        let cache_dir = app.music_cache_dir();
+        let music_name_prefix = format!("{}-{}", track.name, create_artist_string2(&track.artists));
+        let path = get_music_path(None, &cache_dir, &music_name_prefix);
+        if let Some(path) = path {
+            if path.exists() {
+                let file_path = path.to_string_lossy().to_string();
+                match self.player.play_file(file_path) {
+                    Ok(_) => {
+                        match app.current_playback_context.clone() {
+                            Some(mut context) => {
+                                context.is_playing = true;
+                                context.item = Some(track);
+                                app.current_playback_context = Some(context);
+                            }
+                            None => {
+                                let context = CurrentlyPlaybackContext {
+                                    is_playing: true,
+                                    timestamp: 0,
+                                    currently_playing_type: CurrentlyPlayingType::Track,
+                                    repeat_state: RepeatState::Off,
+                                    item: Some(track),
+                                };
+                                app.current_playback_context = Some(context);
+                            }
+                        }
+
+                        app.start_time = Instant::now();
+                        app.volume = self.player.get_volume();
+                        self.cache_play_record(t, &mut *app);
+                        app.dispatch(IoEvent::GetLyric(track_id, false));
+                        app.seek_ms.take();
+                        app.is_fetching_current_playback = false;
+                    }
+                    Err(e) => {
+                        app.handle_error(e);
+                    }
+                };
+                return;
+            }
+        }
         match self.cloud_music.song_url(vec![track_id]).await {
             Ok(urls) => {
                 if let Some(track_url) = urls.get(0) {
-                    let mut app = self.app.lock().await;
                     if track_url.fee == 1 {
                         if let Some(info) = track_url.free_trial_info.clone() {
                             let duration = (info.end - info.start) * 1000;
@@ -514,10 +580,11 @@ impl<'a> Network<'a> {
                             t.duration = duration;
                         }
                     }
-                    match self
-                        .player
-                        .play_url(track_url.url.clone().unwrap().as_str())
-                    {
+                    match self.player.play_url(
+                        track_url.url.clone().unwrap(),
+                        cache_dir,
+                        music_name_prefix,
+                    ) {
                         Ok(_) => {
                             match app.current_playback_context.clone() {
                                 Some(mut context) => {
@@ -567,7 +634,8 @@ impl<'a> Network<'a> {
                     if new_tracks.len() < 500 {
                         new_tracks.push(t);
                     }
-                    let new_json = serde_json::to_string(&new_tracks).unwrap_or(String::from(""));
+                    let new_json =
+                        serde_json::to_string(&new_tracks).unwrap_or_else(|_| String::from(""));
                     if std::fs::write(&cache_file_path, new_json).is_ok() {};
                     return;
                 }

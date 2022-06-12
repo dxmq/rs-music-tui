@@ -3,9 +3,10 @@ extern crate tempfile;
 extern crate tokio;
 
 use std::fs::File;
+use std::path::PathBuf;
 use std::sync::mpsc::Sender;
+use std::thread;
 use std::time::Duration;
-use std::{fs, thread};
 
 use anyhow::{anyhow, Result};
 use futures::channel::oneshot;
@@ -15,6 +16,7 @@ use rodio::{Decoder, Sink, Source};
 
 use crate::player::fetch::fetch_data;
 use crate::player::track::Track;
+use crate::util::get_music_path;
 
 mod fetch;
 mod track;
@@ -54,8 +56,17 @@ impl Nplayer {
         Nplayer { player: mplayer }
     }
 
-    pub fn play_url(&mut self, url: &str) -> Result<()> {
-        self.player.load(url.to_owned(), true)
+    pub fn play_url(
+        &mut self,
+        url: String,
+        cache_dir: Result<PathBuf>,
+        music_name_prefix: String,
+    ) -> Result<()> {
+        self.player.load(url, true, cache_dir, music_name_prefix)
+    }
+
+    pub fn play_file(&mut self, file_path: String) -> Result<()> {
+        self.player.load_by_file(file_path)
     }
 
     pub fn is_playing(&mut self) -> bool {
@@ -160,19 +171,42 @@ impl Player {
         }
     }
 
-    pub fn load(&mut self, url: String, start_playing: bool) -> Result<()> {
+    pub fn load_by_file(&mut self, file: String) -> Result<()> {
         match &self.current {
-            Some(track) => {
-                fs::remove_file(track.file()).ok();
+            Some(_) => {
                 self.start();
             }
             None => {}
         }
+        self.start_track(file, true)?;
+        Ok(())
+    }
+
+    pub fn load(
+        &mut self,
+        url: String,
+        start_playing: bool,
+        cache_dir: Result<PathBuf>,
+        music_name_prefix: String,
+    ) -> Result<()> {
+        match &self.current {
+            Some(_) => {
+                self.start();
+            }
+            None => {}
+        }
+        // match &self.current {
+        //     Some(track) => {
+        //         fs::remove_file(track.file()).ok();
+        //         self.start();
+        //     }
+        //     None => {}
+        // }
+        let path: Option<PathBuf> = get_music_path(Some(&url), &cache_dir, &music_name_prefix);
 
         let (ptx, mut prx) = oneshot::channel::<String>();
-
         thread::spawn(move || {
-            fetch_data(&url.to_owned(), ptx).expect("error thread task");
+            fetch_data(&url, path, ptx).expect("error thread task");
         });
         if start_playing {
             let mut i = 0;
@@ -180,12 +214,7 @@ impl Player {
                 if i < 3 {
                     if let Ok(p) = prx.try_recv() {
                         if p.is_some() {
-                            let track = Track::load(p.unwrap())?;
-                            let mut track = track;
-                            self.load_track(track.clone(), start_playing)?;
-                            track.resume();
-                            self.current = Some(track);
-                            self.state = PlayerState::Playing {};
+                            self.start_track(p.unwrap(), start_playing)?;
                             break;
                         }
                     }
@@ -197,6 +226,16 @@ impl Player {
                 i += 1;
             }
         }
+        Ok(())
+    }
+
+    pub fn start_track(&mut self, file_path: String, start_playing: bool) -> Result<()> {
+        let track = Track::load(file_path)?;
+        let mut track = track;
+        self.load_track(track.clone(), start_playing)?;
+        track.resume();
+        self.current = Some(track);
+        self.state = PlayerState::Playing {};
         Ok(())
     }
 

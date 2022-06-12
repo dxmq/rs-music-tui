@@ -73,6 +73,7 @@ impl Track {
         self.status.is_stopped()
     }
     /// Returns the path of the song
+    #[allow(unused)]
     pub fn file(&self) -> &str {
         &self.file
     }

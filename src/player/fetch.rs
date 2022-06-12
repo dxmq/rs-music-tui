@@ -1,4 +1,6 @@
+use std::fs::File;
 use std::io::prelude::*;
+use std::path::PathBuf;
 
 use anyhow::Error;
 use futures::channel::oneshot::Sender;
@@ -10,8 +12,16 @@ use reqwest::Method;
 use tempfile::NamedTempFile;
 
 #[tokio::main]
-pub async fn fetch_data(url: &str, tx: Sender<String>) -> Result<(), Error> {
-    // let mut buffer = buffer;
+pub async fn fetch_data(url: &str, path: Option<PathBuf>, tx: Sender<String>) -> Result<(), Error> {
+    let file_path;
+    if let Some(..) = path {
+        file_path = path.unwrap().to_string_lossy().to_string();
+    } else {
+        let file = NamedTempFile::new()?;
+        let temp_path = file.into_temp_path();
+        let path = temp_path.keep()?;
+        file_path = path.to_string_lossy().to_string();
+    }
     let mut headers = HeaderMap::new();
     headers.insert(CACHE_CONTROL, "no-cache".parse().unwrap());
     headers.insert(PRAGMA, "no-cache".parse().unwrap());
@@ -28,18 +38,14 @@ pub async fn fetch_data(url: &str, tx: Sender<String>) -> Result<(), Error> {
         .headers(headers)
         .send()
         .await?;
-    let mut file = NamedTempFile::new()?;
-
+    let mut file = File::create(file_path.as_str()).unwrap();
     while let Some(chunk) = res.chunk().await? {
         Write::write_all(&mut file, &chunk[..]).unwrap();
     }
-    let path = file.into_temp_path();
-    let path = path.keep()?;
-    let file_path = path.to_string_lossy().to_string();
-    send_msg(tx, file_path.as_str());
+    send_msg(tx, file_path);
     Ok(())
 }
 
-fn send_msg(tx: Sender<String>, filename: &str) {
-    tx.send(filename.to_owned()).expect("send error");
+fn send_msg(tx: Sender<String>, filename: String) {
+    tx.send(filename).expect("send error");
 }
