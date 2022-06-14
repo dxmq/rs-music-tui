@@ -42,7 +42,7 @@ pub fn create_artist_string2(artists: &[Artist]) -> String {
         .iter()
         .map(|artist| artist.name.clone().unwrap())
         .collect::<Vec<String>>()
-        .join("/")
+        .join("&")
 }
 
 pub fn get_extension_from_filename(filename: &str) -> Option<&str> {

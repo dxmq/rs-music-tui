@@ -203,7 +203,6 @@ impl Player {
         //     None => {}
         // }
         let path: Option<PathBuf> = get_music_path(Some(&url), &cache_dir, &music_name_prefix);
-
         let (ptx, mut prx) = oneshot::channel::<String>();
         thread::spawn(move || {
             fetch_data(&url, path, ptx).expect("error thread task");

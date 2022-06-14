@@ -13,15 +13,6 @@ use tempfile::NamedTempFile;
 
 #[tokio::main]
 pub async fn fetch_data(url: &str, path: Option<PathBuf>, tx: Sender<String>) -> Result<(), Error> {
-    let file_path;
-    if let Some(..) = path {
-        file_path = path.unwrap().to_string_lossy().to_string();
-    } else {
-        let file = NamedTempFile::new()?;
-        let temp_path = file.into_temp_path();
-        let path = temp_path.keep()?;
-        file_path = path.to_string_lossy().to_string();
-    }
     let mut headers = HeaderMap::new();
     headers.insert(CACHE_CONTROL, "no-cache".parse().unwrap());
     headers.insert(PRAGMA, "no-cache".parse().unwrap());
@@ -38,11 +29,27 @@ pub async fn fetch_data(url: &str, path: Option<PathBuf>, tx: Sender<String>) ->
         .headers(headers)
         .send()
         .await?;
-    let mut file = File::create(file_path.as_str()).unwrap();
-    while let Some(chunk) = res.chunk().await? {
-        Write::write_all(&mut file, &chunk[..]).unwrap();
+    match path {
+        None => {
+            let mut file = NamedTempFile::new()?;
+            while let Some(chunk) = res.chunk().await? {
+                Write::write_all(&mut file, &chunk[..]).unwrap();
+            }
+            let path = file.into_temp_path();
+            let path = path.keep()?;
+            let file_path = path.to_string_lossy().to_string();
+            send_msg(tx, file_path);
+        }
+        Some(path) => {
+            let file_path = path.to_string_lossy().to_string();
+            // println!("{}", file_path);
+            let mut file = File::create(file_path.as_str()).unwrap();
+            while let Some(chunk) = res.chunk().await? {
+                Write::write_all(&mut file, &chunk[..]).unwrap();
+            }
+        }
     }
-    send_msg(tx, file_path);
+
     Ok(())
 }
 

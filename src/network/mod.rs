@@ -466,7 +466,6 @@ impl<'a> Network<'a> {
                             if track_id == 0 {
                                 return;
                             }
-                            let mut app = self.app.lock().await;
                             let cache_dir = app.music_cache_dir();
                             let music_name_prefix =
                                 format!("{}-{}", track.name, create_artist_string2(&track.artists));
@@ -474,6 +473,7 @@ impl<'a> Network<'a> {
                             {
                                 if path.exists() {
                                     let file_path = path.to_string_lossy().to_string();
+                                    // println!("{}", file_path);
                                     match self.player.play_file(file_path) {
                                         Ok(()) => {
                                             context.is_playing = true;
@@ -481,12 +481,12 @@ impl<'a> Network<'a> {
                                             app.current_playback_context = Some(context);
 
                                             app.dispatch(IoEvent::GetLyric(track_id, false));
+                                            return;
                                         }
                                         Err(e) => {
                                             app.handle_error(e);
                                         }
                                     }
-                                    return;
                                 }
                             }
                             match self.cloud_music.song_url(vec![track.id]).await {
@@ -562,12 +562,12 @@ impl<'a> Network<'a> {
                         app.dispatch(IoEvent::GetLyric(track_id, false));
                         app.seek_ms.take();
                         app.is_fetching_current_playback = false;
+                        return;
                     }
                     Err(e) => {
                         app.handle_error(e);
                     }
                 };
-                return;
             }
         }
         match self.cloud_music.song_url(vec![track_id]).await {
