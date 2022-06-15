@@ -3,6 +3,7 @@ use crate::config::theme::Theme;
 use crate::handlers::search::SearchResultBlock;
 use crate::model::artist::{Artist, ArtistBlock};
 use std::ffi::OsStr;
+use std::ops::Add;
 use std::path::{Path, PathBuf};
 use tui::style::Style;
 
@@ -38,11 +39,20 @@ pub fn create_artist_string(artists: &[Artist]) -> String {
 
 // 获取歌手string，以/分隔
 pub fn create_artist_string2(artists: &[Artist]) -> String {
-    artists
-        .iter()
-        .map(|artist| artist.name.clone().unwrap())
-        .collect::<Vec<String>>()
-        .join("&")
+    if artists.len() > 2 {
+        let ar = &artists[0..2];
+        ar.iter()
+            .map(|artist| artist.name.clone().unwrap())
+            .collect::<Vec<String>>()
+            .join("&")
+            .add("...$")
+    } else {
+        artists
+            .iter()
+            .map(|artist| artist.name.clone().unwrap())
+            .collect::<Vec<String>>()
+            .join("&")
+    }
 }
 
 pub fn get_extension_from_filename(filename: &str) -> Option<&str> {
