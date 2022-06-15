@@ -1,6 +1,8 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::PathBuf;
+use std::thread;
+use std::time::Duration;
 
 use anyhow::Error;
 use futures::channel::oneshot::Sender;
@@ -38,6 +40,7 @@ pub async fn fetch_data(url: &str, path: Option<PathBuf>, tx: Sender<String>) ->
             let path = file.into_temp_path();
             let path = path.keep()?;
             let file_path = path.to_string_lossy().to_string();
+            thread::sleep(Duration::from_secs(1));
             send_msg(tx, file_path);
         }
         Some(path) => {
@@ -47,6 +50,8 @@ pub async fn fetch_data(url: &str, path: Option<PathBuf>, tx: Sender<String>) ->
             while let Some(chunk) = res.chunk().await? {
                 Write::write_all(&mut file, &chunk[..]).unwrap();
             }
+            thread::sleep(Duration::from_secs(1));
+            send_msg(tx, file_path);
         }
     }
 
