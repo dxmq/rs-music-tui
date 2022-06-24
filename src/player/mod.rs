@@ -8,7 +8,7 @@ use std::sync::mpsc::Sender;
 use std::thread;
 use std::time::Duration;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use futures::channel::oneshot;
 use log::debug;
 use rodio::decoder::DecoderError;
@@ -208,15 +208,17 @@ impl Player {
             fetch_data(&url, path, ptx).expect("error thread task");
         });
         if start_playing {
-            loop {
+            for i in 0..3 {
                 if let Ok(p) = prx.try_recv() {
                     if p.is_some() {
                         self.start_track(p.unwrap(), start_playing)?;
                         break;
                     }
                 }
-                let t = Duration::from_millis(5000);
-                thread::sleep(t);
+                thread::sleep(Duration::from_secs(2));
+                if i == 3 {
+                    return Err(anyhow!("播放超时，请检查网络连接"));
+                }
             }
         }
         Ok(())

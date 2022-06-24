@@ -181,7 +181,7 @@ impl CloudMusicApi {
             .set_crypto(Eapi)
             .add_cookie("os", "pc")
             .set_api_url("/api/song/enhance/player/url")
-            .set_data(json!({"ids": ids, "br": 999000}));
+            .set_data(json!({"ids": ids, "br": 320000}));
 
         if self
             .client
