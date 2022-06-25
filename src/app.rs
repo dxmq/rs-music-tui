@@ -172,6 +172,7 @@ pub struct App {
     // true代表next_play_index是原来的播放列表播放音乐的下一个，不是当前正在播放的音乐的一曲
     pub is_next_play: bool,
     pub next_play_index: usize,
+    pub retry_count: usize,
 }
 
 impl App {
@@ -285,11 +286,15 @@ impl App {
             } else {
                 self.song_progress_ms = duration_ms.into();
             }
-            if item.duration as u128 - self.song_progress_ms < 1000 {
+            if item.duration as u128 - self.song_progress_ms < 2000 {
+                if self.retry_count > 0 {
+                    return;
+                }
                 let track = item.clone();
                 // 单曲播放次数+1
                 self.dispatch(IoEvent::WebLog(track.id));
                 self.toggle_track(track, ToggleState::Next);
+                self.retry_count += 1;
             }
 
             if playings {
@@ -596,6 +601,7 @@ impl Default for App {
             next_play_tracks: vec![],
             is_next_play: false,
             next_play_index: 0,
+            retry_count: 0,
         }
     }
 }

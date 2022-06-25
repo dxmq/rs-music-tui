@@ -199,7 +199,7 @@ impl<'a> Network<'a> {
                 selected_album_index: 0,
                 selected_simi_artist_index: 0,
                 selected_track_index: 0,
-                artist_detail_selected_block: ArtistBlock::Empty,
+                artist_detail_selected_block: ArtistBlock::Tracks,
                 artist_detail_hovered_block: ArtistBlock::Tracks,
             });
         }
@@ -444,6 +444,7 @@ impl<'a> Network<'a> {
 
     async fn toggle_playback(&mut self) {
         let mut app = self.app.lock().await;
+        app.retry_count = 0;
         let context = app.current_playback_context.clone();
         match context {
             Some(mut context) => {
@@ -530,6 +531,7 @@ impl<'a> Network<'a> {
             return;
         }
         let mut app = self.app.lock().await;
+        app.retry_count = 0;
         let cache_dir = app.music_cache_dir();
         let music_name_prefix = format!("{}-{}", track.name, create_artist_string2(&track.artists));
         let path = get_music_path(None, &cache_dir, &music_name_prefix);
