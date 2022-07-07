@@ -128,10 +128,19 @@ impl<'a> Network<'a> {
             IoEvent::AddToQueue(track) => {
                 self.add_to_queue(track).await;
             }
+            IoEvent::ResetPlay => {
+                self.reset_play().await;
+            }
         }
 
         let mut app = self.app.lock().await;
         app.is_loading = false;
+    }
+
+    pub async fn reset_play(&mut self) {
+        let mut app = self.app.lock().await;
+        self.player.seek(Duration::from_secs(0));
+        app.start_time = Instant::now();
     }
 
     pub async fn add_to_queue(&mut self, track: Track) {

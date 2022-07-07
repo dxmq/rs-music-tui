@@ -40,4 +40,6 @@ pub enum IoEvent {
     ToggleSubscribeArtist(usize),
     Login(LoginForm),
     AddToQueue(Track),
+    // 重置当前播放
+    ResetPlay
 }

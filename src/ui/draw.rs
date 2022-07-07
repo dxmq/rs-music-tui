@@ -328,16 +328,16 @@ where
                 "Paused"
             };
             let play_state_text = match current_playback_context.repeat_state {
-                RepeatState::Off => "顺序播放",
-                RepeatState::Track => "单曲循环",
-                RepeatState::Context => "列表循环",
-                RepeatState::Shuffle => "随机播放",
+                RepeatState::Off => "=",
+                RepeatState::Track => "O1",
+                RepeatState::Context => "O",
+                RepeatState::Shuffle => "X",
             };
             let title = format!(
-                "{:-7} ({:-3} Volume: {:-1}%)",
+                "{:-7} {:-1}% {:-1} ",
                 play_title,
+                (app.volume * 100f32).ceil(), // current_playback_context.device.volume_percent
                 play_state_text,
-                (app.volume * 100f32).ceil() // current_playback_context.device.volume_percent
             );
 
             let current_route = app.get_current_route();
@@ -371,23 +371,28 @@ where
 
             let content = format!("{} | {}", track_name, play_bar_text);
 
-            let lyric_index = app.lyric_index;
-            let lyrics = &app.lyric;
-            let mut lyric_line = "";
-            if let Some(context) = &app.current_playback_context {
-                if context.is_playing {
-                    if let Some(lyrics) = lyrics {
-                        if let Some(lyric) = lyrics.get(lyric_index) {
-                            lyric_line = &lyric.lyric;
+            let mut lines: Text = Text::from(Span::styled(
+                "",
+                Style::default().fg(app.user_config.theme.playbar_text),
+            ));
+            if app.is_show_playbar_lyric {
+                let lyric_index = app.lyric_index;
+                let lyrics = &app.lyric;
+                let mut lyric_line = "";
+                if let Some(context) = &app.current_playback_context {
+                    if context.is_playing {
+                        if let Some(lyrics) = lyrics {
+                            if let Some(lyric) = lyrics.get(lyric_index) {
+                                lyric_line = &lyric.lyric;
+                            }
                         }
                     }
                 }
+                lines = Text::from(Span::styled(
+                    lyric_line,
+                    Style::default().fg(app.user_config.theme.playbar_text),
+                ));
             }
-
-            let lines = Text::from(Span::styled(
-                lyric_line,
-                Style::default().fg(app.user_config.theme.playbar_text),
-            ));
 
             let artist = Paragraph::new(lines)
                 .style(Style::default().fg(app.user_config.theme.playbar_text))
@@ -883,14 +888,17 @@ where
             .collect(),
         None => vec![],
     };
+    // 如果歌曲没有歌词，则显示世界地图
     if lyric_items.is_empty() {
         draw_map(f, app, layout_chunk);
         return;
     }
+    // 有歌词，显示map和歌词，分成两块，当前区块65%显示map，35%显示歌词
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(65), Constraint::Percentage(35)].as_ref())
         .split(layout_chunk);
+    // 渲染map
     draw_map(f, app, chunks[0]);
 
     let current_route = app.get_current_route();
@@ -944,6 +952,7 @@ where
 
     let header = Row::new(header.items.iter().map(|h| h.text))
         .style(Style::default().fg(app.user_config.theme.header));
+    // 渲染歌词table
     let table = Table::new(rows)
         .header(header)
         .block(
@@ -1241,7 +1250,7 @@ where
 
     let format_row =
         |r: Vec<String>| -> Vec<String> { vec![format!("{:50}{:40}{:20}", r[0], r[1], r[2])] };
-    let header = ["描述", "动作", "内容"];
+    let header = ["描述", "动作", "类型"];
     let header = format_row(header.iter().map(|s| s.to_string()).collect());
 
     let help_docs = get_help_docs(&app.user_config.keys);
@@ -1259,6 +1268,7 @@ where
 
     let help_menu = Table::new(rows)
         .header(Row::new(header))
+        .column_spacing(2)
         .block(
             Block::default()
                 .borders(Borders::ALL)

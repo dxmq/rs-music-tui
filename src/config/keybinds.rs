@@ -24,6 +24,8 @@ pub struct KeyBindings {
     pub basic_view: Key,
     pub add_item_to_queue: Key,
     pub show_lyric: Key,
+    pub show_playbar_lyric: Key,
+    pub reset_play: Key,
 }
 
 #[derive(Default, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -49,4 +51,6 @@ pub struct KeyBindingsString {
     pub basic_view: Option<String>,
     pub add_item_to_queue: Option<String>,
     pub show_lyric: Option<String>,
+    pub show_playbar_lyric: Option<String>,
+    pub reset_play: Option<String>,
 }

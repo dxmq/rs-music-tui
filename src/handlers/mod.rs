@@ -56,6 +56,9 @@ pub fn handle_app(key: Key, app: &mut App) {
         _ if key == app.user_config.keys.repeat => {
             app.toggle_play_state();
         }
+        _ if key == app.user_config.keys.reset_play => {
+            app.dispatch(IoEvent::ResetPlay);
+        }
         _ if key == app.user_config.keys.decrease_volume => {
             app.decrease_volume();
         }
@@ -68,6 +71,9 @@ pub fn handle_app(key: Key, app: &mut App) {
                     app.dispatch(IoEvent::GetLyric(item.id, true));
                 }
             }
+        }
+        _ if key == app.user_config.keys.show_playbar_lyric => {
+            app.is_show_playbar_lyric = !app.is_show_playbar_lyric;
         }
         _ if key == app.user_config.keys.seek_forwards => app.dispatch(IoEvent::SeekForwards),
         _ if key == app.user_config.keys.seek_backwards => app.dispatch(IoEvent::SeekBackForwards),

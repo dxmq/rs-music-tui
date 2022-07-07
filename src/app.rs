@@ -173,6 +173,8 @@ pub struct App {
     pub is_next_play: bool,
     pub next_play_index: usize,
     pub retry_count: usize,
+    // 是否在播放条显示歌词
+    pub is_show_playbar_lyric: bool,
 }
 
 impl App {
@@ -602,6 +604,7 @@ impl Default for App {
             is_next_play: false,
             next_play_index: 0,
             retry_count: 0,
+            is_show_playbar_lyric: false,
         }
     }
 }

@@ -63,6 +63,8 @@ impl UserConfig {
                 basic_view: Key::Char('B'),
                 add_item_to_queue: Key::Char('V'),
                 show_lyric: Key::Ctrl('l'),
+                show_playbar_lyric: Key::Ctrl('k'),
+                reset_play: Key::Char('R'),
             },
         }
     }
@@ -163,6 +165,9 @@ impl UserConfig {
         to_keys!(submit);
         to_keys!(basic_view);
         to_keys!(add_item_to_queue);
+        to_keys!(show_lyric);
+        to_keys!(show_playbar_lyric);
+        to_keys!(reset_play);
 
         Ok(())
     }
