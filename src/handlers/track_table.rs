@@ -53,10 +53,10 @@ pub fn handler(key: Key, app: &mut App) {
             );
             app.track_table.selected_index = next_index;
         }
-        k if k == app.user_config.keys.jump_to_end => {
+        k if k == app.user_config.keys.jump_to_start => {
             app.track_table.selected_index = 0;
         }
-        k if k == app.user_config.keys.jump_to_start => {
+        k if k == app.user_config.keys.jump_to_end => {
             app.track_table.selected_index = app.track_table.tracks.len() - 1;
         }
         // 跳转到歌手详情页

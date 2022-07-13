@@ -51,10 +51,10 @@ pub fn handler(key: Key, app: &mut App) {
             );
             app.artists_selected_index = next_index;
         }
-        k if k == app.user_config.keys.jump_to_end => {
+        k if k == app.user_config.keys.jump_to_start => {
             app.artists_selected_index = 0;
         }
-        k if k == app.user_config.keys.jump_to_start => {
+        k if k == app.user_config.keys.jump_to_end => {
             app.artists_selected_index = app.artists.len() - 1;
         }
         k if k == Key::Char('s') => {

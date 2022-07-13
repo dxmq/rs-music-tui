@@ -1057,40 +1057,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "netease-cloud-music-tui"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "backtrace",
- "base64",
- "clap",
- "cookie",
- "crossterm",
- "dirs",
- "futures",
- "hex",
- "log",
- "maybe-async",
- "memory-cache-rs",
- "mp3-duration",
- "openssl",
- "pad",
- "phf",
- "rand",
- "regex",
- "reqwest",
- "rodio",
- "serde",
- "serde_json",
- "serde_yaml",
- "tempfile",
- "tokio",
- "tui",
- "unicode-width",
-]
-
-[[package]]
 name = "nix"
 version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1568,6 +1534,40 @@ dependencies = [
  "hound",
  "lewton",
  "minimp3",
+]
+
+[[package]]
+name = "rs-music-tui"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "backtrace",
+ "base64",
+ "clap",
+ "cookie",
+ "crossterm",
+ "dirs",
+ "futures",
+ "hex",
+ "log",
+ "maybe-async",
+ "memory-cache-rs",
+ "mp3-duration",
+ "openssl",
+ "pad",
+ "phf",
+ "rand",
+ "regex",
+ "reqwest",
+ "rodio",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tempfile",
+ "tokio",
+ "tui",
+ "unicode-width",
 ]
 
 [[package]]
