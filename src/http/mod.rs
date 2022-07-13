@@ -16,7 +16,7 @@ mod route;
 mod store;
 
 const CONFIG_DIR: &str = ".config";
-const APP_CONFIG_DIR: &str = "netease-cloud-music-tui";
+const APP_CONFIG_DIR: &str = "rs-music-tui";
 const COOKIE_FILE_NAME: &str = "cookie";
 
 #[allow(unused)]
@@ -24,7 +24,7 @@ pub async fn login_phone() -> Result<()> {
     let cookie_path = get_or_build_cookie_paths()?;
     if !cookie_path.exists() {
         println!("{}", BANNER);
-        println!(" Login In Netease Cloud Music Tui.");
+        println!(" Login In Rust Music Tui.");
         const MAX_RETRIES: u8 = 5;
         let mut num_retries = 0;
         loop {
@@ -34,7 +34,7 @@ pub async fn login_phone() -> Result<()> {
                 .login_phone(&phone, &password)
                 .await;
             if resp.is_err() {
-                println!("登录失败……");
+                println!("登录失败");
                 println!("{}", "-".repeat(20));
                 num_retries += 1;
                 if num_retries == MAX_RETRIES {

@@ -12,7 +12,7 @@ use crate::config::theme::{Theme, UserTheme};
 use crate::event::Key;
 
 const CONFIG_DIR: &str = ".config";
-const APP_CONFIG_DIR: &str = "netease-cloud-music-tui";
+const APP_CONFIG_DIR: &str = "rs-music-tui";
 const CONFIG_FILE_NAME: &str = "config.yml";
 
 #[derive(Clone)]

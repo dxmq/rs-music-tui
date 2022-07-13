@@ -2,6 +2,7 @@ use crate::app::{ActiveBlock, App};
 use crate::config::theme::Theme;
 use crate::handlers::search::SearchResultBlock;
 use crate::model::artist::{Artist, ArtistBlock};
+use openssl::hash::{hash, MessageDigest};
 use std::ffi::OsStr;
 use std::ops::Add;
 use std::path::{Path, PathBuf};
@@ -155,4 +156,8 @@ pub fn millis_to_minutes(millis: u128) -> String {
     } else {
         format!("{}:{}", minutes, seconds_display)
     }
+}
+
+pub fn md5_encode(data: &[u8]) -> String {
+    hex::encode(hash(MessageDigest::md5(), data).unwrap())
 }

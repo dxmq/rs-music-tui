@@ -44,21 +44,21 @@ impl Default for Theme {
         Theme {
             analysis_bar: Color::LightCyan,
             analysis_bar_text: Color::Reset,
-            active: Color::LightCyan,
-            banner: Color::Rgb(18, 150, 136),
+            active: Color::LightBlue,
+            banner: Color::LightCyan,
             error_border: Color::Red,
             error_text: Color::LightRed,
             hint: Color::Yellow,
             // hovered: Color::Magenta,
             hovered: Color::DarkGray,
-            inactive: Color::Gray,
+            inactive: Color::LightYellow,
             playbar_background: Color::Black,
             playbar_progress: Color::Rgb(18, 150, 136),
             playbar_progress_text: Color::Rgb(18, 150, 136),
             playbar_text: Color::Reset,
-            selected: Color::Rgb(18, 150, 136),
-            text: Color::Reset,
-            header: Color::Reset,
+            selected: Color::LightBlue,
+            text: Color::White,
+            header: Color::LightBlue,
         }
     }
 }

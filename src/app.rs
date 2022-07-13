@@ -21,6 +21,7 @@ use crate::model::playlist::Playlist;
 use crate::model::table::TrackTable;
 use crate::model::track::{Lyric, Track};
 use crate::model::user::UserProfile;
+use crate::util;
 
 pub const DEFAULT_ROUTE: Route = Route {
     id: RouteId::Home,
@@ -514,17 +515,21 @@ impl App {
         self.dispatch(IoEvent::TogglePlayBack);
     }
 
+    pub fn get_md5_uid(&mut self) -> String {
+        let user_id = self.user.clone().unwrap().user_id;
+        return util::md5_encode(user_id.to_string().as_bytes());
+    }
+
     pub fn cache_file_path(&mut self) -> PathBuf {
         let app_dir = self.user_config.get_app_dir();
-        let user_id = self.user.clone().unwrap().user_id;
-        let cache_file_name = format!("recently_{}.json", user_id);
+        let cache_file_name = format!("recently_{}.json", self.get_md5_uid());
         app_dir.unwrap().join(cache_file_name)
     }
 
     pub fn music_cache_dir(&mut self) -> anyhow::Result<PathBuf> {
         let app_dir = self.user_config.get_app_dir();
-        let user_id = self.user.clone().unwrap().user_id;
-        let cache_dir = format!("{}_{}", "music", user_id);
+        // let user_id = self.user.clone().unwrap().user_id;
+        let cache_dir = format!("{}_{}", "music", self.get_md5_uid());
         let cache_dir = app_dir.unwrap().join(cache_dir);
         if !cache_dir.exists() {
             std::fs::create_dir(&cache_dir)?;
@@ -607,4 +612,11 @@ impl Default for App {
             is_show_playbar_lyric: false,
         }
     }
+}
+
+#[test]
+pub fn test() {
+    let str = "123456";
+    let string1 = hex::encode(hash(MessageDigest::md5(), str.as_bytes()).unwrap());
+    println!("{:?}", string1);
 }
